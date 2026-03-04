@@ -41,9 +41,6 @@ use App\Http\Controllers\SuratController;
 use App\Http\Controllers\Admin\layanansurat\ArsipController;
 use App\Http\Controllers\Admin\layanansurat\SuratTemplateController;
 use App\Http\Controllers\Admin\layanansurat\LetterController;
-        use App\Http\Controllers\Admin\PersyaratanController;
-        
-
 
 // Bantuan
 use App\Http\Controllers\Admin\Bantuan\BantuanController;
@@ -185,6 +182,116 @@ Route::middleware('guest')->group(function () {
 */
 
 Route::prefix('warga')->name('warga.')->middleware(['auth', 'role:warga'])->group(function () {
+    
+    // ── NOTIFIKASI WARGA — endpoint polling (mirip /admin/notifikasi/badges) ──
+    Route::get('/notifikasi/badges', function () {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        // Unread pesan dari admin
+        $unreadPesan = class_exists(\App\Models\Pesan::class)
+            ? \App\Models\Pesan::where('penerima_id', $user->id)
+            ->where('sudah_dibaca', false)
+            ->count()
+            : 0;
+
+        // Permohonan surat yang statusnya berubah (bukan "menunggu" lagi)
+        // Kita anggap notif muncul jika ada permohonan yang sudah diproses
+        // dan warga belum "membaca" update statusnya.
+        // Kita pakai kolom `notif_dibaca` di tabel surat_permohonan jika ada,
+        // atau fallback: hitung surat yang statusnya bukan menunggu dan updated_at < 7 hari
+        $updateSurat = 0;
+        if (class_exists(\App\Models\SuratPermohonan::class)) {
+            $updateSurat = \App\Models\SuratPermohonan::where('user_id', $user->id)
+                ->whereNotIn('status', ['menunggu', 'diajukan'])
+                ->where('notif_dibaca', false) // kolom opsional — lihat catatan di bawah
+                ->count();
+        }
+
+        return response()->json([
+            'unread_pesan'  => $unreadPesan,
+            'update_surat'  => $updateSurat,
+            'total'         => $unreadPesan + $updateSurat,
+        ]);
+    })->name('notifikasi.badges');
+
+    // ── Tandai notifikasi surat sudah dibaca ──
+    Route::post('/notifikasi/surat-dibaca', function () {
+        if (class_exists(\App\Models\SuratPermohonan::class)) {
+            \App\Models\SuratPermohonan::where('user_id', Auth::id())
+                ->whereNotIn('status', ['menunggu', 'diajukan'])
+                ->where('notif_dibaca', false)
+                ->update(['notif_dibaca' => true]);
+        }
+        return response()->json(['ok' => true]);
+    })->name('notifikasi.surat-dibaca');
+
+    // ── Daftar notifikasi terbaru (untuk dropdown) ──
+    Route::get('/notifikasi/list', function () {
+        $user = Auth::user();
+        $items = [];
+
+        // 1. Pesan masuk terbaru (maks 5)
+        if (class_exists(\App\Models\Pesan::class)) {
+            $pesanList = \App\Models\Pesan::where('penerima_id', $user->id)
+                ->orderByDesc('created_at')
+                ->limit(5)
+                ->get();
+
+            foreach ($pesanList as $p) {
+                $items[] = [
+                    'id'          => 'pesan-' . $p->id,
+                    'tipe'        => 'pesan',
+                    'judul'       => 'Pesan Masuk',
+                    'pesan'       => \Illuminate\Support\Str::limit($p->isi ?? $p->subjek ?? 'Pesan baru dari desa', 60),
+                    'url'         => route('warga.pesan.show', $p->id),
+                    'dibaca'      => (bool) $p->sudah_dibaca,
+                    'waktu'       => $p->created_at->diffForHumans(),
+                    'waktu_raw'   => $p->created_at->toISOString(),
+                ];
+            }
+        }
+
+        // 2. Update status surat terbaru (maks 5)
+        if (class_exists(\App\Models\SuratPermohonan::class)) {
+            $suratList = \App\Models\SuratPermohonan::where('user_id', $user->id)
+                ->whereNotIn('status', ['menunggu', 'diajukan'])
+                ->orderByDesc('updated_at')
+                ->limit(5)
+                ->get();
+
+            foreach ($suratList as $s) {
+                $statusLabel = match ($s->status) {
+                    'diproses'            => 'Sedang Diproses',
+                    'selesai', 'approved' => 'Surat Selesai',
+                    'ditolak', 'rejected' => 'Surat Ditolak',
+                    default               => ucfirst($s->status),
+                };
+                $tipe = match ($s->status) {
+                    'selesai', 'approved' => 'success',
+                    'ditolak', 'rejected' => 'danger',
+                    default               => 'info',
+                };
+                $items[] = [
+                    'id'        => 'surat-' . $s->id,
+                    'tipe'      => $tipe,
+                    'judul'     => 'Status Surat: ' . $statusLabel,
+                    'pesan'     => 'Permohonan surat Anda (' . ($s->jenis_surat ?? $s->nama_surat ?? 'Surat') . ') telah diperbarui.',
+                    'url'       => route('warga.surat.index'),
+                    'dibaca'    => (bool) ($s->notif_dibaca ?? true),
+                    'waktu'     => $s->updated_at->diffForHumans(),
+                    'waktu_raw' => $s->updated_at->toISOString(),
+                ];
+            }
+        }
+
+        // Urutkan dari terbaru
+        usort($items, fn($a, $b) => strcmp($b['waktu_raw'], $a['waktu_raw']));
+
+        return response()->json([
+            'items' => array_slice($items, 0, 8),
+        ]);
+    })->name('notifikasi.list');
 
     Route::get('/dashboard', function () {
         return view('warga.dashboard');
@@ -512,31 +619,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
     | LAYANAN SURAT
     |--------------------------------------------------------------------------
     */
-   Route::prefix('layanan-surat')->name('layanan-surat.')->group(function () {
+    Route::prefix('layanan-surat')->name('layanan-surat.')->group(function () {
 
-    /*
-    |-----------------------------------------
-    | 1. Persyaratan
-    |-----------------------------------------
-    */
-    Route::prefix('persyaratan')->name('persyaratan.')->controller(PersyaratanController::class)->group(function () {
-
-        Route::get('/', 'index')->name('index');
-        Route::get('/create', 'create')->name('create');
-        Route::post('/', 'store')->name('store');
-        Route::get('/{id}/edit', 'edit')->name('edit');
-        Route::put('/{id}', 'update')->name('update');
-        Route::delete('/{id}', 'destroy')->name('destroy');
-
-    });
-
-
-    /*
-    |-----------------------------------------
-    | 2. Template Surat
-    |-----------------------------------------
-    */
-    // Bungkus dalam prefix 'admin' agar URL menjadi: domain.com/admin/template
+        // Pengaturan Template Surat
         Route::prefix('pengaturan')->name('template-surat.')->group(function () {
             Route::get('/', [SuratTemplateController::class, 'index'])->name('index');
             Route::get('/create', [SuratTemplateController::class, 'create'])->name('create');
@@ -544,55 +629,42 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
             Route::get('/{id}/edit', [SuratTemplateController::class, 'edit'])->name('edit');
             Route::put('/{id}', [SuratTemplateController::class, 'update'])->name('update');
             Route::delete('/{id}', [SuratTemplateController::class, 'destroy'])->name('destroy');
-});
+        });
 
+        // Cetak Surat
+        Route::prefix('cetak')->name('cetak.')->group(function () {
+            Route::get('/', [LetterController::class, 'index'])->name('index');
+            Route::get('/create', [LetterController::class, 'create'])->name('create');
+            Route::post('/', [LetterController::class, 'store'])->name('store');
+            Route::post('/template', [LetterController::class, 'generateFromTemplate'])->name('template');
+            Route::get('/live-search-nik', [LetterController::class, 'liveSearchNik'])->name('liveSearchNik');
+            Route::get('/get-data/{nik}', [LetterController::class, 'getDataByNik'])->name('getDataByNik');
+            Route::get('/{id}', [LetterController::class, 'show'])->name('show');
+            Route::get('/{id}/print', [LetterController::class, 'cetak'])->name('print');
+            Route::get('/penduduk/{nik}', [LetterController::class, 'getPendudukData'])->name('getPenduduk');
+        });
 
-    /*
-    |-----------------------------------------
-    | 3. Cetak Surat
-    |-----------------------------------------
-    */
-    // Pastikan grup ini berada di tempat yang semestinya di web.php
-Route::prefix('cetak')->name('cetak.')->controller(LetterController::class)->group(function () {
-    
-    Route::get('/', 'index')->name('index');
-    Route::get('/create', 'create')->name('create');
-    
-    // Alur Preview & Edit (Method yang dicari Blade kamu)
-    Route::post('/preview', 'preview')->name('preview');
-
-    // Alur Final Simpan & Cetak
-    Route::post('/generate-final', 'generateFinal')->name('generateFinal');
-
-    // Ajax & Search
-    Route::get('/live-search-nik', 'liveSearchNik')->name('liveSearchNik');
-    Route::get('/get-data/{nik}', 'getDataByNik')->name('getDataByNik');
-    Route::get('/penduduk/{nik}', 'getPendudukData')->name('getPenduduk');
-
-    Route::get('/{id}', 'show')->name('show');
-    Route::get('/{id}/print', 'cetak')->name('print');
-    Route::post('/store', 'store')->name('store');
-});
-
-
-    /*
-    |-----------------------------------------
-    | 4. Permohonan Surat
-    |-----------------------------------------
-    */
-    Route::get('/permohonan', [AdminSuratController::class, 'permohonan'])->name('permohonan.index');
+        // Permohonan Surat (Dari Warga)
+        Route::get('/permohonan', [AdminSuratController::class, 'permohonan'])->name('permohonan.index');
         Route::get('/permohonan/{id}', [AdminSuratController::class, 'showPermohonan'])->name('permohonan.show');
         Route::put('/permohonan/{id}/status', [AdminSuratController::class, 'updateStatusPermohonan'])->name('permohonan.update-status');
 
-    /*
-    |-----------------------------------------
-    | 5. Arsip Surat
-    |-----------------------------------------
-    */
+        // Arsip Surat
         Route::get('/arsip', [AdminSuratController::class, 'arsip'])->name('arsip');
         Route::delete('/arsip/{id}', [AdminSuratController::class, 'destroyArsip'])->name('arsip.destroy');
+    });
 
-});
+    // Cetak Surat (CetakSuratController)
+    Route::prefix('layanan-surat/cetak-surat')->name('layanan-surat.cetak-surat.')->group(function () {
+        Route::get('/', [LetterController::class, 'index'])->name('index');
+        Route::post('/', [LetterController::class, 'store'])->name('store');
+        Route::get('/{id}', [LetterController::class, 'show'])->name('show');
+        Route::get('/{id}/edit', [LetterController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [LetterController::class, 'update'])->name('update');
+        Route::delete('/{id}', [LetterController::class, 'destroy'])->name('destroy');
+        Route::get('/{id}/print', [LetterController::class, 'cetak'])->name('print');
+        Route::get('/penduduk/{nik}', [LetterController::class, 'getPendudukData'])->name('getPenduduk');
+    });
 
     /*
     |--------------------------------------------------------------------------

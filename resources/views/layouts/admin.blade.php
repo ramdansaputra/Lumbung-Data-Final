@@ -1086,8 +1086,8 @@
                             ? \App\Models\LayananSurat::where('status', 'menunggu')->count()
                             : 0;
                     @endphp
-                    <a href="/admin/layanan-surat/arsip" title="Arsip Layanan"
-                        class="relative p-2 rounded-lg transition-all {{ request()->is('admin/layanan-surat/arsip*') ? 'bg-emerald-50 text-emerald-600' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100' }}">
+                   <a href="/admin/layanan-surat/permohonan" title="Permohonan Surat"
+                        class="relative p-2 rounded-lg transition-all {{ request()->is('admin/layanan-surat/permohonan*') ? 'bg-emerald-50 text-emerald-600' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100' }}">
                         <svg class="w-5 h-5 transition-transform" :class="bellRinging ? 'bell-ring' : ''"
                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
