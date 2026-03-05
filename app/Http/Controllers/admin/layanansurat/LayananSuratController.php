@@ -13,16 +13,15 @@ class LayananSuratController extends Controller {
     /**
      * Display pengaturan layanan surat page
      */
-    public function pengaturan()
-{
-    $templates = TemplateSurat::with('jenisSurat')->get();
-    // INI KODE YANG BENAR
-    $jenisSurat = JenisSurat::where('is_active', true)->get();
+    public function pengaturan() {
+        $templates = TemplateSurat::with('jenisSurat')->get();
+        // INI KODE YANG BENAR
+        $jenisSurat = JenisSurat::where('is_active', true)->get();
 
-    return view('admin.layanan-surat.pengaturan', compact(
-        'templates',
-        'jenisSurat'
-    ));
+        return view('admin.layanan-surat.pengaturan', compact(
+            'templates',
+            'jenisSurat'
+        ));
     }
 
     /**
@@ -34,11 +33,10 @@ class LayananSuratController extends Controller {
         return view('admin.layanan-surat.cetak', compact('templates'));
     }
 
-/**
+    /**
      * Display permohonan surat page (Index Table)
      */
-    public function permohonan(Request $request) 
-    {
+    public function permohonan(Request $request) {
         // Panggil relasi untuk mencegah N+1 Query
         $query = SuratPermohonan::with(['penduduk', 'jenisSurat']);
 
@@ -50,9 +48,9 @@ class LayananSuratController extends Controller {
         // 2. Fitur Search (Cari NIK atau Nama)
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->whereHas('penduduk', function($q) use ($search) {
+            $query->whereHas('penduduk', function ($q) use ($search) {
                 $q->where('nama', 'like', "%{$search}%")
-                  ->orWhere('nik', 'like', "%{$search}%");
+                    ->orWhere('nik', 'like', "%{$search}%");
             });
         }
 
@@ -66,10 +64,9 @@ class LayananSuratController extends Controller {
     /**
      * Show detail permohonan surat
      */
-    public function showPermohonan($id)
-    {
+    public function showPermohonan($id) {
         $permohonan = SuratPermohonan::with(['penduduk', 'jenisSurat'])->findOrFail($id);
-        
+
         return view('admin.layanan-surat.permohonan.show', compact('permohonan'));
     }
 
@@ -87,6 +84,7 @@ class LayananSuratController extends Controller {
         $permohonan->update([
             'status'          => $request->status,
             'catatan_petugas' => $request->catatan_petugas,
+            'notif_dibaca'    => false, // ← trigger bell warga
         ]);
 
         // ── Kirim pesan otomatis ke warga via tabel `pesan` ──────────────────
@@ -108,7 +106,7 @@ class LayananSuratController extends Controller {
                 ?? $permohonan->nama_surat
                 ?? 'Surat';
 
-            $isiPesan = "📄 *Update Status Permohonan Surat*\n\n"
+            $isiPesan = "📋 *Update Status Permohonan Surat*\n\n"
                 . "Jenis Surat : {$namaSurat}\n"
                 . "Status Baru : {$labelStatus}";
 
@@ -131,8 +129,7 @@ class LayananSuratController extends Controller {
     /**
      * Display arsip surat page
      */
-    public function arsip(Request $request) 
-    {
+    public function arsip(Request $request) {
         // 1. Inisiasi Query Data (Relasi ke Penduduk & JenisSurat)
         $query = SuratPermohonan::with(['penduduk', 'jenisSurat']);
 
@@ -154,9 +151,9 @@ class LayananSuratController extends Controller {
         // 5. Fitur Search (Pencarian Teks)
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->whereHas('penduduk', function($q) use ($search) {
+            $query->whereHas('penduduk', function ($q) use ($search) {
                 $q->where('nama', 'like', "%{$search}%")
-                  ->orWhere('nik', 'like', "%{$search}%");
+                    ->orWhere('nik', 'like', "%{$search}%");
             });
         }
 
@@ -172,20 +169,24 @@ class LayananSuratController extends Controller {
         // 8. Data Pendukung untuk Dropdown Filter
         $jenisSuratList = JenisSurat::all();
         // Generate list 5 tahun terakhir
-        $tahunList = range(date('Y'), date('Y') - 5); 
+        $tahunList = range(date('Y'), date('Y') - 5);
 
         return view('admin.layanan-surat.arsip', compact(
-            'arsip', 'statPermohonan', 'statArsip', 'statDitolak', 'jenisSuratList', 'tahunList'
+            'arsip',
+            'statPermohonan',
+            'statArsip',
+            'statDitolak',
+            'jenisSuratList',
+            'tahunList'
         ));
     }
 
     /**
      * Hapus Arsip/Permohonan (Aksi Tombol Tong Sampah)
      */
-    public function destroyArsip($id)
-    {
+    public function destroyArsip($id) {
         $permohonan = SuratPermohonan::findOrFail($id);
-        
+
         // Hapus file lampiran jika ada
         if ($permohonan->dokumen_pendukung) {
             \Illuminate\Support\Facades\Storage::disk('public')->delete($permohonan->dokumen_pendukung);
@@ -210,35 +211,34 @@ class LayananSuratController extends Controller {
     /**
      * Store template settings
      */
-    public function storeTemplate(Request $request)
-{
-    $validated = $request->validate([
-        'jenis_surat_id' => 'required|exists:jenis_surat,id',
-        'nama_template'  => 'required|string|max:255',
-        'versi_template' => 'required|string|max:100',
-        'file_template'  => 'nullable|file|mimes:doc,docx,pdf|max:5120',
-        'tanggal_berlaku'=> 'nullable|date',
-        'is_active'      => 'nullable|boolean',
-    ]);
+    public function storeTemplate(Request $request) {
+        $validated = $request->validate([
+            'jenis_surat_id' => 'required|exists:jenis_surat,id',
+            'nama_template'  => 'required|string|max:255',
+            'versi_template' => 'required|string|max:100',
+            'file_template'  => 'nullable|file|mimes:doc,docx,pdf|max:5120',
+            'tanggal_berlaku' => 'nullable|date',
+            'is_active'      => 'nullable|boolean',
+        ]);
 
-    $filePath = null;
+        $filePath = null;
 
-    if ($request->hasFile('file_template')) {
-        $filePath = $request->file('file_template')
-                            ->store('Surat/Template', 'public');
+        if ($request->hasFile('file_template')) {
+            $filePath = $request->file('file_template')
+                ->store('Surat/Template', 'public');
+        }
+
+        TemplateSurat::create([
+            'jenis_surat_id' => $validated['jenis_surat_id'],
+            'nama_template'  => $validated['nama_template'],
+            'versi_template' => $validated['versi_template'],
+            'file_template'  => $filePath, // ← ini WAJIB sama dengan nama kolom
+            'tanggal_berlaku' => $validated['tanggal_berlaku'] ?? null,
+            'is_active'      => $request->has('is_active'),
+        ]);
+
+        return back()->with('success', 'Template berhasil disimpan');
     }
-
-    TemplateSurat::create([
-        'jenis_surat_id' => $validated['jenis_surat_id'],
-        'nama_template'  => $validated['nama_template'],
-        'versi_template' => $validated['versi_template'],
-        'file_template'  => $filePath, // ← ini WAJIB sama dengan nama kolom
-        'tanggal_berlaku'=> $validated['tanggal_berlaku'] ?? null,
-        'is_active'      => $request->has('is_active'),
-    ]);
-
-    return back()->with('success', 'Template berhasil disimpan');
-}
 
 
     /**
@@ -280,41 +280,40 @@ class LayananSuratController extends Controller {
     /**
      * Update template settings
      */
-    public function updateTemplate(Request $request, $id)
-{
-    $template = TemplateSurat::findOrFail($id);
+    public function updateTemplate(Request $request, $id) {
+        $template = TemplateSurat::findOrFail($id);
 
-    $validated = $request->validate([
-        'jenis_surat_id' => 'required|exists:jenis_surat,id',
-        'nama_template'  => 'required|string|max:255',
-        'versi_template' => 'required|string|max:100',
-        'file_template'  => 'nullable|file|mimes:doc,docx,pdf|max:5120',
-        'tanggal_berlaku'=> 'nullable|date',
-        'is_active'      => 'nullable|in:1',
-    ]);
+        $validated = $request->validate([
+            'jenis_surat_id' => 'required|exists:jenis_surat,id',
+            'nama_template'  => 'required|string|max:255',
+            'versi_template' => 'required|string|max:100',
+            'file_template'  => 'nullable|file|mimes:doc,docx,pdf|max:5120',
+            'tanggal_berlaku' => 'nullable|date',
+            'is_active'      => 'nullable|in:1',
+        ]);
 
-    // Jika upload file baru
-    if ($request->hasFile('file_template')) {
+        // Jika upload file baru
+        if ($request->hasFile('file_template')) {
 
-        if ($template->file_path) {
-            Storage::delete($template->file_path);
+            if ($template->file_path) {
+                Storage::delete($template->file_path);
+            }
+
+            $path = $request->file('file_template')
+                ->store('public/Surat/Template');
+
+            $validated['file_path'] = $path;
+            $validated['original_name'] = $request->file('file_template')->getClientOriginalName();
         }
 
-        $path = $request->file('file_template')
-                        ->store('public/Surat/Template');
+        $validated['is_active'] = $request->has('is_active');
 
-        $validated['file_path'] = $path;
-        $validated['original_name'] = $request->file('file_template')->getClientOriginalName();
+        $template->update($validated);
+
+        return redirect()
+            ->route('admin.layanan-surat.pengaturan')
+            ->with('success', 'Template berhasil diperbarui');
     }
-
-    $validated['is_active'] = $request->has('is_active');
-
-    $template->update($validated);
-
-    return redirect()
-        ->route('admin.layanan-surat.pengaturan')
-        ->with('success', 'Template berhasil diperbarui');
-}
 
     // ============================================
     // CETAK METHODS
@@ -486,17 +485,15 @@ class LayananSuratController extends Controller {
             ->with('info', 'Fitur cetak dalam pengembangan');
     }
 
-    public function destroyTemplate($id)
-{
-    $template = TemplateSurat::findOrFail($id);
+    public function destroyTemplate($id) {
+        $template = TemplateSurat::findOrFail($id);
 
-    if ($template->file_template) {
-        Storage::disk('public')->delete($template->file_template);
+        if ($template->file_template) {
+            Storage::disk('public')->delete($template->file_template);
+        }
+
+        $template->delete();
+
+        return back()->with('success', 'Template berhasil dihapus');
     }
-
-    $template->delete();
-
-    return back()->with('success', 'Template berhasil dihapus');
-}
-    
 }

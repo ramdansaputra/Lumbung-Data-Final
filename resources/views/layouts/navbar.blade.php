@@ -2,10 +2,50 @@
     $identitas_nav = \App\Models\IdentitasDesa::first();
 @endphp
 
+{{-- ── Animasi bell ── --}}
+<style>
+    @keyframes bell-ring {
+        0%,  100% { transform: rotate(0deg);   }
+        15%        { transform: rotate(15deg);  }
+        30%        { transform: rotate(-12deg); }
+        45%        { transform: rotate(10deg);  }
+        60%        { transform: rotate(-8deg);  }
+        75%        { transform: rotate(5deg);   }
+        90%        { transform: rotate(-3deg);  }
+    }
+    .bell-ring { animation: bell-ring 0.6s ease-in-out; }
+
+    {{-- ✅ FIX BADGE: paksa badge tetap di pojok kanan atas --}}
+    .notif-bell-wrap { position: relative; display: inline-block; }
+    .notif-badge {
+        position: absolute !important;
+        top: -4px !important;
+        right: -4px !important;
+        z-index: 50;
+        min-width: 18px;
+        height: 18px;
+        background: #ef4444;
+        color: #fff;
+        font-size: 10px;
+        font-weight: 700;
+        border-radius: 9999px;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        padding: 0 3px;
+        box-shadow: 0 1px 2px rgba(0,0,0,.2);
+        outline: 2px solid #fff;
+        pointer-events: none;
+        transition: opacity 0.2s;
+    }
+    .notif-badge.hidden-badge { opacity: 0; }
+</style>
+
 <nav class="bg-white/95 backdrop-blur-md shadow-sm sticky top-0 z-50 border-b border-slate-100 transition-all duration-300">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-20">
-            
+
+            {{-- ── Logo ── --}}
             <div class="flex-shrink-0 flex items-center gap-3">
                 @if($identitas_nav && $identitas_nav->logo_desa && file_exists(storage_path('app/public/logo-desa/'.$identitas_nav->logo_desa)))
                     <img src="{{ asset('storage/logo-desa/'.$identitas_nav->logo_desa) }}" alt="Logo Desa" class="h-10 w-10 object-contain drop-shadow-sm">
@@ -14,7 +54,6 @@
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                     </div>
                 @endif
-                
                 <div class="flex flex-col">
                     <h1 class="text-lg font-bold text-slate-800 leading-tight tracking-tight">
                         {{ $identitas_nav->nama_desa ?? config('app.name', 'Pemerintah Desa') }}
@@ -25,13 +64,15 @@
                 </div>
             </div>
 
+            {{-- ── Menu Desktop ── --}}
             <div class="hidden xl:flex items-center justify-center gap-6 2xl:gap-8 h-full">
-                
+
                 <a href="{{ route('home') }}" class="h-full flex items-center text-sm font-medium transition duration-300 relative group {{ request()->routeIs('home') ? 'text-emerald-600' : 'text-slate-600 hover:text-emerald-600' }}">
                     Beranda
                     <span class="absolute bottom-0 left-0 h-0.5 bg-emerald-600 transition-all duration-300 {{ request()->routeIs('home') ? 'w-full' : 'w-0 group-hover:w-full' }}"></span>
                 </a>
 
+                {{-- Profil Desa --}}
                 <div class="relative group h-full flex items-center">
                     <button class="flex items-center gap-1 text-sm font-medium text-slate-600 group-hover:text-emerald-600 transition duration-300 h-full">
                         Profil Desa
@@ -67,6 +108,7 @@
                     </div>
                 </div>
 
+                {{-- Layanan Publik --}}
                 <div class="relative group h-full flex items-center">
                     <button class="flex items-center gap-1 text-sm font-medium text-slate-600 group-hover:text-emerald-600 transition duration-300 h-full">
                         Layanan Publik
@@ -90,6 +132,7 @@
                     </div>
                 </div>
 
+                {{-- Informasi --}}
                 <div class="relative group h-full flex items-center">
                     <button class="flex items-center gap-1 text-sm font-medium text-slate-600 group-hover:text-emerald-600 transition duration-300 h-full">
                         Informasi
@@ -116,15 +159,15 @@
 
             </div>
 
+            {{-- ── Kanan: Auth Buttons ── --}}
             <div class="hidden xl:flex items-center gap-4">
                 @guest
-                    <a href="{{ route('aktivasi.index') }}" 
-                    class="text-sm font-semibold gap-2 w-full px-4 py-3 bg-slate-200 text-slate-600 rounded-2xl hover:bg-slate-300 hover:text-emerald-700 transition duration-300">
+                    <a href="{{ route('aktivasi.index') }}"
+                       class="text-sm font-semibold px-4 py-3 bg-slate-200 text-slate-600 rounded-2xl hover:bg-slate-300 hover:text-emerald-700 transition duration-300">
                         Aktivasi Akun
                     </a>
-
-                    <a href="{{ route('login') }}" 
-                    class="group flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-2xl shadow-lg shadow-emerald-600/20 hover:shadow-emerald-600/40 transition-all duration-300">
+                    <a href="{{ route('login') }}"
+                       class="group flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-2xl shadow-lg shadow-emerald-600/20 hover:shadow-emerald-600/40 transition-all duration-300">
                         <span>Masuk</span>
                         <svg class="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
@@ -133,29 +176,148 @@
                 @endguest
 
                 @auth
-                    @php
-                        // Hitung jumlah pesan masuk yang belum dibaca khusus untuk warga/user yang sedang login
-                        $unreadWargaPesan = class_exists(\App\Models\Pesan::class) 
-                            ? \App\Models\Pesan::where('penerima_id', Auth::id())->where('sudah_dibaca', false)->count() 
-                            : 0;
-                    @endphp
-                    
                     @if(Auth::user()->role == 'warga')
-                    <a href="{{ route('warga.pesan.index') }}" class="relative p-2 text-slate-400 hover:text-emerald-600 transition-colors mr-2">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                        
-                        @if($unreadWargaPesan > 0)
-                        <span class="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white">
-                            {{ $unreadWargaPesan > 9 ? '9+' : $unreadWargaPesan }}
-                        </span>
-                        @endif
-                    </a>
+
+                        {{-- ════════════════ BELL NOTIFIKASI WARGA ════════════════ --}}
+                        {{--
+                            PENTING:
+                            - Gunakan x-data di div wrapper, BUKAN di button
+                            - Badge pakai class CSS murni (notif-badge), BUKAN x-show
+                              karena x-show inject style="display:none" yang confict dengan
+                              positioning absolute. Ganti pakai :class opacity.
+                        --}}
+                        <div x-data="wargaNotifApp()" x-init="init()" class="notif-bell-wrap">
+
+                            {{-- Tombol Bell --}}
+                            <button
+                                @click="toggleDropdown()"
+                                class="p-2 rounded-lg transition-all"
+                                :class="dropdownOpen
+                                    ? 'bg-emerald-50 text-emerald-600'
+                                    : 'text-slate-400 hover:text-emerald-600 hover:bg-emerald-50'">
+
+                                {{-- Icon Bell --}}
+                                <svg class="w-6 h-6"
+                                     :class="bellRinging ? 'bell-ring' : ''"
+                                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                                </svg>
+
+                                {{-- ✅ BADGE: pakai :class opacity, BUKAN x-show/display --}}
+                                <span
+                                    class="notif-badge"
+                                    :class="totalNotif <= 0 ? 'hidden-badge' : ''"
+                                    x-text="totalNotif > 99 ? '99+' : totalNotif">
+                                </span>
+                            </button>
+
+                            {{-- Dropdown Panel --}}
+                            <div
+                                x-show="dropdownOpen"
+                                x-transition:enter="transition ease-out duration-200"
+                                x-transition:enter-start="opacity-0 scale-95 -translate-y-2"
+                                x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                                x-transition:leave="transition ease-in duration-150"
+                                x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                                x-transition:leave-end="opacity-0 scale-95 -translate-y-2"
+                                @click.away="dropdownOpen = false"
+                                class="absolute right-0 w-80 bg-white rounded-2xl shadow-2xl border border-slate-100 z-[200] flex flex-col overflow-hidden"
+                                style="top: calc(100% + 8px); display:none; max-height:420px;">
+
+                                {{-- Header --}}
+                                <div class="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-emerald-600 to-teal-600">
+                                    <div class="flex items-center gap-2">
+                                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                                        </svg>
+                                        <span class="text-white font-semibold text-sm">Notifikasi</span>
+                                    </div>
+                                    <span
+                                        x-show="totalNotif > 0"
+                                        x-text="totalNotif + ' baru'"
+                                        class="text-[10px] bg-white/20 text-white px-2 py-0.5 rounded-full font-semibold"
+                                        style="display:none">
+                                    </span>
+                                </div>
+
+                                {{-- List --}}
+                                <div class="max-h-72 overflow-y-auto divide-y divide-slate-50">
+
+                                    <div x-show="loading" class="flex items-center justify-center py-8">
+                                        <svg class="animate-spin w-5 h-5 text-emerald-500" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                        </svg>
+                                    </div>
+
+                                    <div x-show="!loading && notifItems.length === 0" class="py-10 text-center">
+                                        <svg class="w-10 h-10 text-slate-200 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                                        </svg>
+                                        <p class="text-xs text-slate-400">Tidak ada notifikasi</p>
+                                    </div>
+
+                                    <template x-for="item in notifItems" :key="item.id">
+                                        <a :href="item.url"
+                                           class="flex items-start gap-3 px-4 py-3 hover:bg-slate-50 transition-colors"
+                                           :class="!item.dibaca ? 'bg-emerald-50/50' : ''">
+
+                                            <div class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center mt-0.5"
+                                                 :class="{
+                                                     'bg-purple-100': item.tipe === 'pesan',
+                                                     'bg-emerald-100': item.tipe === 'success',
+                                                     'bg-red-100': item.tipe === 'danger',
+                                                     'bg-blue-100': item.tipe === 'info',
+                                                 }">
+                                                <svg x-show="item.tipe === 'pesan'" class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                                </svg>
+                                                <svg x-show="item.tipe === 'success'" class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                </svg>
+                                                <svg x-show="item.tipe === 'danger'" class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                </svg>
+                                                <svg x-show="item.tipe === 'info'" class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                </svg>
+                                            </div>
+
+                                            <div class="flex-1 min-w-0">
+                                                <p class="text-xs font-semibold text-slate-700 truncate" x-text="item.judul"></p>
+                                                <p class="text-xs text-slate-500 mt-0.5 line-clamp-2" x-text="item.pesan"></p>
+                                                <p class="text-[10px] text-slate-400 mt-1" x-text="item.waktu"></p>
+                                            </div>
+
+                                            <div x-show="!item.dibaca" class="flex-shrink-0 w-2 h-2 bg-emerald-500 rounded-full mt-2"></div>
+                                        </a>
+                                    </template>
+                                </div>
+
+                                {{-- Footer --}}
+                                <div class="px-4 py-2.5 bg-slate-50 border-t border-slate-100 flex justify-between items-center">
+                                    <a href="{{ route('warga.pesan.index') }}" class="text-xs text-emerald-600 font-semibold hover:underline">
+                                        Lihat semua pesan
+                                    </a>
+                                    <button @click="markAllRead()"
+                                            x-show="totalNotif > 0"
+                                            class="text-xs text-slate-400 hover:text-slate-600 transition"
+                                            style="display:none">
+                                        Tandai semua dibaca
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {{-- ════════════════ END BELL NOTIFIKASI ════════════════ --}}
+
                     @endif
 
+                    {{-- Profile Dropdown --}}
                     <div class="relative group z-50">
                         <button class="flex items-center gap-3 px-4 py-2 bg-white border border-slate-200 rounded-2xl hover:bg-slate-50 transition-all duration-300">
                             <div class="w-8 h-8 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center font-bold text-sm">
-                                {{ substr(Auth::user()->name, 0, 1) }} 
+                                {{ substr(Auth::user()->name, 0, 1) }}
                             </div>
                             <div class="text-left hidden md:block">
                                 <p class="text-xs text-slate-500 font-medium">Halo,</p>
@@ -176,9 +338,6 @@
                                     <a href="{{ route('warga.pesan.index') }}" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-600 rounded-xl hover:bg-emerald-50 hover:text-emerald-600 transition-colors">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
                                         Kotak Masuk
-                                        @if($unreadWargaPesan > 0)
-                                            <span class="ml-auto bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">{{ $unreadWargaPesan }}</span>
-                                        @endif
                                     </a>
                                     <a href="{{ route('warga.profil') }}" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-600 rounded-xl hover:bg-emerald-50 hover:text-emerald-600 transition-colors">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
@@ -190,13 +349,11 @@
                                         Dashboard Admin
                                     </a>
                                 @endif
-                                
                                 <hr class="my-2 border-slate-100">
-
                                 <form action="{{ route('logout') }}" method="POST">
                                     @csrf
                                     <button type="submit" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-red-600 rounded-xl hover:bg-red-50 transition-colors">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
                                         Keluar
                                     </button>
                                 </form>
@@ -206,136 +363,173 @@
                 @endauth
             </div>
 
-            <button id="mobile-menu-btn" class="xl:hidden p-2 rounded-lg text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 focus:outline-none transition">
-                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                </svg>
-            </button>
+            {{-- ── Hamburger + Bell Mobile ── --}}
+            <div class="flex items-center gap-1 xl:hidden">
+
+                @auth
+                @if(Auth::user()->role == 'warga')
+                {{-- Bell Mobile --}}
+                <div x-data="wargaNotifApp()" x-init="init()" class="notif-bell-wrap">
+                    <button
+                        @click="toggleDropdown()"
+                        class="p-2 rounded-lg transition-all"
+                        :class="dropdownOpen ? 'bg-emerald-50 text-emerald-600' : 'text-slate-400 hover:text-emerald-600 hover:bg-emerald-50'">
+                        <svg class="w-6 h-6" :class="bellRinging ? 'bell-ring' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                        </svg>
+                        <span class="notif-badge" :class="totalNotif <= 0 ? 'hidden-badge' : ''" x-text="totalNotif > 99 ? '99+' : totalNotif"></span>
+                    </button>
+
+                    {{-- Dropdown Mobile --}}
+                    <div
+                        x-show="dropdownOpen"
+                        x-transition:enter="transition ease-out duration-200"
+                        x-transition:enter-start="opacity-0 scale-95 -translate-y-2"
+                        x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                        x-transition:leave="transition ease-in duration-150"
+                        x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                        x-transition:leave-end="opacity-0 scale-95 -translate-y-2"
+                        @click.away="dropdownOpen = false"
+                        class="fixed bg-white rounded-2xl shadow-2xl border border-slate-100 z-[200] flex flex-col overflow-hidden"
+                        style="top: 72px; left: 1rem; right: 1rem; display:none; max-height:420px;">
+
+                        {{-- Header --}}
+                        <div class="flex-shrink-0 flex items-center justify-between px-4 py-3 bg-gradient-to-r from-emerald-600 to-teal-600">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                                </svg>
+                                <span class="text-white font-semibold text-sm">Notifikasi</span>
+                            </div>
+                            <span x-show="totalNotif > 0" x-text="totalNotif + ' baru'" class="text-[10px] bg-white/20 text-white px-2 py-0.5 rounded-full font-semibold" style="display:none"></span>
+                        </div>
+
+                        {{-- List --}}
+                        <div class="flex-1 overflow-y-auto divide-y divide-slate-50">
+                            <div x-show="loading" class="flex items-center justify-center py-8">
+                                <svg class="animate-spin w-5 h-5 text-emerald-500" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                </svg>
+                            </div>
+                            <div x-show="!loading && notifItems.length === 0" class="py-10 text-center">
+                                <p class="text-xs text-slate-400">Tidak ada notifikasi</p>
+                            </div>
+                            <template x-for="item in notifItems" :key="item.id">
+                                <a :href="item.url" class="flex items-start gap-3 px-4 py-3 hover:bg-slate-50 transition-colors" :class="!item.dibaca ? 'bg-emerald-50/50' : ''">
+                                    <div class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center mt-0.5"
+                                         :class="{'bg-purple-100': item.tipe==='pesan', 'bg-emerald-100': item.tipe==='success', 'bg-red-100': item.tipe==='danger', 'bg-blue-100': item.tipe==='info'}">
+                                        <svg x-show="item.tipe==='pesan'" class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                                        <svg x-show="item.tipe==='success'" class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        <svg x-show="item.tipe==='danger'" class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        <svg x-show="item.tipe==='info'" class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-xs font-semibold text-slate-700 truncate" x-text="item.judul"></p>
+                                        <p class="text-xs text-slate-500 mt-0.5 line-clamp-2" x-text="item.pesan"></p>
+                                        <p class="text-[10px] text-slate-400 mt-1" x-text="item.waktu"></p>
+                                    </div>
+                                    <div x-show="!item.dibaca" class="flex-shrink-0 w-2 h-2 bg-emerald-500 rounded-full mt-2"></div>
+                                </a>
+                            </template>
+                        </div>
+
+                        {{-- Footer --}}
+                        <div class="flex-shrink-0 px-4 py-2.5 bg-slate-50 border-t border-slate-100 flex justify-between items-center">
+                            <a href="{{ route('warga.pesan.index') }}" class="text-xs text-emerald-600 font-semibold hover:underline">Lihat semua pesan</a>
+                            <button @click="markAllRead()" x-show="totalNotif > 0" class="text-xs text-slate-400 hover:text-slate-600 transition" style="display:none">Tandai semua dibaca</button>
+                        </div>
+                    </div>
+                </div>
+                @endif
+                @endauth
+
+                <button id="mobile-menu-btn" class="p-2 rounded-lg text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 focus:outline-none transition">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+            </div>
         </div>
 
+        {{-- ── Mobile Menu ── --}}
         <div id="mobile-menu" class="hidden xl:hidden border-t border-slate-100 py-4 space-y-2 animate-fade-in-down bg-white max-h-[80vh] overflow-y-auto">
-            
-            <a href="{{ route('home') }}" class="block px-4 py-3 rounded-xl transition font-medium text-slate-600 hover:bg-emerald-50 hover:text-emerald-600">
-                Beranda
-            </a>
+
+            <a href="{{ route('home') }}" class="block px-4 py-3 rounded-xl transition font-medium text-slate-600 hover:bg-emerald-50 hover:text-emerald-600">Beranda</a>
 
             <details class="group [&::-webkit-details-marker]:hidden">
                 <summary class="flex items-center justify-between px-4 py-3 rounded-xl font-medium text-slate-600 hover:bg-emerald-50 hover:text-emerald-600 cursor-pointer list-none transition">
                     Profil Desa
-                    <svg class="w-5 h-5 transition-transform group-open:rotate-180 text-slate-400 group-hover:text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    <svg class="w-5 h-5 transition-transform group-open:rotate-180 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </summary>
                 <div class="px-3 py-2 ml-2 border-l-2 border-emerald-100 space-y-1 mt-1">
-                    <a href="{{ route('identitas-desa') }}" class="group flex items-center gap-3 px-3 py-2.5 text-sm text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors">
-                        <svg class="w-4 h-4 text-slate-400 group-hover:text-emerald-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"/></svg>
-                        Identitas Desa
-                    </a>
-                    <a href="{{ route('pemerintahan') }}" class="group flex items-center gap-3 px-3 py-2.5 text-sm text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors">
-                        <svg class="w-4 h-4 text-slate-400 group-hover:text-emerald-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                        Pemerintahan
-                    </a>
-                    <a href="{{ route('bpd') }}" class="group flex items-center gap-3 px-3 py-2.5 text-sm text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors">
-                        <svg class="w-4 h-4 text-slate-400 group-hover:text-emerald-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                        Badan Permusyawaratan Desa
-                    </a>
-                    <a href="{{ route('kemasyarakatan') }}" class="group flex items-center gap-3 px-3 py-2.5 text-sm text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors">
-                        <svg class="w-4 h-4 text-slate-400 group-hover:text-emerald-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
-                        Lembaga Kemasyarakatan
-                    </a>
-                    <a href="{{ route('data-desa') }}" class="group flex items-center gap-3 px-3 py-2.5 text-sm text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors">
-                        <svg class="w-4 h-4 text-slate-400 group-hover:text-emerald-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/></svg>
-                        Demografi & Statistik
-                    </a>
-                    <a href="{{ route('wilayah') }}" class="group flex items-center gap-3 px-3 py-2.5 text-sm text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors">
-                        <svg class="w-4 h-4 text-slate-400 group-hover:text-emerald-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
-                        Peta Desa
-                    </a>
+                    <a href="{{ route('identitas-desa') }}" class="flex items-center gap-3 px-3 py-2.5 text-sm text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors">Identitas Desa</a>
+                    <a href="{{ route('pemerintahan') }}" class="flex items-center gap-3 px-3 py-2.5 text-sm text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors">Pemerintahan</a>
+                    <a href="{{ route('bpd') }}" class="flex items-center gap-3 px-3 py-2.5 text-sm text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors">Badan Permusyawaratan Desa</a>
+                    <a href="{{ route('kemasyarakatan') }}" class="flex items-center gap-3 px-3 py-2.5 text-sm text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors">Lembaga Kemasyarakatan</a>
+                    <a href="{{ route('data-desa') }}" class="flex items-center gap-3 px-3 py-2.5 text-sm text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors">Demografi & Statistik</a>
+                    <a href="{{ route('wilayah') }}" class="flex items-center gap-3 px-3 py-2.5 text-sm text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors">Peta Desa</a>
                 </div>
             </details>
 
             <details class="group [&::-webkit-details-marker]:hidden">
                 <summary class="flex items-center justify-between px-4 py-3 rounded-xl font-medium text-slate-600 hover:bg-emerald-50 hover:text-emerald-600 cursor-pointer list-none transition">
                     Layanan Publik
-                    <svg class="w-5 h-5 transition-transform group-open:rotate-180 text-slate-400 group-hover:text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    <svg class="w-5 h-5 transition-transform group-open:rotate-180 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </summary>
                 <div class="px-3 py-2 ml-2 border-l-2 border-emerald-100 space-y-1 mt-1">
-                    <a href="{{ route('lapak') }}" class="group flex items-center gap-3 px-3 py-2.5 text-sm text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors">
-                        <svg class="w-4 h-4 text-slate-400 group-hover:text-emerald-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
-                        Lapak UMKM
-                    </a>
-                    <a href="{{ route('kontak') }}" class="group flex items-center gap-3 px-3 py-2.5 text-sm text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors">
-                        <svg class="w-4 h-4 text-slate-400 group-hover:text-emerald-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
-                        Pengaduan Warga
-                    </a>
-                    <a href="{{ route('warga.surat.index') }}" class="group flex items-center gap-3 px-3 py-2.5 text-sm text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors">
-                        <svg class="w-4 h-4 text-slate-400 group-hover:text-emerald-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                        Surat Online
-                    </a>
+                    <a href="{{ route('lapak') }}" class="flex items-center gap-3 px-3 py-2.5 text-sm text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors">Lapak UMKM</a>
+                    <a href="{{ route('kontak') }}" class="flex items-center gap-3 px-3 py-2.5 text-sm text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors">Pengaduan Warga</a>
+                    <a href="{{ route('warga.surat.index') }}" class="flex items-center gap-3 px-3 py-2.5 text-sm text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors">Surat Online</a>
                 </div>
             </details>
 
             <details class="group [&::-webkit-details-marker]:hidden">
                 <summary class="flex items-center justify-between px-4 py-3 rounded-xl font-medium text-slate-600 hover:bg-emerald-50 hover:text-emerald-600 cursor-pointer list-none transition">
                     Informasi
-                    <svg class="w-5 h-5 transition-transform group-open:rotate-180 text-slate-400 group-hover:text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    <svg class="w-5 h-5 transition-transform group-open:rotate-180 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </summary>
                 <div class="px-3 py-2 ml-2 border-l-2 border-emerald-100 space-y-1 mt-1">
-                    <a href="{{ route('berita') }}" class="group flex items-center gap-3 px-3 py-2.5 text-sm text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors">
-                        <svg class="w-4 h-4 text-slate-400 group-hover:text-emerald-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
-                        Berita Pengumuman
-                    </a>
-                    <a href="{{ route('apbd') }}" class="group flex items-center gap-3 px-3 py-2.5 text-sm text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors">
-                        <svg class="w-4 h-4 text-slate-400 group-hover:text-emerald-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        APBD
-                    </a>
+                    <a href="{{ route('berita') }}" class="flex items-center gap-3 px-3 py-2.5 text-sm text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors">Berita Pengumuman</a>
+                    <a href="{{ route('apbd') }}" class="flex items-center gap-3 px-3 py-2.5 text-sm text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors">APBD</a>
                 </div>
             </details>
 
-            <a href="{{ route('wilayah') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl transition font-medium group {{ request()->routeIs('wilayah') ? 'bg-emerald-50 text-emerald-600' : 'text-slate-600 hover:bg-emerald-50 hover:text-emerald-600' }}">
-                <svg class="w-5 h-5 transition {{ request()->routeIs('wilayah') ? 'text-emerald-600' : 'text-slate-400 group-hover:text-emerald-600' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
-                Wilayah
-            </a>
+            <a href="{{ route('kontak') }}" class="block px-4 py-3 rounded-xl transition font-medium text-slate-600 hover:bg-emerald-50 hover:text-emerald-600">Kontak</a>
 
-            <a href="{{ route('admin.artikel.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl transition font-medium group {{ request()->routeIs('admin.artikel.*') ? 'bg-emerald-50 text-emerald-600' : 'text-slate-600 hover:bg-emerald-50 hover:text-emerald-600' }}">
-                <svg class="w-5 h-5 transition {{ request()->routeIs('admin.artikel.*') ? 'text-emerald-600' : 'text-slate-400 group-hover:text-emerald-600' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path>
-                </svg>
-                Berita
-            </a>
-
-            <a href="{{ route('kontak') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl transition font-medium group {{ request()->routeIs('kontak') ? 'bg-emerald-50 text-emerald-600' : 'text-slate-600 hover:bg-emerald-50 hover:text-emerald-600' }}">
-                <svg class="w-5 h-5 transition {{ request()->routeIs('kontak') ? 'text-emerald-600' : 'text-slate-400 group-hover:text-emerald-600' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
-            <a href="{{ route('kontak') }}" class="block px-4 py-3 rounded-xl transition font-medium text-slate-600 hover:bg-emerald-50 hover:text-emerald-600">
-                Kontak
-            </a>
-            
             <div class="pt-4 mt-2 border-t border-slate-100 px-2 space-y-3">
                 @guest
-                    <a href="{{ route('aktivasi.index') }}" 
-                    class="flex items-center justify-center gap-2 w-full px-4 py-3 bg-slate-100 text-slate-600 font-semibold rounded-2xl hover:bg-slate-200 transition">
-                        Aktivasi Akun
-                    </a>
-
-                    <a href="{{ route('login') }}" 
-                    class="flex items-center justify-center gap-2 w-full px-4 py-3 bg-emerald-600 text-white font-semibold rounded-2xl hover:bg-emerald-700 transition shadow-md hover:shadow-lg">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
-                        </svg>
+                    <a href="{{ route('aktivasi.index') }}" class="flex items-center justify-center w-full px-4 py-3 bg-slate-100 text-slate-600 font-semibold rounded-2xl hover:bg-slate-200 transition">Aktivasi Akun</a>
+                    <a href="{{ route('login') }}" class="flex items-center justify-center gap-2 w-full px-4 py-3 bg-emerald-600 text-white font-semibold rounded-2xl hover:bg-emerald-700 transition shadow-md">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
                         Masuk
                     </a>
                 @endguest
 
                 @auth
-                    <div class="flex items-center gap-3 px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl mb-2">
+                    <div class="flex items-center gap-3 px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl">
                         <div class="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center font-bold">
                             {{ substr(Auth::user()->name, 0, 1) }}
                         </div>
-                        <div class="overflow-hidden">
+                        <div>
                             <p class="text-xs text-slate-500">Halo,</p>
                             <p class="font-bold text-slate-700 truncate">{{ Auth::user()->name }}</p>
                         </div>
                     </div>
 
                     @if(Auth::user()->role == 'warga')
+                        @php
+                            $unreadMobile = \App\Models\Pesan::where('penerima_id', Auth::id())->where('sudah_dibaca', false)->count();
+                        @endphp
+                        <a href="{{ route('warga.pesan.index') }}" class="flex items-center justify-between px-4 py-3 text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition font-medium">
+                            <div class="flex items-center gap-3">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                                Notifikasi
+                            </div>
+                            @if($unreadMobile > 0)
+                                <span class="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{{ $unreadMobile }}</span>
+                            @endif
+                        </a>
                         <a href="{{ route('warga.dashboard') }}" class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition font-medium">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
                             Dashboard Warga
@@ -365,35 +559,208 @@
 </nav>
 
 <style>
-    /* Styling for mobile accordion without JS */
-    details > summary {
-        list-style: none;
-    }
-    details > summary::-webkit-details-marker {
-        display: none;
-    }
+    details > summary { list-style: none; }
+    details > summary::-webkit-details-marker { display: none; }
 </style>
 
 <script>
-    // Script Toggle dengan Animasi yang lebih halus
+    // Mobile menu toggle
     const btn = document.getElementById('mobile-menu-btn');
     const menu = document.getElementById('mobile-menu');
-
-    if(btn && menu) {
-        btn.addEventListener('click', function() {
-            menu.classList.toggle('hidden');
-        });
+    if (btn && menu) {
+        btn.addEventListener('click', () => menu.classList.toggle('hidden'));
     }
 
-    // Shadow logic
-    window.addEventListener('scroll', function() {
+    // Navbar shadow on scroll
+    window.addEventListener('scroll', () => {
         const nav = document.querySelector('nav');
-        if (window.scrollY > 10) {
-            nav.classList.add('shadow-md');
-            nav.classList.remove('shadow-sm');
-        } else {
-            nav.classList.remove('shadow-md');
-            nav.classList.add('shadow-sm');
-        }
+        if (!nav) return;
+        nav.classList.toggle('shadow-md', window.scrollY > 10);
+        nav.classList.toggle('shadow-sm', window.scrollY <= 10);
     });
+
+    // ════════════════════════════════════════════════════════════
+    // WARGA NOTIFIKASI — Alpine.js component
+    // ✅ SATU DEFINISI — hapus semua duplikat di tempat lain
+    // ════════════════════════════════════════════════════════════
+    function wargaNotifApp() {
+        return {
+            dropdownOpen : false,
+            loading      : false,
+            notifItems   : [],
+            totalNotif   : 0,
+            bellRinging  : false,
+            soundEnabled : true,
+
+            _audio       : null,
+            _audioCtx    : null,
+            _audioReady  : false,
+            _initialized : false,
+            _prevTotal   : 0,
+
+            // ── INIT ─────────────────────────────────────────────
+            init() {
+                const saved = localStorage.getItem('notif_sound');
+                this.soundEnabled = saved === null ? true : saved === 'true';
+
+                this._initAudio();
+
+                // Unlock AudioContext setelah interaksi pertama
+                const unlock = () => {
+                    if (this._audioCtx && this._audioCtx.state === 'suspended') {
+                        this._audioCtx.resume();
+                    }
+                    if (this._audio) {
+                        this._audio.volume = 0;
+                        this._audio.play().then(() => {
+                            this._audio.pause();
+                            this._audio.currentTime = 0;
+                            this._audio.volume = 0.6;
+                        }).catch(() => {});
+                    }
+                    document.removeEventListener('click', unlock);
+                };
+                document.addEventListener('click', unlock);
+
+                // Fetch awal (tanpa suara)
+                this._fetchBadges(false).then(() => {
+                    this._initialized = true;
+                });
+
+                // Poll tiap 30 detik
+                setInterval(() => this._fetchBadges(true), 30000);
+            },
+
+            // ── Toggle Dropdown ───────────────────────────────────
+            async toggleDropdown() {
+                this.dropdownOpen = !this.dropdownOpen;
+                if (this.dropdownOpen) {
+                    await this._fetchList();
+                }
+            },
+
+            // ── Fetch badge count ─────────────────────────────────
+            async _fetchBadges(playSound) {
+                try {
+                    const res = await fetch('/warga/notifikasi/badges', {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    const data = await res.json();
+
+                    const newTotal = (data.unread_pesan ?? 0) + (data.update_surat ?? 0);
+                    const naik = playSound && this._initialized && newTotal > this._prevTotal;
+
+                    this.totalNotif = newTotal;
+                    this._prevTotal = newTotal;
+
+                    if (naik) this._triggerNew();
+                } catch (e) {
+                    // silent
+                }
+            },
+
+            // ── Fetch list notifikasi ─────────────────────────────
+            async _fetchList() {
+                this.loading = true;
+                try {
+                    const res = await fetch('/warga/notifikasi/list', {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    const data = await res.json();
+                    this.notifItems = data.items ?? [];
+                } catch (e) {
+                    this.notifItems = [];
+                } finally {
+                    this.loading = false;
+                }
+            },
+
+            // ── Tandai semua dibaca ───────────────────────────────
+            async markAllRead() {
+                try {
+                    await fetch('/warga/notifikasi/surat-dibaca', {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? ''
+                        }
+                    });
+                    this.totalNotif = 0;
+                    this._prevTotal = 0;
+                    this.notifItems = this.notifItems.map(i => ({ ...i, dibaca: true }));
+                } catch (e) {}
+            },
+
+            // ── ✅ FIX: bellRinging TIDAK bergantung soundEnabled ──
+            _triggerNew() {
+                // Animasi bell selalu jalan
+                this.bellRinging = true;
+                setTimeout(() => { this.bellRinging = false; }, 700);
+                // Bunyi hanya jika soundEnabled
+                if (this.soundEnabled) this._playSound();
+            },
+
+            // ── Init audio element ────────────────────────────────
+            _initAudio() {
+                const mp3 = new Audio('/sounds/notif.mp3');
+                mp3.volume = 0.6;
+                mp3.addEventListener('canplaythrough', () => {
+                    this._audio = mp3;
+                    this._audioReady = true;
+                });
+                mp3.addEventListener('error', () => {
+                    // File tidak ada → Web Audio API fallback siap
+                    this._audioReady = true;
+                });
+                mp3.load();
+            },
+
+            // ── Fallback beep ─────────────────────────────────────
+            _playBeep() {
+                try {
+                    if (!this._audioCtx) {
+                        this._audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    }
+                    const ctx = this._audioCtx;
+                    if (ctx.state === 'suspended') ctx.resume();
+
+                    const osc1 = ctx.createOscillator();
+                    const osc2 = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc1.connect(gain); osc2.connect(gain); gain.connect(ctx.destination);
+
+                    osc1.type = 'sine';
+                    osc1.frequency.setValueAtTime(880, ctx.currentTime);
+                    osc1.frequency.exponentialRampToValueAtTime(660, ctx.currentTime + 0.12);
+
+                    osc2.type = 'sine';
+                    osc2.frequency.setValueAtTime(1100, ctx.currentTime + 0.08);
+                    osc2.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.22);
+
+                    gain.gain.setValueAtTime(0, ctx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.35, ctx.currentTime + 0.02);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.55);
+
+                    osc1.start(ctx.currentTime); osc1.stop(ctx.currentTime + 0.55);
+                    osc2.start(ctx.currentTime + 0.08); osc2.stop(ctx.currentTime + 0.55);
+                } catch (e) {}
+            },
+
+            // ── Play sound ────────────────────────────────────────
+            _playSound() {
+                if (!this._audioReady) return;
+                if (this._audio) {
+                    try {
+                        this._audio.currentTime = 0;
+                        const p = this._audio.play();
+                        if (p !== undefined) p.catch(() => this._playBeep());
+                        return;
+                    } catch (e) { /* fallthrough */ }
+                }
+                this._playBeep();
+            },
+        };
+    }
 </script>
