@@ -27,9 +27,9 @@ class LayananSuratController extends Controller
         // 2. Fitur Search (Cari NIK atau Nama)
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->whereHas('penduduk', function($q) use ($search) {
+            $query->whereHas('penduduk', function ($q) use ($search) {
                 $q->where('nama', 'like', "%{$search}%")
-                  ->orWhere('nik', 'like', "%{$search}%");
+                    ->orWhere('nik', 'like', "%{$search}%");
             });
         }
 
@@ -53,18 +53,55 @@ class LayananSuratController extends Controller
     /**
      * Update status permohonan
      */
-    public function updateStatusPermohonan(Request $request, $id)
-    {
+    public function updateStatusPermohonan(Request $request, $id) {
         $request->validate([
-            'status' => 'required|in:belum lengkap,sedang diperiksa,menunggu tandatangan,siap diambil,sudah diambil,dibatalkan',
-            'catatan_petugas' => 'nullable|string'
+            'status'           => 'required|in:belum lengkap,sedang diperiksa,menunggu tandatangan,siap diambil,sudah diambil,dibatalkan',
+            'catatan_petugas'  => 'nullable|string',
         ]);
 
         $permohonan = SuratPermohonan::findOrFail($id);
+
         $permohonan->update([
-            'status' => $request->status,
-            'catatan_petugas' => $request->catatan_petugas
+            'status'          => $request->status,
+            'catatan_petugas' => $request->catatan_petugas,
+            'notif_dibaca'    => false, // ← trigger bell warga
         ]);
+
+        // ── Kirim pesan otomatis ke warga via tabel `pesan` ──────────────────
+        // Memanfaatkan tabel yang sudah ada, TANPA migration baru.
+        if ($permohonan->user_id && class_exists(\App\Models\Pesan::class)) {
+
+            $labelStatus = match ($request->status) {
+                'belum lengkap'         => 'Belum Lengkap — mohon lengkapi berkas Anda',
+                'sedang diperiksa'      => 'Sedang Diperiksa oleh petugas',
+                'menunggu tandatangan'  => 'Menunggu Tanda Tangan pejabat',
+                'siap diambil'          => 'Siap Diambil ✅ — silakan ambil surat Anda',
+                'sudah diambil'         => 'Sudah Diambil — selesai',
+                'dibatalkan'            => 'Dibatalkan ❌',
+                default                 => ucfirst($request->status),
+            };
+
+            $namaSurat = $permohonan->jenisSurat->nama_jenis_surat
+                ?? $permohonan->jenis_surat
+                ?? $permohonan->nama_surat
+                ?? 'Surat';
+
+            $isiPesan = "📋 *Update Status Permohonan Surat*\n\n"
+                . "Jenis Surat : {$namaSurat}\n"
+                . "Status Baru : {$labelStatus}";
+
+            if ($request->filled('catatan_petugas')) {
+                $isiPesan .= "\nCatatan     : {$request->catatan_petugas}";
+            }
+
+            \App\Models\Pesan::create([
+                'pengirim_id'  => \Illuminate\Support\Facades\Auth::id(),
+                'penerima_id'  => $permohonan->user_id,
+                'subjek'       => "Status Surat: {$namaSurat}",
+                'isi'          => $isiPesan,
+                'sudah_dibaca' => false,
+            ]);
+        }
 
         return redirect()->back()->with('success', 'Status permohonan surat berhasil diperbarui!');
     }
@@ -92,9 +129,9 @@ class LayananSuratController extends Controller
 
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->whereHas('penduduk', function($q) use ($search) {
+            $query->whereHas('penduduk', function ($q) use ($search) {
                 $q->where('nama', 'like', "%{$search}%")
-                  ->orWhere('nik', 'like', "%{$search}%");
+                    ->orWhere('nik', 'like', "%{$search}%");
             });
         }
 
@@ -110,7 +147,12 @@ class LayananSuratController extends Controller
         $tahunList = range(date('Y'), date('Y') - 5); 
 
         return view('admin.layanan-surat.arsip', compact(
-            'arsip', 'statPermohonan', 'statArsip', 'statDitolak', 'jenisSuratList', 'tahunList'
+            'arsip',
+            'statPermohonan',
+            'statArsip',
+            'statDitolak',
+            'jenisSuratList',
+            'tahunList'
         ));
     }
 
@@ -127,8 +169,7 @@ class LayananSuratController extends Controller
     /**
      * Hapus Arsip/Permohonan
      */
-    public function destroyArsip($id)
-    {
+    public function destroyArsip($id) {
         $permohonan = SuratPermohonan::findOrFail($id);
         
         if ($permohonan->dokumen_pendukung) {
