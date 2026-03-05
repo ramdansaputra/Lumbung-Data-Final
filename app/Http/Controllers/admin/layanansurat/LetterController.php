@@ -8,6 +8,7 @@ use App\Models\Penduduk;
 use App\Models\IdentitasDesa;
 use App\Models\ArsipSurat; 
 use App\Models\SuratTemplate;
+use App\Models\Keluarga; // Tambahan Model Keluarga
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf; 
 use PhpOffice\PhpWord\TemplateProcessor;
@@ -50,36 +51,35 @@ class LetterController extends Controller
      * Menangani validasi nomor unik dan penggantian variabel [tag]
      */
     public function preview(Request $request)
-{
-    // 1. Validasi
-    $request->validate([
-        'format_nomor' => 'required|unique:arsip_surat,nomor_surat',
-        'template_id'  => 'required|exists:surat_templates,id'
-    ], [
-        'format_nomor.required' => 'Nomor surat wajib diisi.',
-        'format_nomor.unique'   => 'Nomor surat sudah terdaftar di arsip! Gunakan nomor lain.',
-    ]);
+    {
+        // 1. Validasi
+        $request->validate([
+            'format_nomor' => 'required|unique:arsip_surat,nomor_surat',
+            'template_id'  => 'required|exists:surat_templates,id'
+        ], [
+            'format_nomor.required' => 'Nomor surat wajib diisi.',
+            'format_nomor.unique'   => 'Nomor surat sudah terdaftar di arsip! Gunakan nomor lain.',
+        ]);
 
-    $template = SuratTemplate::findOrFail($request->template_id);
-    $htmlContent = $template->konten_template; 
+        $template = SuratTemplate::findOrFail($request->template_id);
+        $htmlContent = $template->konten_template; 
 
-    // Ambil semua data input
-    $formData = $request->except(['_token', 'template_id']);
+        // Ambil semua data input
+        $formData = $request->except(['_token', 'template_id']);
 
-    // 2. Penggantian variabel [tag]
-    foreach ($formData as $key => $value) {
-        // Gunakan str_replace atau preg_replace untuk mengganti [nama_tag]
-        $htmlContent = str_ireplace('[' . $key . ']', $value ?? '', $htmlContent);
+        // 2. Penggantian variabel [tag]
+        foreach ($formData as $key => $value) {
+            // Gunakan str_replace atau preg_replace untuk mengganti [nama_tag]
+            $htmlContent = str_ireplace('[' . $key . ']', $value ?? '', $htmlContent);
+        }
+
+        // 3. Kirim ke view preview
+        return view('admin.layanan-surat.letters.preview', [
+            'htmlContent' => $htmlContent,
+            'formData'    => $formData,
+            'template'    => $template
+        ]);
     }
-
-    // 3. Kirim ke view preview
-    // Pastikan route-nya: return view(...)
-    return view('admin.layanan-surat.letters.preview', [
-        'htmlContent' => $htmlContent,
-        'formData'    => $formData,
-        'template'    => $template
-    ]);
-}
 
     /**
      * LANGKAH 3: Cetak PDF Final dari hasil edit TinyMCE
@@ -127,19 +127,47 @@ class LetterController extends Controller
     public function liveSearchNik(Request $request) {
         $keyword = $request->keyword;
         if (empty($keyword)) return response()->json([]);
+        
+        // Mencari berdasarkan NIK atau Nama Penduduk
         $penduduk = Penduduk::where('nik', 'LIKE', $keyword . '%')
                     ->orWhere('nama', 'LIKE', '%' . $keyword . '%')
                     ->limit(10)
                     ->get(['nik', 'nama']);
+        
         return response()->json($penduduk);
     }
 
     public function getDataByNik($nik) {
+        // Ambil data penduduk
         $penduduk = Penduduk::where('nik', $nik)->first();
         $desa = IdentitasDesa::first();
+
         if ($penduduk) {
-            return response()->json(['success' => true, 'penduduk' => $penduduk, 'desa' => $desa]);
+            // Tambahan: Cari data keluarga berdasarkan NIK penduduk tersebut
+            // Diasumsikan ada tabel pivot 'keluarga_anggota' yang menghubungkan penduduk ke keluarga
+            $keluarga = Keluarga::whereHas('anggota', function($query) use ($nik) {
+                $query->where('nik', $nik);
+            })->with(['anggota'])->first();
+
+            $dataKeluarga = null;
+            if ($keluarga) {
+                $dataKeluarga = [
+                    'no_kk' => $keluarga->no_kk,
+                    'alamat_kk' => $keluarga->alamat,
+                    'kepala_keluarga' => $keluarga->getKepalaKeluarga() ? $keluarga->getKepalaKeluarga()->nama : '-',
+                    'nik_kepala' => $keluarga->getKepalaKeluarga() ? $keluarga->getKepalaKeluarga()->nik : '-',
+                    'daftar_anggota' => $keluarga->anggota // Mengirim semua anggota untuk kebutuhan dinamis
+                ];
+            }
+
+            return response()->json([
+                'success' => true, 
+                'penduduk' => $penduduk, 
+                'desa' => $desa,
+                'keluarga' => $dataKeluarga
+            ]);
         }
+        
         return response()->json(['success' => false, 'message' => 'Warga tidak ditemukan']);
     }
 
@@ -180,7 +208,7 @@ class LetterController extends Controller
     private function validateLetterRequest(Request $request)
     {
         return $request->validate([
-            'template_id'     => 'nullable|exists:surat_templates,id', // Diubah sedikit agar menyesuaikan form
+            'template_id'     => 'nullable|exists:surat_templates,id', 
             'kode_kabupaten'  => 'nullable|string|max:255',
             'nama_kabupaten'  => 'nullable|string|max:255',
             'kecamatan'       => 'nullable|string|max:255',
