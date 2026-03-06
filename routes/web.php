@@ -51,6 +51,7 @@ use App\Http\Controllers\SuratController;
 use App\Http\Controllers\Admin\layanansurat\ArsipController;
 use App\Http\Controllers\Admin\layanansurat\SuratTemplateController;
 use App\Http\Controllers\Admin\layanansurat\LetterController;
+use App\Http\Controllers\Admin\layanansurat\PersyaratanController;
 
 // Bantuan
 use App\Http\Controllers\Admin\Bantuan\BantuanController;
@@ -617,6 +618,21 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
     | LAYANAN SURAT
     |--------------------------------------------------------------------------
     */
+    // Ganti bagian ini:
+// Route::prefix('admin/layanan-surat')->name('admin.layanan-surat.')->group(function () { ... });
+
+// Menjadi seperti ini:
+Route::prefix('layanan-surat') // Hapus 'admin/'
+    ->name('layanan-surat.')   // Hapus 'admin.'
+    ->group(function () {
+        
+        Route::resource('daftar-persyaratan', PersyaratanController::class)
+            ->parameters(['daftar-persyaratan' => 'persyaratan'])
+            ->names('persyaratan')
+            ->except(['show']);
+            
+});
+
     Route::prefix('layanan-surat')->name('layanan-surat.')->group(function () {
 
         Route::prefix('pengaturan')->name('template-surat.')->group(function () {
