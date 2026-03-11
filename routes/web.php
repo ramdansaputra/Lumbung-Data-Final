@@ -28,7 +28,7 @@ use App\Http\Controllers\Admin\Kehadiran\RekapitulasiController;
 use App\Http\Controllers\Admin\Kehadiran\PengaduanKehadiranController;
 use App\Http\Controllers\Admin\Kehadiran\InputKehadiranController;
 
-
+// Buku Umum / Administrasi Desa
 use App\Http\Controllers\Admin\PeraturanDesaController;
 use App\Http\Controllers\Admin\BukuUmumController;
 use App\Http\Controllers\Admin\buku\KeputusanController;
@@ -40,19 +40,24 @@ use App\Http\Controllers\Admin\Buku\AgendaSuratMasukController;
 use App\Http\Controllers\Admin\Buku\EkspedisiController;
 use App\Http\Controllers\Admin\Buku\LembaranDesaController;
 
-// Import Controller buku penduduk
-use App\Http\Controllers\Admin\BukuPendudukController; // <--- Jangan lupa baris ini di paling atas
-
-// Buku Administrasi Penduduk
+// Buku Penduduk
+use App\Http\Controllers\Admin\BukuPendudukController;
 use App\Http\Controllers\Admin\BukuAdministrasi\BukuIndukPendudukController;
 use App\Http\Controllers\Admin\BukuAdministrasi\BukuMutasiPendudukController;
 use App\Http\Controllers\Admin\BukuAdministrasi\BukuRekapitulasiPendudukController;
 use App\Http\Controllers\Admin\BukuAdministrasi\BukuPendudukSementaraController;
 use App\Http\Controllers\Admin\BukuAdministrasi\KtpKkController;
 
-// Import Controller buku pembangunan
+// Buku Pembangunan
 use App\Http\Controllers\Admin\BukuPembangunanController;
 use App\Http\Controllers\Admin\RencanaPembangunanController;
+use App\Http\Controllers\Admin\BukuAdministrasi\BukuRencanaKerjaPembangunanController;
+use App\Http\Controllers\Admin\BukuAdministrasi\BukuActivitiesPembangunanController;
+use App\Http\Controllers\Admin\BukuAdministrasi\BukuInventarisPembangunanController;
+use App\Http\Controllers\Admin\BukuAdministrasi\BukuKaderPemberdayaanController;
+
+// Buku Administrasi Arsip Desa
+use App\Http\Controllers\Admin\BukuAdministrasi\ArsipDesa\ArsipDesaController;
 
 // Sekretariat
 use App\Http\Controllers\Admin\sekretariat\SekretariatController;
@@ -61,14 +66,18 @@ use App\Http\Controllers\Admin\sekretariat\SekretariatController;
 use App\Http\Controllers\Admin\keuangan\KeuanganController;
 
 // Layanan Surat
-use App\Http\Controllers\Admin\layanansurat\LayananSuratController;
+use App\Http\Controllers\SuratController;
 use App\Http\Controllers\Admin\layanansurat\CetakController;
 use App\Http\Controllers\Admin\layanansurat\CetakSuratController;
-use App\Http\Controllers\SuratController;
 use App\Http\Controllers\Admin\layanansurat\ArsipController;
 use App\Http\Controllers\Admin\layanansurat\SuratTemplateController;
 use App\Http\Controllers\Admin\layanansurat\LetterController;
 use App\Http\Controllers\Admin\layanansurat\PersyaratanController;
+
+// Alias untuk Layanan Surat (Warga vs Admin)
+use App\Http\Controllers\Admin\layanansurat\LayananSuratController as AdminSuratController;
+use App\Http\Controllers\Warga\LayananSuratController as WargaSuratController;
+use App\Http\Controllers\Warga\PesanController;
 
 // Bantuan
 use App\Http\Controllers\Admin\Bantuan\BantuanController;
@@ -88,8 +97,12 @@ use App\Http\Controllers\Admin\LapakProdukController;
 // Pembangunan
 use App\Http\Controllers\Admin\Pembangunan\PembangunanController;
 
-// profil
+// Profil
 use App\Http\Controllers\Admin\ProfilController;
+
+// PPID
+use App\Http\Controllers\Admin\Ppid\PpidController;
+use App\Http\Controllers\Admin\Ppid\PpidJenisController;
 
 // Lainnya
 use App\Http\Controllers\Admin\ArtikelController;
@@ -107,11 +120,6 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\FrontendController;
 use App\Http\Controllers\SetupController;
 use App\Http\Controllers\Auth\AktivasiWargaController;
-
-// Alias untuk LayananSurat (Warga vs Admin)
-use App\Http\Controllers\Admin\layanansurat\LayananSuratController as AdminSuratController;
-use App\Http\Controllers\Warga\LayananSuratController as WargaSuratController;
-use App\Http\Controllers\Warga\PesanController;
 
 /*
 |--------------------------------------------------------------------------
@@ -229,9 +237,6 @@ Route::prefix('warga')->name('warga.')->middleware(['auth', 'role:warga'])->grou
     Route::get('/notifikasi/list', function () {
         $user  = Auth::user();
         $items = [];
-        
-        // Catatan: Logika pengambilan isi list notifikasi warga bisa kamu tambahkan di sini
-        // agar sesuai dengan tabel Pesan/Surat. Sementara dikembalikan kosong agar tidak error.
         return response()->json(['items' => $items]);
     })->name('notifikasi.list');
 
@@ -253,7 +258,7 @@ Route::prefix('warga')->name('warga.')->middleware(['auth', 'role:warga'])->grou
 
     // ── Halaman Selengkapnya (semua notifikasi) ──────────────────────────────
     Route::get('/notifikasi', function () {
-        return view('warga.notifikasi.index'); // taruh file di resources/views/warga/notifikasi/index.blade.php
+        return view('warga.notifikasi.index');
     })->name('notifikasi.index');
 
     // ── Hapus SATU notifikasi ─────────────────────────────────────────────────
@@ -334,9 +339,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
 
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.desa'])->group(function () {
 
-    // untuk pengumuman ini 
     Route::get('/pengumuman/fetch', [\App\Http\Controllers\Admin\ChatController::class, 'fetchPengumuman']);
-    // Route untuk Bubble Chat (HAPUS AWALAN admin.)
     Route::get('/chat/messages', [ChatController::class, 'fetchMessages'])->name('chat.fetch');
     Route::post('/chat/send', [ChatController::class, 'sendMessage'])->name('chat.send');
     
@@ -349,7 +352,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
 
     /*
     |--------------------------------------------------------------------------
-    | NOTIFIKASI BADGES — endpoint polling topbar
+    | NOTIFIKASI BADGES
     |--------------------------------------------------------------------------
     */
     Route::get('/notifikasi/list', function () {
@@ -410,12 +413,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
         return response()->json(['items' => array_slice($items, 0, 10), 'total_unread' => $totalUnread]);
     })->name('notifikasi.list');
 
-    // BUG #4 FIX: Route baru untuk halaman notifikasi (tanpa limit)
     Route::get('/notifikasi/semua', function () {
         $items = [];
         if (class_exists(\App\Models\KomentarArtikel::class)) {
             $komentarList = \App\Models\KomentarArtikel::where('status', 'pending')
-                ->orderByDesc('created_at')->get(); // Tanpa limit
+                ->orderByDesc('created_at')->get();
             foreach ($komentarList as $k) {
                 $items[] = [
                     'id' => 'komentar-' . $k->id,
@@ -430,7 +432,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
         }
         if (class_exists(\App\Models\Pesan::class)) {
             $pesanList = \App\Models\Pesan::where('penerima_id', Auth::id())
-                ->orderByDesc('created_at')->get(); // Tanpa limit
+                ->orderByDesc('created_at')->get();
             foreach ($pesanList as $p) {
                 $items[] = [
                     'id' => 'pesan-' . $p->id,
@@ -450,7 +452,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
                 'menunggu tandatangan',
                 'belum lengkap',
             ])
-                ->orderByDesc('created_at')->get(); // Tanpa limit
+                ->orderByDesc('created_at')->get();
             foreach ($permohonanList as $s) {
                 $items[] = [
                     'id' => 'permohonan-' . $s->id,
@@ -473,9 +475,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
                 ->where('sudah_dibaca', false)
                 ->update(['sudah_dibaca' => true]);
         }
-        if (class_exists(\App\Models\KomentarArtikel::class)) {
-            // Komentar tidak di-update karena butuh approval, bukan sekadar dibaca
-        }
         return response()->json(['ok' => true]);
     })->name('notifikasi.tandai-semua');
 
@@ -489,14 +488,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
                 ->where('penerima_id', Auth::id())
                 ->update(['sudah_dibaca' => true]);
         } elseif ($prefix === 'komentar' && $rawId) {
-            // BUG #6 FIX: Mark komentar as read via session
             $dismissed = session()->get('notif_read_komentar', []);
             if (!in_array($rawId, $dismissed)) {
                 $dismissed[] = (int) $rawId;
                 session()->put('notif_read_komentar', $dismissed);
             }
         } elseif ($prefix === 'permohonan' && $rawId) {
-            // BUG #6 FIX: Mark permohonan as read via session
             $dismissed = session()->get('notif_read_permohonan', []);
             if (!in_array($rawId, $dismissed)) {
                 $dismissed[] = (int) $rawId;
@@ -517,14 +514,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
                 ->where('penerima_id', Auth::id())
                 ->delete();
         } elseif ($prefix === 'komentar' && $rawId) {
-            // BUG #5 FIX: Dismiss komentar via session
             $dismissed = session()->get('notif_dismissed_komentar', []);
             if (!in_array($rawId, $dismissed)) {
                 $dismissed[] = (int) $rawId;
                 session()->put('notif_dismissed_komentar', $dismissed);
             }
         } elseif ($prefix === 'permohonan' && $rawId) {
-            // BUG #5 FIX: Dismiss permohonan via session
             $dismissed = session()->get('notif_dismissed_permohonan', []);
             if (!in_array($rawId, $dismissed)) {
                 $dismissed[] = (int) $rawId;
@@ -817,17 +812,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
     | LAYANAN SURAT
     |--------------------------------------------------------------------------
     */
-    Route::prefix('layanan-surat')
-        ->name('layanan-surat.')
-        ->group(function () {
-
-            Route::resource('daftar-persyaratan', PersyaratanController::class)
-                ->parameters(['daftar-persyaratan' => 'persyaratan'])
-                ->names('persyaratan')
-                ->except(['show']);
-        });
-
     Route::prefix('layanan-surat')->name('layanan-surat.')->group(function () {
+
+        Route::resource('daftar-persyaratan', PersyaratanController::class)
+            ->parameters(['daftar-persyaratan' => 'persyaratan'])
+            ->names('persyaratan')
+            ->except(['show']);
 
         Route::prefix('pengaturan')->name('template-surat.')->group(function () {
             Route::get('/', [SuratTemplateController::class, 'index'])->name('index');
@@ -838,45 +828,20 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
             Route::delete('/{id}', [SuratTemplateController::class, 'destroy'])->name('destroy');
         });
 
-        Route::prefix('cetak')->name('cetak.')->group(function () {
-            Route::get('/', [LetterController::class, 'index'])->name('index');
-            Route::get('/create', [LetterController::class, 'create'])->name('create');
-            Route::post('/', [LetterController::class, 'store'])->name('store');
-            Route::post('/template', [LetterController::class, 'generateFromTemplate'])->name('template');
-            Route::get('/live-search-nik', [LetterController::class, 'liveSearchNik'])->name('liveSearchNik');
-            Route::get('/get-data/{nik}', [LetterController::class, 'getDataByNik'])->name('getDataByNik');
-            Route::get('/{id}', [LetterController::class, 'show'])->name('show');
-            Route::get('/{id}/print', [LetterController::class, 'cetak'])->name('print');
-            Route::get('/penduduk/{nik}', [LetterController::class, 'getPendudukData'])->name('getPenduduk');
-        });
-
-        /*
-    |-----------------------------------------
-    | 3. Cetak Surat
-    |-----------------------------------------
-    */
         Route::prefix('cetak')->name('cetak.')->controller(LetterController::class)->group(function () {
-
             Route::get('/', 'index')->name('index');
             Route::get('/create', 'create')->name('create');
-
+            Route::post('/', 'store')->name('store'); 
+            Route::post('/template', 'generateFromTemplate')->name('template');
             Route::post('/preview', 'preview')->name('preview');
             Route::post('/generate-final', 'generateFinal')->name('generateFinal');
-
             Route::get('/live-search-nik', 'liveSearchNik')->name('liveSearchNik');
             Route::get('/get-data/{nik}', 'getDataByNik')->name('getDataByNik');
             Route::get('/penduduk/{nik}', 'getPendudukData')->name('getPenduduk');
-
             Route::get('/{id}', 'show')->name('show');
             Route::get('/{id}/print', 'cetak')->name('print');
-            Route::post('/store', 'store')->name('store');
         });
 
-        /*
-    |-----------------------------------------
-    | 4. Permohonan Surat
-    |-----------------------------------------
-    */
         Route::get('/permohonan', [AdminSuratController::class, 'permohonan'])->name('permohonan.index');
         Route::get('/permohonan/{id}', [AdminSuratController::class, 'showPermohonan'])->name('permohonan.show');
         Route::put('/permohonan/{id}/status', [AdminSuratController::class, 'updateStatusPermohonan'])->name('permohonan.update-status');
@@ -884,11 +849,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
         Route::get('/letters/create', [\App\Http\Controllers\Admin\layanansurat\LayananSuratController::class, 'createLetter'])
             ->name('letters.create');
 
-        /*
-    |-----------------------------------------
-    | 5. Arsip Surat
-    |-----------------------------------------
-    */
         Route::get('/arsip', [AdminSuratController::class, 'arsip'])->name('arsip');
         Route::delete('/arsip/{id}', [AdminSuratController::class, 'destroyArsip'])->name('arsip.destroy');
     });
@@ -910,6 +870,84 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
     |--------------------------------------------------------------------------
     */
     Route::prefix('sekretariat')->name('sekretariat.')->group(function () {
+        
+        // Inventaris Kekayaan Desa
+        Route::resource(
+            'inventaris-kekayaan-desa',
+            \App\Http\Controllers\Admin\BukuInventarisKekayaanDesaController::class
+        )->parameters(['inventaris-kekayaan-desa' => 'inventarisKekayaanDesa']);
+
+        // Buku Keputusan Kepala Desa
+        Route::get('/keputusan', [KeputusanController::class, 'index'])->name('keputusan.index');
+        Route::get('/keputusan/create', [KeputusanController::class, 'create'])->name('keputusan.create');
+        Route::post('/keputusan', [KeputusanController::class, 'store'])->name('keputusan.store');
+        Route::get('/keputusan/{id}', [KeputusanController::class, 'show'])->name('keputusan.show');
+        Route::get('/keputusan/{id}/edit', [KeputusanController::class, 'edit'])->name('keputusan.edit');
+        Route::put('/keputusan/{id}', [KeputusanController::class, 'update'])->name('keputusan.update');
+        Route::delete('/keputusan/{id}', [KeputusanController::class, 'destroy'])->name('keputusan.destroy');
+
+        // Buku Pemerintah Desa
+        Route::get('/pemerintah', [PemerintahController::class, 'index'])->name('pemerintah.index');
+        Route::get('/pemerintah/create', [PemerintahController::class, 'create'])->name('pemerintah.create');
+        Route::post('/pemerintah', [PemerintahController::class, 'store'])->name('pemerintah.store');
+        Route::get('/pemerintah/{id}', [PemerintahController::class, 'show'])->name('pemerintah.show');
+        Route::get('/pemerintah/{id}/edit', [PemerintahController::class, 'edit'])->name('pemerintah.edit');
+        Route::put('/pemerintah/{id}', [PemerintahController::class, 'update'])->name('pemerintah.update');
+        Route::delete('/pemerintah/{id}', [PemerintahController::class, 'destroy'])->name('pemerintah.destroy');
+
+        // Buku Tanah Kas Desa
+        Route::get('/tanah-kas-desa', [TanahKasDesaController::class, 'index'])->name('tanah-kas-desa.index');
+        Route::get('/tanah-kas-desa/create', [TanahKasDesaController::class, 'create'])->name('tanah-kas-desa.create');
+        Route::post('/tanah-kas-desa', [TanahKasDesaController::class, 'store'])->name('tanah-kas-desa.store');
+        Route::get('/tanah-kas-desa/{id}', [TanahKasDesaController::class, 'show'])->name('tanah-kas-desa.show');
+        Route::get('/tanah-kas-desa/{id}/edit', [TanahKasDesaController::class, 'edit'])->name('tanah-kas-desa.edit');
+        Route::put('/tanah-kas-desa/{id}', [TanahKasDesaController::class, 'update'])->name('tanah-kas-desa.update');
+        Route::delete('/tanah-kas-desa/{id}', [TanahKasDesaController::class, 'destroy'])->name('tanah-kas-desa.destroy');
+
+        // Buku Tanah Desa
+        Route::get('/tanah-desa', [TanahDesaController::class, 'index'])->name('tanah-desa.index');
+        Route::get('/tanah-desa/create', [TanahDesaController::class, 'create'])->name('tanah-desa.create');
+        Route::post('/tanah-desa', [TanahDesaController::class, 'store'])->name('tanah-desa.store');
+        Route::get('/tanah-desa/{id}', [TanahDesaController::class, 'show'])->name('tanah-desa.show');
+        Route::get('/tanah-desa/{id}/edit', [TanahDesaController::class, 'edit'])->name('tanah-desa.edit');
+        Route::put('/tanah-desa/{id}', [TanahDesaController::class, 'update'])->name('tanah-desa.update');
+        Route::delete('/tanah-desa/{id}', [TanahDesaController::class, 'destroy'])->name('tanah-desa.destroy');
+
+        // Buku Agenda Surat Keluar
+        Route::get('/agenda-surat-keluar', [AgendaSuratKeluarController::class, 'index'])->name('agenda-surat-keluar.index');
+        Route::get('/agenda-surat-keluar/create', [AgendaSuratKeluarController::class, 'create'])->name('agenda-surat-keluar.create');
+        Route::post('/agenda-surat-keluar', [AgendaSuratKeluarController::class, 'store'])->name('agenda-surat-keluar.store');
+        Route::get('/agenda-surat-keluar/{id}', [AgendaSuratKeluarController::class, 'show'])->name('agenda-surat-keluar.show');
+        Route::get('/agenda-surat-keluar/{id}/edit', [AgendaSuratKeluarController::class, 'edit'])->name('agenda-surat-keluar.edit');
+        Route::put('/agenda-surat-keluar/{id}', [AgendaSuratKeluarController::class, 'update'])->name('agenda-surat-keluar.update');
+        Route::delete('/agenda-surat-keluar/{id}', [AgendaSuratKeluarController::class, 'destroy'])->name('agenda-surat-keluar.destroy');
+
+        // Buku Agenda Surat Masuk
+        Route::get('/agenda-surat-masuk', [AgendaSuratMasukController::class, 'index'])->name('agenda-surat-masuk.index');
+        Route::get('/agenda-surat-masuk/create', [AgendaSuratMasukController::class, 'create'])->name('agenda-surat-masuk.create');
+        Route::post('/agenda-surat-masuk', [AgendaSuratMasukController::class, 'store'])->name('agenda-surat-masuk.store');
+        Route::get('/agenda-surat-masuk/{id}', [AgendaSuratMasukController::class, 'show'])->name('agenda-surat-masuk.show');
+        Route::get('/agenda-surat-masuk/{id}/edit', [AgendaSuratMasukController::class, 'edit'])->name('agenda-surat-masuk.edit');
+        Route::put('/agenda-surat-masuk/{id}', [AgendaSuratMasukController::class, 'update'])->name('agenda-surat-masuk.update');
+        Route::delete('/agenda-surat-masuk/{id}', [AgendaSuratMasukController::class, 'destroy'])->name('agenda-surat-masuk.destroy');
+
+        // Buku Ekspedisi
+        Route::get('/ekspedisi', [EkspedisiController::class, 'index'])->name('ekspedisi.index');
+        Route::get('/ekspedisi/create', [EkspedisiController::class, 'create'])->name('ekspedisi.create');
+        Route::post('/ekspedisi', [EkspedisiController::class, 'store'])->name('ekspedisi.store');
+        Route::get('/ekspedisi/{id}', [EkspedisiController::class, 'show'])->name('ekspedisi.show');
+        Route::get('/ekspedisi/{id}/edit', [EkspedisiController::class, 'edit'])->name('ekspedisi.edit');
+        Route::put('/ekspedisi/{id}', [EkspedisiController::class, 'update'])->name('ekspedisi.update');
+        Route::delete('/ekspedisi/{id}', [EkspedisiController::class, 'destroy'])->name('ekspedisi.destroy');
+
+        // Buku Lembaran Desa dan Berita Desa
+        Route::get('/lembaran-desa', [LembaranDesaController::class, 'index'])->name('lembaran-desa.index');
+        Route::get('/lembaran-desa/create', [LembaranDesaController::class, 'create'])->name('lembaran-desa.create');
+        Route::post('/lembaran-desa', [LembaranDesaController::class, 'store'])->name('lembaran-desa.store');
+        Route::get('/lembaran-desa/{id}', [LembaranDesaController::class, 'show'])->name('lembaran-desa.show');
+        Route::get('/lembaran-desa/{id}/edit', [LembaranDesaController::class, 'edit'])->name('lembaran-desa.edit');
+        Route::put('/lembaran-desa/{id}', [LembaranDesaController::class, 'update'])->name('lembaran-desa.update');
+        Route::delete('/lembaran-desa/{id}', [LembaranDesaController::class, 'destroy'])->name('lembaran-desa.destroy');
 
         Route::get('/informasi-publik', [SekretariatController::class, 'index'])->name('informasi-publik.index');
         Route::get('/informasi-publik/create', [SekretariatController::class, 'create'])->name('informasi-publik.create');
@@ -946,7 +984,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
         // 1. ADMIN UMUM
         // ==========================================
         Route::prefix('umum')->name('umum.')->group(function () {
-
             Route::get('/', [BukuUmumController::class, 'index'])->name('index');
 
             Route::get('/peraturan-desa', [PeraturanDesaController::class, 'index'])->name('peraturan-desa.index');
@@ -977,7 +1014,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
             });
 
             Route::prefix('mutasi-penduduk')->name('mutasi-penduduk.')->group(function () {
-                Route::get('/',                     [BukuMutasiPendudukController::class, 'index'])->name('index');
+                Route::get('/',                      [BukuMutasiPendudukController::class, 'index'])->name('index');
                 Route::get('/create',                [BukuMutasiPendudukController::class, 'create'])->name('create');
                 Route::post('/',                     [BukuMutasiPendudukController::class, 'store'])->name('store');
                 Route::get('/{mutasiPenduduk}',      [BukuMutasiPendudukController::class, 'show'])->name('show');
@@ -985,7 +1022,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
                 Route::put('/{mutasiPenduduk}',      [BukuMutasiPendudukController::class, 'update'])->name('update');
                 Route::delete('/{mutasiPenduduk}',   [BukuMutasiPendudukController::class, 'destroy'])->name('destroy');
             });
-
+            
+            // Route ini diluruskan lokasinya agar tetap sesuai dengan nama prefix dan path
             Route::prefix('rekapitulasi-penduduk')->name('rekapitulasi-penduduk.')->group(function () {
                 Route::get('/', [BukuRekapitulasiPendudukController::class, 'index'])->name('index');
             });
@@ -1021,55 +1059,56 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
                 Route::put('/{kk}',      [KtpKkController::class, 'updateKk'])->name('update');
                 Route::delete('/{kk}',   [KtpKkController::class, 'destroyKk'])->name('destroy');
             });
-        }); 
+            
+        }); // ← tutup group penduduk
 
         // ==========================================
         // 3. ADMIN PEMBANGUNAN
         // ==========================================
         Route::prefix('pembangunan')->name('pembangunan.')->group(function () {
-
             Route::get('/', [BukuPembangunanController::class, 'index'])->name('index');
 
-            Route::get('/rencana', [RencanaPembangunanController::class, 'index'])
-                ->name('rencana.index');
-            Route::get('/rencana/create', [RencanaPembangunanController::class, 'create'])
-                ->name('rencana.create');
-            Route::post('/rencana', [RencanaPembangunanController::class, 'store'])
-                ->name('rencana.store');
-            Route::get('/rencana/{id}/edit', [RencanaPembangunanController::class, 'edit'])
-                ->name('rencana.edit');
-            Route::put('/rencana/{id}', [RencanaPembangunanController::class, 'update'])
-                ->name('rencana.update');
-            Route::delete('/rencana/{id}', [RencanaPembangunanController::class, 'destroy'])
-                ->name('rencana.destroy');
+            // 1. Rencana Kerja Pembangunan
+            Route::resource('rencana-kerja', BukuRencanaKerjaPembangunanController::class);
+
+            // 2. Kegiatan Pembangunan
+            Route::resource('kegiatan', BukuActivitiesPembangunanController::class);
+            Route::post('kegiatan/{kegiatan}/dokumentasi', [BukuActivitiesPembangunanController::class, 'storeDokumentasi'])->name('kegiatan.dokumentasi.store');
+            Route::delete('kegiatan/dokumentasi/{dokumentasi}', [BukuActivitiesPembangunanController::class, 'destroyDokumentasi'])->name('kegiatan.dokumentasi.destroy');
+
+            // 3. Inventaris Hasil Pembangunan
+            Route::resource('inventaris', BukuInventarisPembangunanController::class);
+
+            // 4. Kader Pemberdayaan Masyarakat
+            Route::resource('kader-pemberdayaan', BukuKaderPemberdayaanController::class);
+
+            Route::get('/rencana', [RencanaPembangunanController::class, 'index'])->name('rencana.index');
+            Route::get('/rencana/create', [RencanaPembangunanController::class, 'create'])->name('rencana.create');
+            Route::post('/rencana', [RencanaPembangunanController::class, 'store'])->name('rencana.store');
+            Route::get('/rencana/{id}/edit', [RencanaPembangunanController::class, 'edit'])->name('rencana.edit');
+            Route::put('/rencana/{id}', [RencanaPembangunanController::class, 'update'])->name('rencana.update');
+            Route::delete('/rencana/{id}', [RencanaPembangunanController::class, 'destroy'])->name('rencana.destroy');
         });
 
         // ==========================================
-        // 4. ARSIP
+        // 4. ARSIP DESA
         // ==========================================
         Route::prefix('arsip')->name('arsip.')->group(function () {
-            Route::get('/', function (\Illuminate\Http\Request $request) {
+            Route::get('/',            [ArsipDesaController::class, 'index'])->name('index');
+            Route::get('/{arsip}',     [ArsipDesaController::class, 'show'])->name('show');
+            
+            // Pencarian & filter menggunakan closure dari error paste sebelumnya:
+            Route::get('/filter/cari', function (\Illuminate\Http\Request $request) {
                 $jenisDokumen = $request->jenis_dokumen;
                 $tahun = $request->tahun;
                 $arsip = collect([]);
-
-                $totalDokumen = 0;
-                $suratMasuk = 0;
-                $suratKeluar = 0;
-                $kependudukan = 0;
-                $layananSurat = 0;
-
-                return view('admin.buku-administrasi.arsip', compact(
-                    'arsip',
-                    'totalDokumen',
-                    'suratMasuk',
-                    'suratKeluar',
-                    'kependudukan',
-                    'layananSurat'
-                ));
-            })->name('index');
+                $totalDokumen = 0; $suratMasuk = 0; $suratKeluar = 0; $kependudukan = 0; $layananSurat = 0;
+                return view('admin.buku-administrasi.arsip', compact('arsip', 'totalDokumen', 'suratMasuk', 'suratKeluar', 'kependudukan', 'layananSurat'));
+            })->name('cari');
         });
-    });
+
+    }); // ← tutup group buku-administrasi
+
 
     /*
     |--------------------------------------------------------------------------
@@ -1253,15 +1292,16 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
     | KESEHATAN
     |--------------------------------------------------------------------------
     */
-    require __DIR__ . '/kesehatan.php';
+    if (file_exists(__DIR__ . '/kesehatan.php')) {
+        require __DIR__ . '/kesehatan.php';
+    }
 
     /*
     |--------------------------------------------------------------------------
     | PEMBANGUNAN
     |--------------------------------------------------------------------------
     */
-    Route::prefix('pembangunan')->name('pembangunan.')->group(function () {
-
+    Route::prefix('pembangunan-utama')->name('pembangunan-utama.')->group(function () {
         Route::resource('/', PembangunanController::class)
             ->parameters(['' => 'pembangunan'])
             ->names([
@@ -1316,7 +1356,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
         'create'  => 'info-desa.wilayah-administratif.create',
         'store'   => 'info-desa.wilayah-administratif.store',
         'show'    => 'info-desa.wilayah-administratif.show',
-        'edit'    => 'info-desa.wilayah-administratif.edit',
+        'edit'   => 'info-desa.wilayah-administratif.edit',
         'update'  => 'info-desa.wilayah-administratif.update',
         'destroy' => 'info-desa.wilayah-administratif.destroy',
     ]);
@@ -1411,4 +1451,32 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
         Route::get('/terkirim', [HubungWargaController::class, 'sent'])->name('sent');
         Route::get('/baca/{id}', [HubungWargaController::class, 'show'])->name('show');
     });
-}); // <--- PENUTUP GROUP ADMIN UTAMA
+
+    /*
+    |--------------------------------------------------------------------------
+    | PPID
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('ppid')->name('ppid.')->group(function () {
+
+        // ✅ Jenis DULU (spesifik) — sebelum wildcard /{ppid}
+        Route::prefix('jenis')->name('jenis.')->group(function () {
+            Route::get('/',            [PpidJenisController::class, 'index'])->name('index');
+            Route::get('/tambah',      [PpidJenisController::class, 'create'])->name('create');
+            Route::post('/',           [PpidJenisController::class, 'store'])->name('store');
+            Route::get('/{jeni}/edit', [PpidJenisController::class, 'edit'])->name('edit');
+            Route::put('/{jeni}',      [PpidJenisController::class, 'update'])->name('update');
+            Route::delete('/{jeni}',   [PpidJenisController::class, 'destroy'])->name('destroy');
+        });
+
+        // ⚠️ Wildcard /{ppid} di bawah — setelah yang spesifik
+        Route::get('/',            [PpidController::class, 'index'])->name('index');
+        Route::get('/tambah',      [PpidController::class, 'create'])->name('create');
+        Route::post('/',           [PpidController::class, 'store'])->name('store');
+        Route::get('/{ppid}',      [PpidController::class, 'show'])->name('show');
+        Route::get('/{ppid}/edit', [PpidController::class, 'edit'])->name('edit');
+        Route::put('/{ppid}',      [PpidController::class, 'update'])->name('update');
+        Route::delete('/{ppid}',   [PpidController::class, 'destroy'])->name('destroy');
+    });
+
+}); // <--- PENUTUP GROUP ADMIN UTAMA (Semua route admin dan ppid aman di dalam sini)
