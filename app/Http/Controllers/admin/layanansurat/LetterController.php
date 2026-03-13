@@ -8,43 +8,48 @@ use App\Models\Penduduk;
 use App\Models\IdentitasDesa;
 use App\Models\ArsipSurat;
 use App\Models\SuratTemplate;
-use App\Models\Keluarga;
+use App\Models\Keluarga; 
+use App\Models\KlasifikasiSurat; 
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Auth; 
+use Carbon\Carbon;
 
-class LetterController extends Controller {
-    public function index() {
-        $templates = SuratTemplate::where('status', 'aktif')->get();
+class LetterController extends Controller
+{
+    public function index()
+    {
+        $templates = SuratTemplate::with('klasifikasi')->where('status', 'aktif')->get();
         return view('admin.layanan-surat.letters.index', compact('templates'));
     }
 
-    public function create(Request $request) {
+    public function create(Request $request)
+    {
         $templateId = $request->query('id');
-        $selectedTemplate = SuratTemplate::findOrFail($templateId);
-
+        $selectedTemplate = SuratTemplate::with('klasifikasi')->findOrFail($templateId);
+        
         $variables = [];
         if ($selectedTemplate->konten_template) {
             preg_match_all('/\[([a-zA-Z0-9_]+)\]/i', $selectedTemplate->konten_template, $matches);
             $variables = array_unique($matches[1] ?? []);
         }
 
-        $autoNomorSurat = $this->generateAutoNomorSurat($templateId);
+        $autoNomorSurat = $this->generateAutoNomorSuratPreview($selectedTemplate);
 
         return view('admin.layanan-surat.letters.create', compact('selectedTemplate', 'variables', 'autoNomorSurat'));
     }
 
-    /**
-     * PERBAIKAN DI SINI: Menambahkan data IdentitasDesa otomatis
-     */
-    public function preview(Request $request) {
-        if (!$request->filled('format_nomor') && $request->filled('template_id')) {
-            $autoNomor = $this->generateAutoNomorSurat($request->template_id);
+    public function preview(Request $request)
+    {
+        $template = SuratTemplate::with('klasifikasi')->findOrFail($request->template_id);
+
+        if (!$request->filled('format_nomor')) {
+            $autoNomor = $this->generateAutoNomorSuratPreview($template);
             $request->merge([
                 'format_nomor' => $autoNomor,
-                'nomor_surat'  => $autoNomor
+                'nomor_surat'  => $autoNomor 
             ]);
         }
 
@@ -56,33 +61,58 @@ class LetterController extends Controller {
             'format_nomor.unique'   => 'Nomor surat sudah terdaftar di arsip!',
         ]);
 
-        $template = SuratTemplate::findOrFail($request->template_id);
-        $htmlContent = $template->konten_template;
-
-        // 1. Ambil Data Desa dari Database
-        $desa = IdentitasDesa::first();
-
-        // 2. Siapkan data dari Form
+        $htmlContent = $template->konten_template; 
         $formData = $request->except(['_token', 'template_id']);
 
-        // 3. Gabungkan Data Form + Data Desa Otomatis
-        $dataReplace = array_merge($formData, [
-            'nama_desa'      => $desa->nama_desa ?? '',
-            'kecamatan'      => $desa->nama_kecamatan ?? '',
-            'nama_kabupaten' => $desa->nama_kabupaten ?? '',
-            'sebutan_desa'   => $desa->sebutan_desa ?? 'Desa',
-            'kode_provinsi'  => $desa->kode_provinsi ?? '',
-            'logo_desa'      => $desa->logo ? asset('storage/' . $desa->logo) : '',
-            'alamat_kantor'  => $desa->alamat_kantor ?? '',
-            'kepala_desa'    => $desa->nama_kepala_desa ?? '',
-            'nip_kepala_desa' => $desa->nip_kepala_desa ?? '-',
-            'tgl_surat'      => now()->translatedFormat('d F Y'),
-        ]);
-
-        // 4. Proses Penggantian variabel [tag]
-        foreach ($dataReplace as $key => $value) {
+        // 1. Penggantian variabel inputan form biasa
+        foreach ($formData as $key => $value) {
             $htmlContent = str_ireplace('[' . $key . ']', $value ?? '', $htmlContent);
         }
+
+        // =========================================================
+        // 2. AUTO LOGO DESA DENGAN DEBUGGING ERROR
+        // =========================================================
+        
+        // FITUR ANTI-ERROR: Jika user tidak sengaja memasukkan [logo_desa] lewat menu "Insert Image", 
+        // kita bersihkan dulu tag img bawaan editornya agar tidak dobel.
+        $htmlContent = preg_replace('/<img[^>]*src="\[logo_desa\]"[^>]*>/i', '[logo_desa]', $htmlContent);
+
+        if (stripos($htmlContent, '[logo_desa]') !== false) {
+            $desa = IdentitasDesa::first();
+            $logoHtml = ''; 
+
+            if ($desa) {
+                // Cari tahu nama field logo di databasemu
+                $namaFileLogo = $desa->logo ?? $desa->logo_desa ?? $desa->file_logo ?? null;
+
+                if (!empty($namaFileLogo)) {
+                    // Cek lokasi folder
+                    $logoPath = str_contains($namaFileLogo, 'logo-desa') 
+                                ? storage_path('app/public/' . $namaFileLogo) 
+                                : storage_path('app/public/logo-desa/' . $namaFileLogo);
+                    
+                    if (File::exists($logoPath)) {
+                        $fileType = mime_content_type($logoPath);
+                        $fileData = base64_encode(file_get_contents($logoPath));
+                        
+                        // Bersihkan spasi/enter dari base64 agar HTML tidak rusak
+                        $base64Image = 'data:' . $fileType . ';base64,' . str_replace(["\r", "\n"], '', $fileData);
+                        
+                        // Tag HTML bersih tanpa atribut alt yang bikin error
+                        $logoHtml = '<img src="' . $base64Image . '" style="width: 85px; height: auto; object-fit: contain;" />';
+                    } else {
+                        $logoHtml = '<strong style="color:red; font-size:12px;">[ERROR: LOGO TIDAK ADA DI FOLDER STORAGE]</strong>';
+                    }
+                } else {
+                    $logoHtml = '<strong style="color:orange; font-size:12px;">[ERROR: NAMA LOGO KOSONG DI DATABASE]</strong>';
+                }
+            } else {
+                $logoHtml = '<strong style="color:purple; font-size:12px;">[ERROR: DATA IDENTITAS DESA BELUM DIISI]</strong>';
+            }
+
+            $htmlContent = str_ireplace('[logo_desa]', $logoHtml, $htmlContent);
+        }
+        // =========================================================
 
         return view('admin.layanan-surat.letters.preview', [
             'htmlContent' => $htmlContent,
@@ -91,12 +121,36 @@ class LetterController extends Controller {
         ]);
     }
 
-    public function generateFinal(Request $request) {
+    public function generateFinal(Request $request)
+    {
         try {
             $content = $request->final_content;
+            
+            $templateId = $request->template_id;
+            $template = SuratTemplate::with('klasifikasi')->find($templateId);
+
+            $nomorSuratFinal = $request->nomor_surat; 
+            
+            if ($template && $template->klasifikasi) {
+                $klasifikasi = $template->klasifikasi;
+                
+                // Increment DB
+                $klasifikasi->increment('jumlah'); 
+                
+                $kodeKlasifikasi = $klasifikasi->kode;
+                $nomorUrutReal = str_pad($klasifikasi->jumlah, 3, '0', STR_PAD_LEFT);
+                
+                $desa = IdentitasDesa::first();
+                $kodeWilayah = $desa ? ($desa->kode_wilayah ?? $desa->kode_desa ?? '22424') : '22424'; 
+                
+                $tahun = Carbon::now()->format('Y');
+                $bulanRomawi = $this->getBulanRomawi(Carbon::now()->format('n'));
+
+                $nomorSuratFinal = "{$kodeKlasifikasi}/{$nomorUrutReal}/{$kodeWilayah}/{$bulanRomawi}/{$tahun}";
+            }
 
             $pdf = Pdf::loadHTML($content)->setPaper('a4', 'portrait');
-
+            
             $fileName = 'Surat-' . Str::slug($request->nama_pemohon ?? 'dokumen') . '-' . time() . '.pdf';
             $dbPath = 'arsip_surat/' . $fileName;
             $fullPath = storage_path('app/public/' . $dbPath);
@@ -107,8 +161,8 @@ class LetterController extends Controller {
             File::put($fullPath, $pdf->output());
 
             ArsipSurat::create([
-                'nomor_surat'   => $request->nomor_surat,
-                'jenis_surat'   => $request->jenis_surat,
+                'nomor_surat'   => $nomorSuratFinal, 
+                'jenis_surat'   => $request->jenis_surat, 
                 'nama_pemohon'  => $request->nama_pemohon,
                 'nik'           => $request->nik_pemohon ?? '-',
                 'tanggal_surat' => $request->tanggal_surat ?? now()->format('Y-m-d'),
@@ -126,7 +180,7 @@ class LetterController extends Controller {
     public function liveSearchNik(Request $request) {
         $keyword = $request->keyword;
         if (empty($keyword)) return response()->json([]);
-
+        
         $penduduk = Penduduk::where('nik', 'LIKE', $keyword . '%')
             ->orWhere('nama', 'LIKE', '%' . $keyword . '%')
             ->limit(10)
@@ -140,7 +194,7 @@ class LetterController extends Controller {
         $desa = IdentitasDesa::first();
 
         if ($penduduk) {
-            $keluarga = Keluarga::whereHas('anggota', function ($query) use ($nik) {
+            $keluarga = Keluarga::whereHas('anggota', function($query) use ($nik) {
                 $query->where('nik', $nik);
             })->with(['anggota'])->first();
 
@@ -151,7 +205,7 @@ class LetterController extends Controller {
                     'alamat_kk' => $keluarga->alamat,
                     'kepala_keluarga' => $keluarga->getKepalaKeluarga() ? $keluarga->getKepalaKeluarga()->nama : '-',
                     'nik_kepala' => $keluarga->getKepalaKeluarga() ? $keluarga->getKepalaKeluarga()->nik : '-',
-                    'daftar_anggota' => $keluarga->anggota
+                    'daftar_anggota' => $keluarga->anggota 
                 ];
             }
 
@@ -170,7 +224,8 @@ class LetterController extends Controller {
         return $this->getDataByNik($nik);
     }
 
-    public function store(Request $request) {
+    public function store(Request $request)
+    {
         $validated = $this->validateLetterRequest($request);
         $letter = Letter::create($validated);
         return redirect()->route('admin.layanan-surat.cetak.show', $letter->id);
@@ -200,22 +255,37 @@ class LetterController extends Controller {
         ]);
     }
 
-    private function generateAutoNomorSurat($templateId) {
-        $template = SuratTemplate::find($templateId);
-        $kodeKlasifikasi = $template->kode_klasifikasi ?? 'S-41';
+    private function getBulanRomawi($bulan)
+    {
+        $map = [
+            1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV', 5 => 'V', 6 => 'VI',
+            7 => 'VII', 8 => 'VIII', 9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII'
+        ];
+        return $map[(int)$bulan];
+    }
 
+    private function generateAutoNomorSuratPreview($template)
+    {
+        $kodeKlasifikasi = '000';
+        $nomorUrutPreview = '001';
+
+        if ($template && $template->klasifikasi) {
+            $kodeKlasifikasi = $template->klasifikasi->kode;
+            $simulasiJumlah = $template->klasifikasi->jumlah + 1;
+            $nomorUrutPreview = str_pad($simulasiJumlah, 3, '0', STR_PAD_LEFT);
+        } else {
+            $kodeKlasifikasi = $template->kode_klasifikasi ?? 'S-41'; 
+            $tahun = date('Y');
+            $jumlahSurat = ArsipSurat::whereYear('created_at', $tahun)->count();
+            $nomorUrutPreview = str_pad($jumlahSurat + 1, 3, '0', STR_PAD_LEFT); 
+        }
+        
         $desa = IdentitasDesa::first();
-        $kodeWilayah = $desa ? ($desa->kode_wilayah ?? $desa->kode_desa ?? '9202172009') : '9202172009';
-
-        $tahun = date('Y');
-        $bulan = date('n');
-
-        $romawi = [1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV', 5 => 'V', 6 => 'VI', 7 => 'VII', 8 => 'VIII', 9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII'];
-        $bulanRomawi = $romawi[$bulan];
-
-        $jumlahSurat = ArsipSurat::whereYear('created_at', $tahun)->count();
-        $nomorUrut = str_pad($jumlahSurat + 1, 3, '0', STR_PAD_LEFT);
-
-        return "{$kodeKlasifikasi}/{$nomorUrut}/{$kodeWilayah}/{$bulanRomawi}/{$tahun}";
+        $kodeWilayah = $desa ? ($desa->kode_wilayah ?? $desa->kode_desa ?? '22424') : '22424'; 
+        
+        $tahun = Carbon::now()->format('Y');
+        $bulanRomawi = $this->getBulanRomawi(Carbon::now()->format('n'));
+        
+        return "{$kodeKlasifikasi}/{$nomorUrutPreview}/{$kodeWilayah}/{$bulanRomawi}/{$tahun}";
     }
 }
