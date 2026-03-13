@@ -101,36 +101,40 @@ $iconMap = [
         <div class="flex items-center gap-3">
             <nav class="flex items-center gap-1.5 text-sm">
                 <a href="{{ route('admin.dashboard') }}"
-                   class="flex items-center gap-1 text-gray-400 hover:text-emerald-600 transition-colors">
+                   class="flex items-center gap-1 text-gray-400 dark:text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
                     </svg>
                     Beranda
                 </a>
-                <svg class="w-3.5 h-3.5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-3.5 h-3.5 text-gray-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                 </svg>
                 <span class="text-gray-600 dark:text-slate-300 font-medium">Jenis Dokumen</span>
             </nav>
+
             {{-- Tombol Hapus Terpilih --}}
             <button
                 @click="openHapusBulk()"
                 :disabled="selectedIds.length === 0"
                 :class="selectedIds.length > 0
-                    ? 'bg-red-600 hover:bg-red-700 text-white shadow-md shadow-red-500/20 hover:shadow-lg hover:shadow-red-500/30 hover:-translate-y-0.5 cursor-pointer'
-                    : 'bg-gray-200 dark:bg-slate-700 text-gray-400 dark:text-slate-500 cursor-not-allowed'"
-                class="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-xl transition-all duration-200">
+                    ? 'bg-red-500 hover:bg-red-600 cursor-pointer'
+                    : 'bg-red-300 dark:bg-red-900/50 cursor-not-allowed opacity-60'"
+                class="inline-flex items-center gap-2 px-4 py-2 text-white text-sm font-semibold rounded-lg transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                 </svg>
-                <span x-text="selectedIds.length > 0 ? 'Hapus (' + selectedIds.length + ')' : 'Hapus Terpilih'"></span>
+                Hapus
+                <span x-show="selectedIds.length > 0">(<span x-text="selectedIds.length"></span>)</span>
             </button>
+
+            {{-- Tombol Tambah --}}
             <button @click="openAdd()"
-               class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-semibold rounded-xl shadow-md shadow-emerald-500/20 transition-all duration-200 hover:shadow-lg hover:shadow-emerald-500/30 hover:-translate-y-0.5">
+               class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold rounded-lg transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                 </svg>
-                Tambah Jenis
+                Tambah
             </button>
         </div>
     </div>
@@ -157,123 +161,327 @@ $iconMap = [
     </div>
     @endif
 
-    {{-- TABLE --}}
+    {{-- CARD: Filter + Toolbar + Tabel + Pagination --}}
     <div class="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden">
-        <table class="w-full">
-            <thead>
-                <tr class="bg-gray-50 dark:bg-slate-700/50 border-b border-gray-200 dark:border-slate-700">
-                    <th class="px-4 py-4 w-10">
-                        @php $checkableIds = $jenis->filter(fn($i) => !in_array($i->nama, ['Secara Berkala','Serta Merta','Tersedia Setiap Saat','Dikecualikan']))->pluck('id')->toArray(); @endphp
-                        <input type="checkbox"
-                            :checked="selectAll"
-                            @change="toggleSelectAll({{ json_encode($checkableIds) }})"
-                            class="w-4 h-4 rounded border-gray-300 dark:border-slate-600 text-red-600 focus:ring-red-500 cursor-pointer"
-                            title="Pilih semua"
-                        >
-                    </th>
-                    <th class="px-4 py-4 text-left text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider w-12">NO</th>
-                    <th class="px-4 py-4 text-left text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider w-32">AKSI</th>
-                    <th class="px-4 py-4 text-left text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider">NAMA KATEGORI</th>
-                    <th class="px-4 py-4 text-left text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider">DESKRIPSI</th>
-                    <th class="px-4 py-4 text-center text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider w-36">ICON</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100 dark:divide-slate-700">
-                @forelse($jenis as $item)
-                @php
-                    $isProtected = in_array($item->nama, ['Secara Berkala','Serta Merta','Tersedia Setiap Saat','Dikecualikan']);
-                    $svgPath     = $iconMap[$item->icon] ?? $iconMap['document'];
-                @endphp
-                <tr class="hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors">
-                    <td class="px-4 py-4">
-                        @unless($isProtected)
-                        <input type="checkbox"
-                            :checked="selectedIds.includes({{ $item->id }})"
-                            @change="selectedIds.includes({{ $item->id }}) ? selectedIds.splice(selectedIds.indexOf({{ $item->id }}), 1) : selectedIds.push({{ $item->id }}); updateSelectAll({{ json_encode($checkableIds) }})"
-                            class="w-4 h-4 rounded border-gray-300 dark:border-slate-600 text-red-600 focus:ring-red-500 cursor-pointer"
-                        >
-                        @endunless
-                    </td>
-                    <td class="px-4 py-4 text-sm text-gray-500 dark:text-slate-400">{{ $jenis->firstItem() + $loop->index }}</td>
-                    <td class="px-4 py-4">
-                        <div class="flex items-center gap-1 flex-wrap">
-                            {{-- Edit --}}
-                            <button type="button" title="Edit"
-                                @click="openEdit({ id: {{ $item->id }}, nama: @js($item->nama), keterangan: @js($item->keterangan ?? ''), icon: @js($item->icon ?? 'document'), warna_background: @js($item->warna_background ?? '#3b82f6'), status: @js($item->status) })"
-                                class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-amber-500 hover:bg-amber-600 text-white transition-colors">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                                </svg>
-                            </button>
-                            {{-- Toggle Status --}}
-                            @if($item->status === 'aktif')
-                            <button type="button" title="Nonaktifkan" @click="toggleStatus({{ $item->id }}, 'aktif')"
-                                class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-slate-500 hover:bg-slate-600 text-white transition-colors">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
-                                </svg>
-                            </button>
-                            @else
-                            <button type="button" title="Aktifkan" @click="toggleStatus({{ $item->id }}, 'tidak_aktif')"
-                                class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white transition-colors">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                                </svg>
-                            </button>
-                            @endif
-                            {{-- Hapus: hanya non-bawaan --}}
+
+        {{-- ── Baris Filter Status ── --}}
+        <div class="px-5 pt-5 pb-4">
+            <form method="GET" action="{{ route('admin.ppid.jenis.index') }}" id="form-filter-jenis" class="flex flex-wrap items-center gap-2">
+
+                {{-- Hidden inputs --}}
+                <input type="hidden" name="status"   id="val-status"   value="{{ request('status') }}">
+                <input type="hidden" name="per_page" value="{{ request('per_page', 15) }}">
+                <input type="hidden" name="search"   value="{{ request('search') }}">
+
+                {{-- ── Custom Dropdown: Filter Status ── --}}
+                <div class="relative w-40"
+                     x-data="{
+                        open: false,
+                        search: '',
+                        selected: '{{ request('status', '') }}',
+                        label: '{{ collect([''=>'Semua Status','semua'=>'Semua Status','aktif'=>'Aktif','tidak_aktif'=>'Tidak Aktif'])->get(request('status',''), 'Semua Status') }}',
+                        placeholder: 'Semua Status',
+                        options: [
+                            { value: '',           label: 'Semua Status' },
+                            { value: 'semua',      label: 'Semua Status' },
+                            { value: 'aktif',      label: 'Aktif'        },
+                            { value: 'tidak_aktif', label: 'Tidak Aktif' },
+                        ],
+                        get filtered() {
+                            if (!this.search) return this.options;
+                            return this.options.filter(o => o.label.toLowerCase().includes(this.search.toLowerCase()));
+                        },
+                        choose(opt) {
+                            this.selected = opt.value;
+                            this.label    = opt.label;
+                            document.getElementById('val-status').value = opt.value;
+                            this.open   = false;
+                            this.search = '';
+                            document.getElementById('form-filter-jenis').submit();
+                        }
+                     }"
+                     @click.away="open = false">
+
+                    <button type="button" @click="open = !open"
+                        class="w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm cursor-pointer
+                               bg-white dark:bg-slate-700 text-gray-700 dark:text-slate-200
+                               border-gray-300 dark:border-slate-600
+                               hover:border-emerald-400 dark:hover:border-emerald-500 transition-colors"
+                        :class="open ? 'border-emerald-500 ring-2 ring-emerald-500/20' : ''">
+                        <span x-text="label || placeholder" :class="label ? '' : 'text-gray-400 dark:text-slate-500'"></span>
+                        <svg class="w-4 h-4 text-gray-400 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+
+                    <div x-show="open"
+                         x-transition:enter="transition ease-out duration-100"
+                         x-transition:enter-start="opacity-0 -translate-y-1"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-75"
+                         x-transition:leave-start="opacity-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 -translate-y-1"
+                         class="absolute left-0 top-full mt-1 w-full z-50
+                                bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600
+                                rounded-lg shadow-lg overflow-hidden"
+                         style="display:none">
+                        <ul class="max-h-48 overflow-y-auto py-1">
+                            <template x-for="opt in filtered" :key="opt.value">
+                                <li @click="choose(opt)"
+                                    class="px-3 py-2 text-sm cursor-pointer transition-colors
+                                           hover:bg-emerald-50 dark:hover:bg-emerald-900/20
+                                           hover:text-emerald-700 dark:hover:text-emerald-400"
+                                    :class="selected === opt.value
+                                        ? 'bg-emerald-500 text-white hover:bg-emerald-600 hover:text-white dark:hover:text-white'
+                                        : 'text-gray-700 dark:text-slate-200'"
+                                    x-text="opt.label">
+                                </li>
+                            </template>
+                        </ul>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+
+        {{-- ── Toolbar: Tampilkan X entri + Search ── --}}
+        <div class="flex flex-wrap items-center justify-between gap-3 px-5 py-4 border-b border-gray-200 dark:border-slate-700">
+
+            {{-- Tampilkan X entri --}}
+            <form method="GET" action="{{ route('admin.ppid.jenis.index') }}" class="flex items-center gap-2 text-sm text-gray-600 dark:text-slate-400">
+                @foreach(request()->except('per_page', 'page') as $key => $val)
+                    <input type="hidden" name="{{ $key }}" value="{{ $val }}">
+                @endforeach
+                <span>Tampilkan</span>
+                <select name="per_page" onchange="this.form.submit()"
+                    class="px-2 py-1.5 border border-gray-300 dark:border-slate-600 rounded-lg
+                           bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200
+                           focus:ring-2 focus:ring-emerald-500 outline-none text-sm cursor-pointer">
+                    @foreach([10, 15, 25, 50, 100] as $n)
+                        <option value="{{ $n }}" {{ request('per_page', 15) == $n ? 'selected' : '' }}>{{ $n }}</option>
+                    @endforeach
+                </select>
+                <span>entri</span>
+            </form>
+
+            {{-- Search --}}
+            <form method="GET" action="{{ route('admin.ppid.jenis.index') }}" class="flex items-center gap-2">
+                @foreach(request()->except('search', 'page') as $key => $val)
+                    <input type="hidden" name="{{ $key }}" value="{{ $val }}">
+                @endforeach
+                <label class="text-sm text-gray-600 dark:text-slate-400">Cari:</label>
+                <input type="text" name="search" value="{{ request('search') }}"
+                       placeholder="kata kunci pencarian"
+                       class="px-3 py-1.5 border border-gray-300 dark:border-slate-600 rounded-lg
+                              bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200
+                              focus:ring-2 focus:ring-emerald-500 outline-none text-sm w-52">
+            </form>
+        </div>
+
+        {{-- ── Tabel ── --}}
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr class="bg-gray-50 dark:bg-slate-700/50 border-b border-gray-200 dark:border-slate-700">
+                        <th class="px-4 py-4 w-10">
+                            @php $checkableIds = $jenis->filter(fn($i) => !in_array($i->nama, ['Secara Berkala','Serta Merta','Tersedia Setiap Saat','Dikecualikan']))->pluck('id')->toArray(); @endphp
+                            <input type="checkbox"
+                                :checked="selectAll"
+                                @change="toggleSelectAll({{ json_encode($checkableIds) }})"
+                                class="w-4 h-4 rounded border-gray-300 dark:border-slate-600 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+                                title="Pilih semua"
+                            >
+                        </th>
+                        <th class="px-4 py-4 text-left text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider w-12">NO</th>
+                        <th class="px-4 py-4 text-left text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider w-32">AKSI</th>
+                        <th class="px-4 py-4 text-left text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider">NAMA KATEGORI</th>
+                        <th class="px-4 py-4 text-left text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider">DESKRIPSI</th>
+                        <th class="px-4 py-4 text-center text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider w-36">ICON & STATUS</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 dark:divide-slate-700">
+                    @forelse($jenis as $item)
+                    @php
+                        $isProtected = in_array($item->nama, ['Secara Berkala','Serta Merta','Tersedia Setiap Saat','Dikecualikan']);
+                        $svgPath     = $iconMap[$item->icon] ?? $iconMap['document'];
+                    @endphp
+                    <tr class="hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors"
+                        :class="selectedIds.includes({{ $item->id }}) ? 'bg-emerald-50 dark:bg-emerald-900/10' : ''">
+
+                        <td class="px-4 py-4">
                             @unless($isProtected)
-                            <button type="button" title="Hapus" @click="openHapus({ id: {{ $item->id }}, nama: @js($item->nama) })"
-                                class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-red-500 hover:bg-red-600 text-white transition-colors">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                </svg>
-                            </button>
-                            @endunless
-                        </div>
-                    </td>
-                    <td class="px-4 py-4 text-sm font-medium text-gray-800 dark:text-slate-200">{{ $item->nama }}</td>
-                    <td class="px-4 py-4 text-sm text-gray-600 dark:text-slate-400 max-w-sm">
-                        <span class="line-clamp-2">{{ $item->keterangan ?? '-' }}</span>
-                    </td>
-                    <td class="px-4 py-4">
-                        <div class="flex items-center justify-center gap-2">
-                            <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
-                                 style="background-color: {{ $item->warna_background ?? '#6b7280' }}">
-                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="{{ $svgPath }}"/>
-                                </svg>
-                            </div>
-                            <span class="px-2 py-0.5 text-xs font-semibold rounded {{ $item->status === 'aktif' ? 'bg-emerald-500 text-white' : 'bg-gray-400 text-white' }}">
-                                {{ $item->status === 'aktif' ? 'Aktif' : 'Nonaktif' }}
-                            </span>
-                        </div>
-                    </td>
-                </tr>
-                @empty
-                <tr>
-                    <td colspan="6" class="px-6 py-14 text-center">
-                        <div class="flex flex-col items-center justify-center">
-                            <svg class="w-16 h-16 text-gray-300 dark:text-slate-600 mb-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                            <input type="checkbox"
+                                :checked="selectedIds.includes({{ $item->id }})"
+                                @change="selectedIds.includes({{ $item->id }}) ? selectedIds.splice(selectedIds.indexOf({{ $item->id }}), 1) : selectedIds.push({{ $item->id }}); updateSelectAll({{ json_encode($checkableIds) }})"
+                                class="w-4 h-4 rounded border-gray-300 dark:border-slate-600 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+                            >
+                            @else
+                            {{-- Protected: tampilkan ikon kunci sebagai penanda --}}
+                            <svg class="w-4 h-4 text-gray-300 dark:text-slate-600 mx-auto" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" title="Jenis bawaan sistem">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/>
                             </svg>
-                            <p class="text-gray-500 dark:text-slate-400 font-medium">Belum ada jenis dokumen</p>
-                            <p class="text-gray-400 dark:text-slate-500 text-sm mt-1">Silakan tambah jenis dokumen baru</p>
-                        </div>
-                    </td>
-                </tr>
-                @endforelse
-            </tbody>
-        </table>
-        @if($jenis->hasPages())
+                            @endunless
+                        </td>
+
+                        <td class="px-4 py-4 text-sm text-gray-500 dark:text-slate-400">
+                            {{ $jenis->firstItem() + $loop->index }}
+                        </td>
+
+                        <td class="px-4 py-4">
+                            <div class="flex items-center gap-1 flex-wrap">
+                                {{-- Edit --}}
+                                <button type="button" title="Edit"
+                                    @click="openEdit({ id: {{ $item->id }}, nama: @js($item->nama), keterangan: @js($item->keterangan ?? ''), icon: @js($item->icon ?? 'document'), warna_background: @js($item->warna_background ?? '#3b82f6'), status: @js($item->status) })"
+                                    class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-amber-500 hover:bg-amber-600 text-white transition-colors">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                    </svg>
+                                </button>
+                                {{-- Toggle Status --}}
+                                @if($item->status === 'aktif')
+                                <button type="button" title="Nonaktifkan" @click="toggleStatus({{ $item->id }}, 'aktif')"
+                                    class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-slate-500 hover:bg-slate-600 text-white transition-colors">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+                                    </svg>
+                                </button>
+                                @else
+                                <button type="button" title="Aktifkan" @click="toggleStatus({{ $item->id }}, 'tidak_aktif')"
+                                    class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white transition-colors">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </button>
+                                @endif
+                                {{-- Hapus: hanya non-bawaan --}}
+                                @unless($isProtected)
+                                <button type="button" title="Hapus" @click="openHapus({ id: {{ $item->id }}, nama: @js($item->nama) })"
+                                    class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-red-500 hover:bg-red-600 text-white transition-colors">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                    </svg>
+                                </button>
+                                @endunless
+                            </div>
+                        </td>
+
+                        <td class="px-4 py-4 text-sm font-medium text-gray-800 dark:text-slate-200">
+                            {{ $item->nama }}
+                            @if($isProtected)
+                                <span class="ml-1.5 px-1.5 py-0.5 text-xs bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-slate-400 rounded font-normal">sistem</span>
+                            @endif
+                        </td>
+
+                        <td class="px-4 py-4 text-sm text-gray-600 dark:text-slate-400 max-w-sm">
+                            <span class="line-clamp-2">{{ $item->keterangan ?? '-' }}</span>
+                        </td>
+
+                        <td class="px-4 py-4">
+                            <div class="flex items-center justify-center gap-2">
+                                <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                                     style="background-color: {{ $item->warna_background ?? '#6b7280' }}">
+                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="{{ $svgPath }}"/>
+                                    </svg>
+                                </div>
+                                <span class="px-2.5 py-1 text-xs font-semibold rounded-full
+                                    {{ $item->status === 'aktif'
+                                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+                                        : 'bg-gray-100 text-gray-500 dark:bg-slate-700 dark:text-slate-400' }}">
+                                    {{ $item->status === 'aktif' ? 'Aktif' : 'Tidak Aktif' }}
+                                </span>
+                            </div>
+                        </td>
+
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="6" class="px-6 py-16 text-center">
+                            <div class="flex flex-col items-center justify-center">
+                                <svg class="w-16 h-16 text-gray-300 dark:text-slate-600 mb-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                                </svg>
+                                <p class="text-gray-500 dark:text-slate-400 font-medium">Tidak ada data yang tersedia</p>
+                                <p class="text-gray-400 dark:text-slate-500 text-sm mt-1">Silakan tambah jenis dokumen baru</p>
+                            </div>
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        {{-- ── Footer: info entri + pagination ── --}}
         <div class="px-6 py-4 border-t border-gray-200 dark:border-slate-700 flex items-center justify-between flex-wrap gap-3">
             <p class="text-sm text-gray-500 dark:text-slate-400">
-                Menampilkan {{ $jenis->firstItem() }}–{{ $jenis->lastItem() }} dari {{ $jenis->total() }} data
+                @if($jenis->total() > 0)
+                    Menampilkan {{ $jenis->firstItem() }}–{{ $jenis->lastItem() }} dari {{ $jenis->total() }} entri
+                    @if(request('search') || (request('status') && request('status') !== 'semua'))
+                        (difilter)
+                    @endif
+                @else
+                    Menampilkan 0 entri
+                @endif
             </p>
-            {{ $jenis->links('vendor.pagination.tailwind') }}
+
+            <div class="flex items-center gap-1">
+                @if($jenis->onFirstPage())
+                    <span class="px-3 py-1.5 text-sm text-gray-400 dark:text-slate-500 border border-gray-200 dark:border-slate-600 rounded-lg bg-gray-50 dark:bg-slate-700/50 cursor-not-allowed">
+                        Sebelumnya
+                    </span>
+                @else
+                    <a href="{{ $jenis->appends(request()->query())->previousPageUrl() }}"
+                       class="px-3 py-1.5 text-sm text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors">
+                        Sebelumnya
+                    </a>
+                @endif
+
+                @php
+                    $currentPage = $jenis->currentPage();
+                    $lastPage    = $jenis->lastPage();
+                    $start       = max(1, $currentPage - 2);
+                    $end         = min($lastPage, $currentPage + 2);
+                @endphp
+
+                @if($start > 1)
+                    <a href="{{ $jenis->appends(request()->query())->url(1) }}"
+                       class="px-3 py-1.5 text-sm text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors">1</a>
+                    @if($start > 2)
+                        <span class="px-2 py-1.5 text-sm text-gray-400 dark:text-slate-500">…</span>
+                    @endif
+                @endif
+
+                @for($page = $start; $page <= $end; $page++)
+                    @if($page == $currentPage)
+                        <span class="px-3 py-1.5 text-sm font-semibold text-white bg-emerald-600 border border-emerald-600 rounded-lg">{{ $page }}</span>
+                    @else
+                        <a href="{{ $jenis->appends(request()->query())->url($page) }}"
+                           class="px-3 py-1.5 text-sm text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors">{{ $page }}</a>
+                    @endif
+                @endfor
+
+                @if($end < $lastPage)
+                    @if($end < $lastPage - 1)
+                        <span class="px-2 py-1.5 text-sm text-gray-400 dark:text-slate-500">…</span>
+                    @endif
+                    <a href="{{ $jenis->appends(request()->query())->url($lastPage) }}"
+                       class="px-3 py-1.5 text-sm text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors">{{ $lastPage }}</a>
+                @endif
+
+                @if($jenis->hasMorePages())
+                    <a href="{{ $jenis->appends(request()->query())->nextPageUrl() }}"
+                       class="px-3 py-1.5 text-sm text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors">
+                        Selanjutnya
+                    </a>
+                @else
+                    <span class="px-3 py-1.5 text-sm text-gray-400 dark:text-slate-500 border border-gray-200 dark:border-slate-600 rounded-lg bg-gray-50 dark:bg-slate-700/50 cursor-not-allowed">
+                        Selanjutnya
+                    </span>
+                @endif
+            </div>
         </div>
-        @endif
-    </div>
+
+    </div>{{-- end card --}}
 
     {{-- ============================================================ --}}
     {{-- MODAL TAMBAH / EDIT                                           --}}
@@ -334,7 +542,7 @@ $iconMap = [
                             <span class="text-sm text-gray-600 dark:text-slate-400 truncate" x-text="formData.icon || 'Pilih icon...'"></span>
                         </div>
                         <button type="button" @click="showIconPicker = true"
-                                class="inline-flex items-center gap-2 px-4 py-2.5 bg-cyan-500 hover:bg-cyan-600 text-white text-sm font-medium rounded-lg transition-colors whitespace-nowrap">
+                                class="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium rounded-lg transition-colors whitespace-nowrap">
                             Pilih Icon
                         </button>
                     </div>
@@ -362,21 +570,21 @@ $iconMap = [
                             </div>
                             <div class="flex gap-1.5 mt-3">
                                 <div class="flex-1 text-center">
-                                    <input type="number" :value="cpRgb.r" min="0" max="255" @change="cpOnRGBChange('r',$event.target.value)" class="w-full text-center text-xs px-1 py-1.5 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-700 dark:text-slate-300 outline-none focus:ring-1 focus:ring-cyan-500">
+                                    <input type="number" :value="cpRgb.r" min="0" max="255" @change="cpOnRGBChange('r',$event.target.value)" class="w-full text-center text-xs px-1 py-1.5 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-700 dark:text-slate-300 outline-none focus:ring-1 focus:ring-emerald-500">
                                     <span class="text-xs text-gray-400 mt-0.5 block">R</span>
                                 </div>
                                 <div class="flex-1 text-center">
-                                    <input type="number" :value="cpRgb.g" min="0" max="255" @change="cpOnRGBChange('g',$event.target.value)" class="w-full text-center text-xs px-1 py-1.5 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-700 dark:text-slate-300 outline-none focus:ring-1 focus:ring-cyan-500">
+                                    <input type="number" :value="cpRgb.g" min="0" max="255" @change="cpOnRGBChange('g',$event.target.value)" class="w-full text-center text-xs px-1 py-1.5 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-700 dark:text-slate-300 outline-none focus:ring-1 focus:ring-emerald-500">
                                     <span class="text-xs text-gray-400 mt-0.5 block">G</span>
                                 </div>
                                 <div class="flex-1 text-center">
-                                    <input type="number" :value="cpRgb.b" min="0" max="255" @change="cpOnRGBChange('b',$event.target.value)" class="w-full text-center text-xs px-1 py-1.5 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-700 dark:text-slate-300 outline-none focus:ring-1 focus:ring-cyan-500">
+                                    <input type="number" :value="cpRgb.b" min="0" max="255" @change="cpOnRGBChange('b',$event.target.value)" class="w-full text-center text-xs px-1 py-1.5 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-700 dark:text-slate-300 outline-none focus:ring-1 focus:ring-emerald-500">
                                     <span class="text-xs text-gray-400 mt-0.5 block">B</span>
                                 </div>
                             </div>
                             <div class="mt-2">
                                 <input type="text" :value="formData.warna_background" @change="cpOnHexChange($event.target.value)"
-                                       class="w-full text-center text-xs px-2 py-1.5 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-700 dark:text-slate-300 font-mono outline-none focus:ring-1 focus:ring-cyan-500" placeholder="#000000">
+                                       class="w-full text-center text-xs px-2 py-1.5 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-700 dark:text-slate-300 font-mono outline-none focus:ring-1 focus:ring-emerald-500" placeholder="#000000">
                             </div>
                         </div>
                     </div>
@@ -436,7 +644,7 @@ $iconMap = [
                         <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
                     </svg>
                     <input type="text" x-model="iconSearch" placeholder="Cari icon (folder, envelope, shield, bolt...)..."
-                           class="w-full pl-9 pr-4 py-2.5 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-700 dark:text-slate-300 text-sm outline-none focus:ring-2 focus:ring-cyan-500">
+                           class="w-full pl-9 pr-4 py-2.5 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-700 dark:text-slate-300 text-sm outline-none focus:ring-2 focus:ring-emerald-500">
                 </div>
             </div>
 
@@ -446,8 +654,8 @@ $iconMap = [
                         <button type="button"
                                 @click="formData.icon = key; showIconPicker = false; iconSearch = ''"
                                 :class="formData.icon === key
-                                    ? 'bg-cyan-500 text-white ring-2 ring-cyan-400 ring-offset-1'
-                                    : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 hover:bg-cyan-100 dark:hover:bg-cyan-900/40'"
+                                    ? 'bg-emerald-500 text-white ring-2 ring-emerald-400 ring-offset-1'
+                                    : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/40'"
                                 class="flex flex-col items-center justify-center rounded-xl transition-all gap-1 p-2 aspect-square"
                                 :title="key">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
@@ -581,7 +789,7 @@ function jenisApp() {
             this.isDeletingBulk = false;
         },
 
-                async konfirmasiHapus() {
+        async konfirmasiHapus() {
             this.isDeleting=true;
             const csrf=document.querySelector('meta[name="csrf-token"]').content;
             const body=new FormData();

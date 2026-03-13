@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
+use Carbon\Carbon;
 use App\Models\Desa; // Sesuaikan dengan nama Model kamu
 
 class AppServiceProvider extends ServiceProvider
@@ -21,6 +22,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Carbon::setLocale('id');
+
         // Ambil data desa pertama kali, jika tabel kosong hindari error dengan optional/null
         try {
             $desa = Desa::first(); 

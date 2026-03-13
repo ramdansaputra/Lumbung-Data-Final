@@ -15,10 +15,10 @@ class IdentitasDesaController extends Controller {
         if (!$desa) {
             $desa = IdentitasDesa::create([
                 'nama_desa' => '',
-                'kode_desa' => '',
+                'kode_desa' => '',   // ← FIX: wajib ada agar tidak NULL
                 'kecamatan' => '',
                 'kabupaten' => '',
-                'provinsi' => '',
+                'provinsi'  => '',
             ]);
         }
 
@@ -31,9 +31,10 @@ class IdentitasDesaController extends Controller {
         if (!$desa) {
             $desa = IdentitasDesa::create([
                 'nama_desa' => 'Desa Belum Diatur',
+                'kode_desa' => '',   // ← FIX: sebelumnya tidak ada, menyebabkan NOT NULL error
                 'kecamatan' => '-',
                 'kabupaten' => '-',
-                'provinsi' => '-',
+                'provinsi'  => '-',
             ]);
         }
 
@@ -42,17 +43,18 @@ class IdentitasDesaController extends Controller {
 
     public function update(Request $request) {
         $request->validate([
-            'nama_desa'       => 'nullable|string|max:255',
+            'nama_desa'       => 'required|string|max:255',   // ← FIX: wajib diisi
             'kode_desa'       => 'nullable|string|max:255',
             'kode_bps_desa'   => 'nullable|string|max:255',
             'kode_pos'        => 'nullable|string|max:255',
-            'kecamatan'       => 'nullable|string|max:255',
+            'kecamatan'       => 'required|string|max:255',   // ← FIX: wajib diisi
             'kode_kecamatan'  => 'nullable|string|max:255',
             'nama_camat'      => 'nullable|string|max:255',
             'nip_camat'       => 'nullable|string|max:255',
-            'kabupaten'       => 'nullable|string|max:255',
+            'kabupaten'       => 'required|string|max:255',   // ← FIX: wajib diisi
             'kode_kabupaten'  => 'nullable|string|max:255',
-            'provinsi'        => 'nullable|string|max:255',
+            'provinsi'        => 'required|string|max:255',   // ← FIX: wajib diisi
+            'kode_provinsi'   => 'nullable|string|max:255',
             'kepala_desa'     => 'nullable|string|max:255',
             'nip_kepala_desa' => 'nullable|string|max:255',
             'alamat_kantor'   => 'nullable|string',
@@ -65,19 +67,28 @@ class IdentitasDesaController extends Controller {
                 'url',
                 'regex:/^https:\/\//'
             ],
-            // Validasi Media Sosial
             'facebook'        => 'nullable|url|max:255',
             'instagram'       => 'nullable|url|max:255',
             'youtube'         => 'nullable|url|max:255',
-            // Validasi File
             'logo_desa'       => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
             'gambar_kantor'   => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
         ], [
-            'website_desa.url'   => 'Format website tidak valid.',
-            'website_desa.regex' => 'Website harus menggunakan https://',
-            'facebook.url'       => 'URL Facebook tidak valid. Contoh: https://facebook.com/namahalaman',
-            'instagram.url'      => 'URL Instagram tidak valid. Contoh: https://instagram.com/namaakun',
-            'youtube.url'        => 'URL YouTube tidak valid. Contoh: https://youtube.com/@namachannel',
+            'nama_desa.required'     => 'Nama desa wajib diisi.',
+            'kecamatan.required'     => 'Nama kecamatan wajib diisi.',
+            'kabupaten.required'     => 'Nama kabupaten wajib diisi.',
+            'provinsi.required'      => 'Nama provinsi wajib diisi.',
+            'website_desa.url'       => 'Format website tidak valid.',
+            'website_desa.regex'     => 'Website harus menggunakan https://',
+            'email_desa.email'       => 'Format email tidak valid.',
+            'facebook.url'           => 'URL Facebook tidak valid. Contoh: https://facebook.com/namahalaman',
+            'instagram.url'          => 'URL Instagram tidak valid. Contoh: https://instagram.com/namaakun',
+            'youtube.url'            => 'URL YouTube tidak valid. Contoh: https://youtube.com/@namachannel',
+            'logo_desa.image'        => 'File logo harus berupa gambar.',
+            'logo_desa.mimes'        => 'Logo hanya boleh format PNG, JPG, atau JPEG.',
+            'logo_desa.max'          => 'Ukuran logo maksimal 2MB.',
+            'gambar_kantor.image'    => 'File gambar kantor harus berupa gambar.',
+            'gambar_kantor.mimes'    => 'Gambar kantor hanya boleh format PNG, JPG, atau JPEG.',
+            'gambar_kantor.max'      => 'Ukuran gambar kantor maksimal 2MB.',
         ]);
 
         $desa = IdentitasDesa::first();
@@ -85,6 +96,17 @@ class IdentitasDesaController extends Controller {
         if (!$desa) {
             $desa = new IdentitasDesa();
         }
+
+        // ── FIX: Cegah NOT NULL violation ─────────────────────────────────
+        // Laravel middleware ConvertEmptyStringsToNull mengubah '' menjadi null
+        // Kolom-kolom ini di DB pakai default('') bukan nullable, jadi harus ''
+        $notNullFields = ['kode_desa', 'kecamatan', 'kabupaten', 'provinsi'];
+        foreach ($notNullFields as $field) {
+            if (is_null($request->input($field))) {
+                $request->merge([$field => '']);
+            }
+        }
+        // ──────────────────────────────────────────────────────────────────
 
         // Handle logo upload
         if ($request->hasFile('logo_desa')) {
@@ -104,7 +126,6 @@ class IdentitasDesaController extends Controller {
             $desa->gambar_kantor = basename($kantorPath);
         }
 
-        // Update other fields
         $desa->fill($request->except(['logo_desa', 'gambar_kantor']));
         $desa->save();
 

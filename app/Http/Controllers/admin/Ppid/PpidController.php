@@ -36,11 +36,26 @@ class PpidController extends Controller {
             $query->where('ppid_jenis_dokumen_id', $request->jenis_dokumen);
         }
 
-        $dokumen   = $query->latest()->paginate(10)->withQueryString();
+        // Filter pencarian (search)
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('judul_dokumen', 'like', "%{$search}%")
+                    ->orWhere('keterangan', 'like', "%{$search}%")
+                    ->orWhereHas('jenisDokumen', fn($q2) => $q2->where('nama', 'like', "%{$search}%"));
+            });
+        }
+
+        // Jumlah entri per halaman
+        $perPage   = in_array((int) $request->get('per_page'), [10, 25, 50, 100])
+            ? (int) $request->get('per_page')
+            : 10;
+
+        $dokumen   = $query->latest()->paginate($perPage)->withQueryString();
         $jenisList = PpidJenisDokumen::orderBy('nama')->get();
         $tahunList = range(date('Y'), 2020);
 
-        return view('admin.ppid.index', compact('dokumen', 'jenisList', 'tahunList'));
+        return view('admin.ppid.index', compact('dokumen', 'jenisList', 'tahunList', 'perPage'));
     }
 
     public function create() {
@@ -145,6 +160,25 @@ class PpidController extends Controller {
             ->with('success', 'Dokumen PPID berhasil dihapus!');
     }
 
+    public function bulkDestroy(Request $request) {
+        $request->validate([
+            'ids'   => 'required|array',
+            'ids.*' => 'integer|exists:ppid_dokumen,id',
+        ]);
+
+        $dokumen = PpidDokumen::whereIn('id', $request->ids)->get();
+
+        foreach ($dokumen as $item) {
+            if ($item->file_path) {
+                Storage::disk('public')->delete($item->file_path);
+            }
+            $item->delete();
+        }
+
+        return redirect()->route('admin.ppid.index')
+            ->with('success', count($request->ids) . ' dokumen berhasil dihapus!');
+    }
+
     public function updateLokasi(Request $request, $id) {
         $request->validate([
             'lokasi_arsip' => 'nullable|string|max:255',
@@ -166,5 +200,3 @@ class PpidController extends Controller {
         return back()->with('success', 'Lokasi arsip berhasil diperbarui.');
     }
 }
-
-

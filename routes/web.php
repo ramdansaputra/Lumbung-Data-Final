@@ -103,6 +103,7 @@ use App\Http\Controllers\Admin\ProfilController;
 // PPID
 use App\Http\Controllers\Admin\Ppid\PpidController;
 use App\Http\Controllers\Admin\Ppid\PpidJenisController;
+use App\Http\Controllers\Admin\Ppid\PermohonanInformasiController;
 
 // Lainnya
 use App\Http\Controllers\Admin\ArtikelController;
@@ -342,7 +343,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
     Route::get('/pengumuman/fetch', [\App\Http\Controllers\Admin\ChatController::class, 'fetchPengumuman']);
     Route::get('/chat/messages', [ChatController::class, 'fetchMessages'])->name('chat.fetch');
     Route::post('/chat/send', [ChatController::class, 'sendMessage'])->name('chat.send');
-    
+
     /*
     |--------------------------------------------------------------------------
     | DASHBOARD
@@ -831,7 +832,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
         Route::prefix('cetak')->name('cetak.')->controller(LetterController::class)->group(function () {
             Route::get('/', 'index')->name('index');
             Route::get('/create', 'create')->name('create');
-            Route::post('/', 'store')->name('store'); 
+            Route::post('/', 'store')->name('store');
             Route::post('/template', 'generateFromTemplate')->name('template');
             Route::post('/preview', 'preview')->name('preview');
             Route::post('/generate-final', 'generateFinal')->name('generateFinal');
@@ -870,7 +871,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
     |--------------------------------------------------------------------------
     */
     Route::prefix('sekretariat')->name('sekretariat.')->group(function () {
-        
+
         // Inventaris Kekayaan Desa
         Route::resource(
             'inventaris-kekayaan-desa',
@@ -1096,7 +1097,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
                 Route::put('/{mutasiPenduduk}',      [BukuMutasiPendudukController::class, 'update'])->name('update');
                 Route::delete('/{mutasiPenduduk}',   [BukuMutasiPendudukController::class, 'destroy'])->name('destroy');
             });
-            
+
             // Route ini diluruskan lokasinya agar tetap sesuai dengan nama prefix dan path
             Route::prefix('rekapitulasi-penduduk')->name('rekapitulasi-penduduk.')->group(function () {
                 Route::get('/', [BukuRekapitulasiPendudukController::class, 'index'])->name('index');
@@ -1133,12 +1134,17 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
                 Route::put('/{kk}',      [KtpKkController::class, 'updateKk'])->name('update');
                 Route::delete('/{kk}',   [KtpKkController::class, 'destroyKk'])->name('destroy');
             });
-            
         }); // ← tutup group penduduk
 
         // ==========================================
         // 3. ADMIN PEMBANGUNAN
         // ==========================================
+
+        // Route utama /admin/pembangunan - redirect ke buku-administrasi/pembangunan
+        Route::get('/pembangunan', function () {
+            return redirect()->route('admin.buku-administrasi.pembangunan.index');
+        });
+
         Route::prefix('pembangunan')->name('pembangunan.')->group(function () {
             Route::get('/', [BukuPembangunanController::class, 'index'])->name('index');
 
@@ -1551,14 +1557,32 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
             Route::patch('/{jeni}/toggle-status', [PpidJenisController::class, 'toggleStatus'])->name('toggle-status'); // ← TAMBAHAN
         });
 
-        // ⚠️ Wildcard /{ppid} di bawah — setelah yang spesifik
-        Route::get('/',            [PpidController::class, 'index'])->name('index');
-        Route::get('/tambah',      [PpidController::class, 'create'])->name('create');
-        Route::post('/',           [PpidController::class, 'store'])->name('store');
-        Route::get('/{ppid}',      [PpidController::class, 'show'])->name('show');
-        Route::get('/{ppid}/edit', [PpidController::class, 'edit'])->name('edit');
-        Route::put('/{ppid}',      [PpidController::class, 'update'])->name('update');
-        Route::delete('/{ppid}',   [PpidController::class, 'destroy'])->name('destroy');
-    });
+        Route::prefix('permohonan-informasi')->name('permohonan-informasi.')->group(function () {
+            Route::get('/',                                         [PermohonanInformasiController::class, 'index'])->name('index');
+            Route::get('/tambah',                                   [PermohonanInformasiController::class, 'create'])->name('create');
+            Route::post('/',                                        [PermohonanInformasiController::class, 'store'])->name('store');
+            Route::delete('/bulk-destroy',                          [PermohonanInformasiController::class, 'bulkDestroy'])->name('bulk-destroy');
 
+            // ⬇ Bulk update status (tombol Tolak/Proses/Selesai di index)
+            Route::patch('/bulk-update-status',                     [PermohonanInformasiController::class, 'bulkUpdateStatus'])->name('bulk-update-status');
+
+            Route::get('/{permohonanInformasi}',                    [PermohonanInformasiController::class, 'show'])->name('show');
+            Route::get('/{permohonanInformasi}/edit',               [PermohonanInformasiController::class, 'edit'])->name('edit');
+            Route::put('/{permohonanInformasi}',                    [PermohonanInformasiController::class, 'update'])->name('update');
+            Route::delete('/{permohonanInformasi}',                 [PermohonanInformasiController::class, 'destroy'])->name('destroy');
+
+            // ⬇ Update status satu record dari halaman show
+            Route::patch('/{permohonanInformasi}/update-status',    [PermohonanInformasiController::class, 'updateStatus'])->name('update-status');
+        });
+
+        // ⚠️ Wildcard /{ppid} di bawah — setelah yang spesifik
+        Route::get('/',               [PpidController::class, 'index'])->name('index');
+        Route::get('/tambah',         [PpidController::class, 'create'])->name('create');
+        Route::post('/',              [PpidController::class, 'store'])->name('store');
+        Route::delete('/bulk-destroy', [PpidController::class, 'bulkDestroy'])->name('bulk-destroy');
+        Route::get('/{ppid}',         [PpidController::class, 'show'])->name('show');
+        Route::get('/{ppid}/edit',    [PpidController::class, 'edit'])->name('edit');
+        Route::put('/{ppid}',         [PpidController::class, 'update'])->name('update');
+        Route::delete('/{ppid}',      [PpidController::class, 'destroy'])->name('destroy');
+    });
 }); // <--- PENUTUP GROUP ADMIN UTAMA (Semua route admin dan ppid aman di dalam sini)
