@@ -23,12 +23,11 @@ class KeluargaController extends Controller
         // Search functionality
         if ($request->has('search') && !empty($request->search)) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('no_kk', 'like', '%' . $search . '%')
-                  ->orWhereHas('anggota', function($q) use ($search) {
-                      $q->where('nama', 'like', '%' . $search . '%')
-                        ->wherePivot('hubungan_keluarga', 'kepala_keluarga');
-                  });
+                    ->orWhereHas('anggota', function ($q2) use ($search) {
+                        $q2->where('nama', 'like', '%' . $search . '%');
+                    });
             });
         }
 
@@ -46,8 +45,9 @@ class KeluargaController extends Controller
         $keluarga_pindah = 0; // No pindah status anymore
         $penduduk = Penduduk::all();
         $wilayah = Wilayah::all();
+        $dusunList = $wilayah->pluck('dusun')->filter()->unique()->values();
 
-        return view('admin.keluarga', compact('keluarga', 'total_keluarga', 'keluarga_aktif', 'keluarga_pindah', 'penduduk', 'wilayah'));
+        return view('admin.keluarga', compact('keluarga', 'total_keluarga', 'keluarga_aktif', 'keluarga_pindah', 'penduduk', 'wilayah', 'dusunList'));
     }
 
     public function create()
@@ -219,11 +219,10 @@ class KeluargaController extends Controller
             ->with(['anggota', 'wilayah'])
             ->when(
                 $request->filled('search'),
-                fn($q) => $q->where(function($query) use ($request) {
+                fn($q) => $q->where(function ($query) use ($request) {
                     $query->where('no_kk', 'like', '%' . $request->search . '%')
-                        ->orWhereHas('anggota', function($q) use ($request) {
-                            $q->where('nama', 'like', '%' . $request->search . '%')
-                                ->wherePivot('hubungan_keluarga', 'kepala_keluarga');
+                        ->orWhereHas('anggota', function ($q2) use ($request) {
+                            $q2->where('nama', 'like', '%' . $request->search . '%');
                         });
                 })
             )
@@ -237,4 +236,29 @@ class KeluargaController extends Controller
             )
             ->orderBy('no_kk');
     }
+
+    /**
+     * Bulk destroy keluarga
+     */
+    public function bulkDestroy(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'integer|exists:keluarga,id'
+        ]);
+
+        $keluarga = Keluarga::whereIn('id', $request->ids);
+
+        // Get count for log
+        $count = $keluarga->count();
+
+        // Detach anggota before delete
+        $keluarga->each(function ($k) {
+            $k->anggota()->detach();
+            $k->delete();
+        });
+
+        return redirect()->back()->with('success', "Berhasil menghapus {$count} keluarga.");
+    }
 }
+

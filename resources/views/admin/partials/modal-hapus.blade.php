@@ -237,7 +237,16 @@ const modalHapus = {
 
 // Support Alpine.js $dispatch
 window.addEventListener('buka-modal-hapus', e => {
-    modalHapus.buka(e.detail.action, e.detail.nama);
+    if (e.detail.onConfirm) {
+        // Mode bulk: pakai JS callback
+        const label = e.detail.bulkCount 
+            ? e.detail.bulkCount + ' data yang dipilih' 
+            : (e.detail.nama || 'data ini');
+        modalHapus.bukaJs(label, e.detail.onConfirm);
+    } else {
+        // Mode single: pakai form route biasa
+        modalHapus.buka(e.detail.action, e.detail.nama);
+    }
 });
 
 // ESC untuk tutup

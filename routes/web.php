@@ -682,14 +682,18 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
     Route::get('/penduduk/create', [PendudukController::class, 'create'])->name('penduduk.create');
     Route::post('/penduduk', [PendudukController::class, 'store'])->name('penduduk.store');
     Route::post('/penduduk/import', [PendudukController::class, 'import'])->name('penduduk.import');
-    Route::get('/penduduk/template',     [PendudukController::class, 'downloadTemplate'])->name('penduduk.template');
+    Route::get('/penduduk/template', [PendudukController::class, 'downloadTemplate'])->name('penduduk.template');
     Route::get('/penduduk/export/excel', [PendudukController::class, 'exportExcel'])->name('penduduk.export.excel');
-    Route::get('/penduduk/export/pdf',   [PendudukController::class, 'exportPdf'])->name('penduduk.export.pdf');
+    Route::get('/penduduk/export/pdf', [PendudukController::class, 'exportPdf'])->name('penduduk.export.pdf');
+
+    Route::delete('/penduduk/bulk-destroy', [PendudukController::class, 'bulkDestroy'])->name('penduduk.bulk-destroy');
+
     Route::get('/penduduk/{penduduk}', [PendudukController::class, 'show'])->name('penduduk.show');
     Route::get('/penduduk/{penduduk}/edit', [PendudukController::class, 'edit'])->name('penduduk.edit');
     Route::put('/penduduk/{penduduk}', [PendudukController::class, 'update'])->name('penduduk.update');
     Route::get('/penduduk/{penduduk}/delete', [PendudukController::class, 'confirmDestroy'])->name('penduduk.confirm-destroy');
     Route::delete('/penduduk/{penduduk}', [PendudukController::class, 'destroy'])->name('penduduk.destroy');
+
 
     /*
     |--------------------------------------------------------------------------
@@ -700,6 +704,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
     Route::get('/keluarga/create', [KeluargaController::class, 'create'])->name('keluarga.create');
     Route::post('/keluarga', [KeluargaController::class, 'store'])->name('keluarga.store');
     Route::get('/keluarga/export/excel', [KeluargaController::class, 'exportExcel'])->name('keluarga.export.excel');
+    Route::delete('/keluarga/bulk-destroy', [KeluargaController::class, 'bulkDestroy'])->name('keluarga.bulk-destroy');
     Route::get('/keluarga/export/pdf', [KeluargaController::class, 'exportPdf'])->name('keluarga.export.pdf');
     Route::get('/keluarga/{keluarga}', [KeluargaController::class, 'show'])->name('keluarga.show');
     Route::get('/keluarga/{keluarga}/edit', [KeluargaController::class, 'edit'])->name('keluarga.edit');

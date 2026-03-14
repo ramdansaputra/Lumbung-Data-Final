@@ -63,13 +63,16 @@ class PendudukController extends Controller {
         $keluarga       = Keluarga::count();
         $wilayah        = Wilayah::all();
 
+        $dusunList = Penduduk::whereNotNull('alamat')->distinct('alamat')->pluck('alamat')->filter()->toArray();
+
         return view('admin.penduduk', compact(
             'penduduk',
             'total_penduduk',
             'laki_laki',
             'perempuan',
             'keluarga',
-            'wilayah'
+            'wilayah',
+            'dusunList'
         ));
     }
 
@@ -201,6 +204,33 @@ class PendudukController extends Controller {
         $penduduk->delete();
 
         return redirect()->route('admin.penduduk')->with('success', 'Penduduk berhasil dihapus.');
+    }
+
+    // ─── Bulk Destroy ────────────────────────────────────────────────────────
+    public function bulkDestroy(Request $request) {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'integer|exists:penduduk,id',
+        ]);
+
+        $ids = $request->ids;
+        $count = count($ids);
+
+        if ($count === 0) {
+            return redirect()->route('admin.penduduk')
+                ->with('error', 'Tidak ada data yang dipilih.');
+        }
+
+        $penduduks = Penduduk::whereIn('id', $ids)->get();
+
+        foreach ($penduduks as $penduduk) {
+            $penduduk->keluargas()->detach();
+            $penduduk->rumahTanggas()->detach();
+            $penduduk->delete();
+        }
+
+        return redirect()->route('admin.penduduk')
+            ->with('success', "{$count} penduduk berhasil dihapus.");
     }
 
     // ─── Download Template Import ─────────────────────────────────────────────
