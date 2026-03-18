@@ -40,7 +40,8 @@ class PembangunanController extends Controller {
             $query->where('nama', 'like', '%' . $request->search . '%');
         }
 
-        $pembangunan = $query->latest()->paginate(15)->withQueryString();
+        $perPage     = in_array(request('per_page'), [10, 25, 50, 100]) ? (int) request('per_page') : 15;
+        $pembangunan = $query->latest()->paginate($perPage)->withQueryString();
 
         // Data untuk filter
         $tahunList  = Pembangunan::where('config_id', 1)
@@ -52,15 +53,25 @@ class PembangunanController extends Controller {
         $sasarans   = RefPembangunanSasaran::orderBy('id')->get();
         $sumberDana = RefPembangunanSumberDana::orderBy('id')->get();
 
-        // Statistik ringkas
+        // Statistik — hitung "selesai" berdasarkan dokumentasi TERBARU per kegiatan
+        $selesai = Pembangunan::where('config_id', 1)
+            ->whereHas('dokumentasis', function ($q) {
+                $q->whereIn('id', function ($sub) {
+                    $sub->select(DB::raw('MAX(id)'))
+                        ->from('pembangunan_ref_dokumentasi')
+                        ->groupBy('id_pembangunan');
+                })->where('persentase', 100);
+            })
+            ->count();
+
         $stats = [
-            'total'           => Pembangunan::where('config_id', 1)->count(),
-            'total_anggaran'  => Pembangunan::where('config_id', 1)
+            'total'          => Pembangunan::where('config_id', 1)->count(),
+            'total_anggaran' => Pembangunan::where('config_id', 1)
                 ->selectRaw('SUM(dana_pemerintah + dana_provinsi + dana_kabkota + swadaya + sumber_lain) as total')
                 ->value('total') ?? 0,
-            'selesai'         => Pembangunan::where('config_id', 1)
-                ->whereHas('dokumentasis', fn($q) => $q->where('persentase', 100))
-                ->count(),
+            'selesai'  => $selesai,
+            'aktif'    => Pembangunan::where('config_id', 1)->where('status', 1)->count(),
+            'nonaktif' => Pembangunan::where('config_id', 1)->where('status', 0)->count(),
         ];
         $stats['berjalan'] = $stats['total'] - $stats['selesai'];
 
@@ -82,10 +93,7 @@ class PembangunanController extends Controller {
         $bidangs    = RefPembangunanBidang::orderBy('id')->get();
         $sasarans   = RefPembangunanSasaran::orderBy('id')->get();
         $sumberDana = RefPembangunanSumberDana::orderBy('id')->get();
-
-        // Wilayah administratif (dusun/RW/RT)
-        // Sesuai OpenSID: lokasi dari tweb_wil_clusterdesa
-        $wilayahs = $this->getWilayahList();
+        $wilayahs   = $this->getWilayahList();
 
         return view('admin.pembangunan.create', compact(
             'bidangs',
@@ -96,8 +104,28 @@ class PembangunanController extends Controller {
     }
 
     public function store(Request $request) {
-        $validated = $this->validatePembangunan($request);
+        $validated              = $this->validatePembangunan($request);
         $validated['config_id'] = 1;
+
+        // Kolom NOT NULL di DB: pastikan tidak null, default 0
+        $numericCols = ['dana_pemerintah', 'dana_provinsi', 'dana_kabkota', 'swadaya', 'sumber_lain'];
+        foreach ($numericCols as $col) {
+            $validated[$col] = isset($validated[$col]) && $validated[$col] !== null && $validated[$col] !== ''
+                ? (float) $validated[$col]
+                : 0;
+        }
+
+        // Hitung pagu anggaran di server (jangan percaya hidden input dari client)
+        $validated['pagu_anggaran'] = $validated['dana_pemerintah']
+            + $validated['dana_provinsi']
+            + $validated['dana_kabkota']
+            + $validated['swadaya']
+            + $validated['sumber_lain'];
+
+        // Sumber dana multi-select: simpan yang pertama ke kolom id_sumber_dana
+        if ($request->filled('id_sumber_dana') && is_array($request->id_sumber_dana)) {
+            $validated['id_sumber_dana'] = $request->id_sumber_dana[0];
+        }
 
         if ($request->hasFile('foto')) {
             $validated['foto'] = $request->file('foto')
@@ -106,7 +134,7 @@ class PembangunanController extends Controller {
 
         $item = Pembangunan::create($validated);
 
-        return redirect()->route('admin.pembangunan.show', $item)
+        return redirect()->route('admin.pembangunan-utama.show', $item)
             ->with('success', 'Data pembangunan berhasil ditambahkan.');
     }
 
@@ -115,7 +143,8 @@ class PembangunanController extends Controller {
     // ──────────────────────────────────────────────────────────
 
     public function show(Pembangunan $pembangunan) {
-        $pembangunan->load(['bidang', 'sasaran', 'sumberDana', 'lokasi', 'dokumentasis']);
+        $pembangunan->load(['bidang', 'sasaran', 'sumberDana', 'dokumentasis']);
+
         return view('admin.pembangunan.show', compact('pembangunan'));
     }
 
@@ -141,8 +170,27 @@ class PembangunanController extends Controller {
     public function update(Request $request, Pembangunan $pembangunan) {
         $validated = $this->validatePembangunan($request, $pembangunan->id);
 
+        // Kolom NOT NULL di DB: default ke 0 jika kosong
+        $numericCols = ['dana_pemerintah', 'dana_provinsi', 'dana_kabkota', 'swadaya', 'sumber_lain'];
+        foreach ($numericCols as $col) {
+            $validated[$col] = isset($validated[$col]) && $validated[$col] !== null && $validated[$col] !== ''
+                ? (float) $validated[$col]
+                : 0;
+        }
+
+        // Hitung ulang pagu anggaran di server
+        $validated['pagu_anggaran'] = $validated['dana_pemerintah']
+            + $validated['dana_provinsi']
+            + $validated['dana_kabkota']
+            + $validated['swadaya']
+            + $validated['sumber_lain'];
+
+        // Sumber dana multi-select
+        if ($request->filled('id_sumber_dana') && is_array($request->id_sumber_dana)) {
+            $validated['id_sumber_dana'] = $request->id_sumber_dana[0];
+        }
+
         if ($request->hasFile('foto')) {
-            // Hapus foto lama
             if ($pembangunan->foto) {
                 Storage::disk('public')->delete($pembangunan->foto);
             }
@@ -152,7 +200,7 @@ class PembangunanController extends Controller {
 
         $pembangunan->update($validated);
 
-        return redirect()->route('admin.pembangunan.show', $pembangunan)
+        return redirect()->route('admin.pembangunan-utama.show', $pembangunan)
             ->with('success', 'Data pembangunan berhasil diperbarui.');
     }
 
@@ -163,8 +211,11 @@ class PembangunanController extends Controller {
     public function destroy(Pembangunan $pembangunan) {
         // Hapus semua foto dokumentasi
         foreach ($pembangunan->dokumentasis as $dok) {
-            if ($dok->foto) Storage::disk('public')->delete($dok->foto);
+            if ($dok->foto) {
+                Storage::disk('public')->delete($dok->foto);
+            }
         }
+
         // Hapus foto utama
         if ($pembangunan->foto) {
             Storage::disk('public')->delete($pembangunan->foto);
@@ -172,12 +223,98 @@ class PembangunanController extends Controller {
 
         $pembangunan->delete();
 
-        return redirect()->route('admin.pembangunan.index')
+        return redirect()->route('admin.pembangunan-utama.index')
             ->with('success', 'Data pembangunan berhasil dihapus.');
     }
 
     // ──────────────────────────────────────────────────────────
-    // DOKUMENTASI — Tambah entri dokumentasi & persentase
+    // TOGGLE STATUS — Aktif / Non-Aktif
+    // Sesuai OpenSID: status 1 = aktif, 0 = non-aktif
+    // ──────────────────────────────────────────────────────────
+
+    public function toggleStatus(Pembangunan $pembangunan) {
+        $newStatus = $pembangunan->status == 1 ? 0 : 1;
+
+        $pembangunan->update(['status' => $newStatus]);
+
+        $label = $newStatus == 1 ? 'diaktifkan' : 'dinonaktifkan';
+
+        return redirect()->route('admin.pembangunan-utama.index')
+            ->with('success', "Kegiatan \"{$pembangunan->nama}\" berhasil {$label}.");
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // LOKASI — Halaman peta Leaflet / OpenStreetMap
+    // Sesuai OpenSID: klik peta untuk menentukan koordinat lat/lng
+    // ──────────────────────────────────────────────────────────
+
+    public function lokasi(Pembangunan $pembangunan) {
+        return view('admin.pembangunan.lokasi', compact('pembangunan'));
+    }
+
+    /**
+     * Simpan koordinat lat/lng dari halaman peta.
+     */
+    public function lokasiUpdate(Request $request, Pembangunan $pembangunan) {
+        $validated = $request->validate([
+            'lat' => 'nullable|numeric|between:-90,90',
+            'lng' => 'nullable|numeric|between:-180,180',
+        ]);
+
+        $pembangunan->update([
+            'lat' => $validated['lat'] ?? null,
+            'lng' => $validated['lng'] ?? null,
+        ]);
+
+        return redirect()->route('admin.pembangunan-utama.lokasi', $pembangunan)
+            ->with('success', 'Koordinat lokasi berhasil disimpan.');
+    }
+
+    /**
+     * Ekspor koordinat sebagai file GPX (GPS Exchange Format).
+     * Kompatibel dengan Google Earth, aplikasi GPS, dll.
+     */
+    public function lokasiGpx(Pembangunan $pembangunan) {
+        if (! $pembangunan->lat || ! $pembangunan->lng) {
+            return redirect()->route('admin.pembangunan-utama.lokasi', $pembangunan)
+                ->with('error', 'Koordinat belum tersedia untuk diekspor.');
+        }
+
+        $nama  = e($pembangunan->nama);
+        $lat   = $pembangunan->lat;
+        $lng   = $pembangunan->lng;
+        $tahun = $pembangunan->tahun_anggaran;
+        $waktu = now()->toIso8601String();
+
+        $gpx = <<<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="LumbunData"
+     xmlns="http://www.topografix.com/GPX/1/1"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="http://www.topografix.com/GPX/1/1
+     http://www.topografix.com/GPX/1/1/gpx.xsd">
+  <metadata>
+    <name>Lokasi Pembangunan - {$nama}</name>
+    <time>{$waktu}</time>
+  </metadata>
+  <wpt lat="{$lat}" lon="{$lng}">
+    <name>{$nama}</name>
+    <desc>Kegiatan Pembangunan Tahun {$tahun}</desc>
+    <time>{$waktu}</time>
+  </wpt>
+</gpx>
+XML;
+
+        $filename = 'lokasi-pembangunan-' . $pembangunan->id . '.gpx';
+
+        return response($gpx, 200, [
+            'Content-Type'        => 'application/gpx+xml',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // DOKUMENTASI — Tambah / Hapus entri dokumentasi & persentase
     // Sesuai OpenSID: progres disimpan di pembangunan_ref_dokumentasi.persentase
     // ──────────────────────────────────────────────────────────
 
@@ -200,7 +337,7 @@ class PembangunanController extends Controller {
 
         PembangunanRefDokumentasi::create($data);
 
-        return redirect()->route('admin.pembangunan.show', $pembangunan)
+        return redirect()->route('admin.pembangunan-utama.show', $pembangunan)
             ->with('success', 'Dokumentasi berhasil ditambahkan.');
     }
 
@@ -208,9 +345,10 @@ class PembangunanController extends Controller {
         if ($dokumentasi->foto) {
             Storage::disk('public')->delete($dokumentasi->foto);
         }
+
         $dokumentasi->delete();
 
-        return redirect()->route('admin.pembangunan.show', $pembangunan)
+        return redirect()->route('admin.pembangunan-utama.show', $pembangunan)
             ->with('success', 'Dokumentasi berhasil dihapus.');
     }
 
@@ -219,46 +357,99 @@ class PembangunanController extends Controller {
     // ──────────────────────────────────────────────────────────
 
     /**
-     * Ambil daftar wilayah administratif.
-     * Menggunakan tabel wilayah (dusun/RW/RT) yang sudah ada di database.
+     * Ambil daftar wilayah administratif (dusun/RW/RT).
      */
     private function getWilayahList(): \Illuminate\Support\Collection {
         try {
-            // Ambil dari tabel wilayah
             return DB::table('wilayah')
                 ->select('id', 'dusun', 'rw', 'rt')
-                ->orderBy('dusun')->orderBy('rw')->orderBy('rt')
+                ->orderBy('dusun')
+                ->orderBy('rw')
+                ->orderBy('rt')
                 ->get();
         } catch (\Exception $e) {
-            // Fallback ke collection kosong jika tabel belum ada
             return collect();
         }
     }
 
+    /**
+     * Validasi input form pembangunan (dipakai store & update).
+     */
     private function validatePembangunan(Request $request, ?int $id = null): array {
-        return $request->validate([
-            'id_bidang'         => 'nullable|exists:ref_pembangunan_bidang,id',
-            'id_sasaran'        => 'nullable|exists:ref_pembangunan_sasaran,id',
-            'id_sumber_dana'    => 'nullable|exists:ref_pembangunan_sumber_dana,id',
-            'id_lokasi'         => 'nullable|integer',
-            'tahun_anggaran'    => 'required|integer|min:2000|max:2099',
-            'nama'              => 'required|string|max:200',
-            'pelaksana'         => 'nullable|string|max:200',
-            'volume'            => 'nullable|numeric|min:0',
-            'satuan'            => 'nullable|string|max:50',
-            'waktu'             => 'nullable|integer|min:0',
-            'mulai_pelaksanaan' => 'nullable|date',
-            'akhir_pelaksanaan' => 'nullable|date|after_or_equal:mulai_pelaksanaan',
-            'dana_pemerintah'   => 'nullable|numeric|min:0',
-            'dana_provinsi'     => 'nullable|numeric|min:0',
-            'dana_kabkota'      => 'nullable|numeric|min:0',
-            'swadaya'           => 'nullable|numeric|min:0',
-            'sumber_lain'       => 'nullable|numeric|min:0',
-            'lat'               => 'nullable|numeric|between:-90,90',
-            'lng'               => 'nullable|numeric|between:-180,180',
-            'foto'              => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
-            'dokumentasi'       => 'nullable|string',
-            'status'            => 'nullable|boolean',
+        $validated = $request->validate([
+            'id_bidang'            => 'nullable|exists:ref_pembangunan_bidang,id',
+            'id_sasaran'           => 'nullable|exists:ref_pembangunan_sasaran,id',
+            // Sumber dana dikirim sebagai array dari multi-select
+            'id_sumber_dana'       => 'nullable|array',
+            'id_sumber_dana.*'     => 'integer|exists:ref_pembangunan_sumber_dana,id',
+            'id_lokasi'            => 'required|integer',
+            'tahun_anggaran'       => 'required|integer|min:2000|max:2099',
+            'nama'                 => 'required|string|min:5|max:200',
+            'pelaksana'            => 'required|string|max:200',
+            'manfaat'              => 'required|string',
+            'keterangan'           => 'required|string',
+            'volume'               => 'required|numeric|min:0',
+            'satuan'               => 'nullable|string|max:50',
+            'waktu'                => 'required|integer|min:0',
+            'satuan_waktu'         => 'nullable|in:Hari,Minggu,Bulan,Tahun',
+            'mulai_pelaksanaan'    => 'nullable|date',
+            'akhir_pelaksanaan'    => 'nullable|date|after_or_equal:mulai_pelaksanaan',
+            // Nullable tapi di store() di-default ke 0 agar DB NOT NULL terpenuhi
+            'dana_pemerintah'      => 'required|numeric|min:0',
+            'dana_provinsi'        => 'required|numeric|min:0',
+            'dana_kabkota'         => 'required|numeric|min:0',
+            'swadaya'              => 'required|numeric|min:0',
+            'sumber_lain'          => 'required|numeric|min:0',
+            'realisasi'            => 'nullable|numeric|min:0',
+            'sifat_proyek'         => 'required|in:Baru,Lanjutan',
+            'lat'                  => 'nullable|numeric|between:-90,90',
+            'lng'                  => 'nullable|numeric|between:-180,180',
+            'foto'                 => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+            'dokumentasi'          => 'nullable|string',
+            'status'               => 'nullable|in:0,1',
+        ], [
+            'nama.required'        => 'Nama kegiatan wajib diisi.',
+            'nama.min'             => 'Nama kegiatan minimal :min karakter.',
+            'nama.max'             => 'Nama kegiatan maksimal :max karakter.',
+            'tahun_anggaran.required' => 'Tahun anggaran wajib dipilih.',
+            'tahun_anggaran.integer'  => 'Tahun anggaran harus berupa angka.',
+            'tahun_anggaran.min'      => 'Tahun anggaran tidak valid.',
+            'tahun_anggaran.max'      => 'Tahun anggaran tidak valid.',
+            'volume.required'      => 'Volume wajib diisi.',
+            'volume.numeric' => 'Volume harus berupa angka.',
+            'volume.min'           => 'Volume tidak boleh negatif.',
+            'waktu.required'       => 'Waktu pelaksanaan wajib diisi.',
+            'waktu.integer' => 'Waktu harus berupa angka bulat.',
+            'waktu.min'            => 'Waktu tidak boleh negatif.',
+            'dana_pemerintah.required' => 'Sumber biaya pemerintah wajib diisi.',
+            'dana_pemerintah.numeric' => 'Dana pemerintah harus berupa angka.',
+            'dana_pemerintah.min'     => 'Dana pemerintah tidak boleh negatif.',
+            'dana_provinsi.required'  => 'Sumber biaya provinsi wajib diisi.',
+            'dana_provinsi.numeric' => 'Dana provinsi harus berupa angka.',
+            'dana_provinsi.min'       => 'Dana provinsi tidak boleh negatif.',
+            'dana_kabkota.required'   => 'Sumber biaya kab/kota wajib diisi.',
+            'dana_kabkota.numeric' => 'Dana kab/kota harus berupa angka.',
+            'dana_kabkota.min'        => 'Dana kab/kota tidak boleh negatif.',
+            'swadaya.required'        => 'Sumber biaya swadaya wajib diisi.',
+            'swadaya.numeric' => 'Dana swadaya harus berupa angka.',
+            'swadaya.min'             => 'Dana swadaya tidak boleh negatif.',
+            'sumber_lain.required'    => 'SILPA wajib diisi.',
+            'sumber_lain.numeric' => 'SILPA harus berupa angka.',
+            'sumber_lain.min'         => 'SILPA tidak boleh negatif.',
+            'realisasi.numeric'       => 'Realisasi anggaran harus berupa angka.',
+            'realisasi.min'           => 'Realisasi anggaran tidak boleh negatif.',
+            'sifat_proyek.required'   => 'Sifat proyek wajib dipilih.',
+            'sifat_proyek.in' => 'Sifat proyek hanya boleh Baru atau Lanjutan.',
+            'pelaksana.required'   => 'Pelaksana kegiatan wajib diisi.',
+            'manfaat.required' => 'Manfaat wajib diisi.',
+            'keterangan.required' => 'Keterangan wajib diisi.',
+            'foto.image' => 'File gambar tidak valid.',
+            'foto.mimes'           => 'Format gambar harus JPG, PNG, atau WebP.',
+            'foto.max'             => 'Ukuran gambar maksimal 5 MB.',
+            'id_lokasi.required'      => 'Lokasi pembangunan wajib dipilih.',
+            'id_sumber_dana.*.exists' => 'Sumber dana yang dipilih tidak valid.',
         ]);
+
+        return $validated;
     }
 }

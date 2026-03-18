@@ -31,4 +31,18 @@ class Wilayah extends Model {
     public function desa() {
         return $this->belongsTo(Desa::class);
     }
+
+    /**
+     * Label lokasi gabungan dari dusun, RW, dan RT.
+     * Contoh hasil: "Dsn. Karang Anyar / RW 02 / RT 05"
+     * Dipakai di blade dengan: $p->lokasi->label
+     */
+    public function getLabelAttribute(): string {
+        $parts = array_filter([
+            $this->dusun ? 'Dsn. ' . $this->dusun : null,
+            $this->rw    ? 'RW '   . $this->rw    : null,
+            $this->rt    ? 'RT '   . $this->rt    : null,
+        ]);
+        return implode(' / ', $parts) ?: '-';
+    }
 }

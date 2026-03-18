@@ -1,0 +1,496 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+
+/**
+ * Migration: Perbaikan besar tabel penduduk
+ *
+ * Perubahan dikelompokkan menjadi:
+ *   [P1] CRITICAL  — berdampak ke logika bisnis inti
+ *   [P2] PENTING   — field yang hilang / relasi referensi
+ *   [P3] MINOR     — fitur lanjutan / kelengkapan data
+ *
+ * Pendekatan migrasi untuk kolom referensi (agama, pekerjaan, dll):
+ *   - Tambahkan kolom _id baru (FK ke tabel ref_*)
+ *   - Kolom varchar lama diberi suffix _lama dan di-deprecate
+ *   - Setelah data dimapping, kolom _lama bisa di-drop di migration berikutnya
+ *   - Lihat ReferensiDataMigrationCommand untuk proses mapping otomatis
+ */
+return new class extends Migration {
+    public function up(): void {
+        // =====================================================================
+        // STEP 1 — Perbaikan Enum & Rename (DDL changes)
+        // =====================================================================
+
+        // [P1] Perbaiki status_hidup: tambah 'pindah' dan 'hilang', rename jadi status_dasar
+        // MySQL tidak bisa rename + ubah enum sekaligus, jadi:
+        // 1. Tambah kolom status_dasar baru
+        // 2. Copy data dari status_hidup
+        // 3. Drop status_hidup lama
+
+        Schema::table('penduduk', function (Blueprint $table) {
+            $table->enum('status_dasar', ['hidup', 'mati', 'pindah', 'hilang'])
+                ->default('hidup')
+                ->after('jenis_kelamin')
+                ->comment('[P1] Kondisi penduduk — padanan status_dasar OpenSID. hidup=masih warga, mati/pindah/hilang=sudah bukan warga aktif (lihat Catatan Peristiwa)');
+        });
+
+        // Salin data lama (hidup→hidup, meninggal→mati)
+        DB::statement("UPDATE penduduk SET status_dasar = CASE
+            WHEN status_hidup = 'hidup'      THEN 'hidup'
+            WHEN status_hidup = 'meninggal'  THEN 'mati'
+            ELSE 'hidup'
+        END");
+
+        Schema::table('penduduk', function (Blueprint $table) {
+            $table->dropColumn('status_hidup'); // kolom lama dihapus
+        });
+
+        // =====================================================================
+        // STEP 2 — Tambah semua kolom baru
+        // =====================================================================
+        Schema::table('penduduk', function (Blueprint $table) {
+
+            // -----------------------------------------------------------------
+            // [P1] Relasi ke Keluarga (CRITICAL)
+            // -----------------------------------------------------------------
+            $table->foreignId('keluarga_id')
+                ->nullable()
+                ->after('id')
+                ->constrained('keluarga')
+                ->nullOnDelete()
+                ->comment('[P1] FK ke keluarga.id — padanan id_kk OpenSID');
+
+            $table->unsignedBigInteger('kk_level')
+                ->nullable()
+                ->after('keluarga_id')
+                ->comment('[P1] SHDK — Status Hubungan Dalam Keluarga. FK ke ref_shdk. 1=KK, 2=Suami, 3=Istri, 4=Anak, dst');
+
+            $table->foreign('kk_level')
+                ->references('id')
+                ->on('ref_shdk')
+                ->nullOnDelete();
+
+            // -----------------------------------------------------------------
+            // [P1] Status jenis penduduk (TERPISAH dari status_dasar)
+            // Dipakai untuk filter di halaman list penduduk
+            // -----------------------------------------------------------------
+            $table->unsignedTinyInteger('status')
+                ->default(1)
+                ->after('status_dasar')
+                ->comment('[P1] Jenis penduduk: 1=Tetap, 2=TidakTetap, 3=Pendatang — padanan status OpenSID');
+
+            // -----------------------------------------------------------------
+            // [P1] Perbaikan jenis_tambah — hapus nilai meninggal
+            // Tambah kolom baru dulu, salin data, hapus lama
+            // -----------------------------------------------------------------
+            $table->enum('jenis_tambah_baru', ['lahir', 'masuk'])
+                ->default('lahir')
+                ->after('jenis_tambah')
+                ->comment('[P1] Cara penduduk terdaftar: lahir=penduduk lahir, masuk=pindah datang');
+
+            // -----------------------------------------------------------------
+            // [P2] NIK Ayah & Ibu (untuk relasi antar penduduk)
+            // -----------------------------------------------------------------
+            $table->string('nik_ayah', 16)
+                ->nullable()
+                ->after('nama_ibu')
+                ->comment('[P2] NIK Ayah — padanan ayah_nik OpenSID, untuk relasi ke penduduk lain');
+
+            $table->string('nik_ibu', 16)
+                ->nullable()
+                ->after('nik_ayah')
+                ->comment('[P2] NIK Ibu — padanan ibu_nik OpenSID');
+
+            // -----------------------------------------------------------------
+            // [P2] Kolom FK referensi (menggantikan varchar)
+            // Kolom varchar lama DIPERTAHANKAN sementara dengan nama _lama
+            // Setelah data mapping selesai, jalankan migration drop_kolom_lama
+            // -----------------------------------------------------------------
+
+            // Agama
+            $table->foreignId('agama_id')
+                ->nullable()
+                ->after('agama')
+                ->constrained('ref_agama')
+                ->nullOnDelete()
+                ->comment('[P2] FK ke ref_agama — kolom agama varchar akan di-drop setelah mapping');
+
+            // Pendidikan dalam KK
+            $table->unsignedBigInteger('pendidikan_kk_id')
+                ->nullable()
+                ->after('pendidikan')
+                ->comment('[P2] FK ke ref_pendidikan — pendidikan terakhir/dalam KK');
+            $table->foreign('pendidikan_kk_id')
+                ->references('id')->on('ref_pendidikan')->nullOnDelete();
+
+            // Pendidikan sedang ditempuh (OpenSID punya 2 field pendidikan!)
+            $table->unsignedBigInteger('pendidikan_sedang_id')
+                ->nullable()
+                ->after('pendidikan_kk_id')
+                ->comment('[P2] FK ke ref_pendidikan — pendidikan yang sedang ditempuh saat ini');
+            $table->foreign('pendidikan_sedang_id')
+                ->references('id')->on('ref_pendidikan')->nullOnDelete();
+
+            // Pekerjaan
+            $table->foreignId('pekerjaan_id')
+                ->nullable()
+                ->after('pekerjaan')
+                ->constrained('ref_pekerjaan')
+                ->nullOnDelete()
+                ->comment('[P2] FK ke ref_pekerjaan');
+
+            // Status kawin
+            $table->foreignId('status_kawin_id')
+                ->nullable()
+                ->after('status_kawin')
+                ->constrained('ref_status_kawin')
+                ->nullOnDelete()
+                ->comment('[P2] FK ke ref_status_kawin (mendukung Cerai Tercatat/Tidak Tercatat)');
+
+            // Golongan darah
+            $table->foreignId('golongan_darah_id')
+                ->nullable()
+                ->after('golongan_darah')
+                ->constrained('ref_golongan_darah')
+                ->nullOnDelete()
+                ->comment('[P2] FK ke ref_golongan_darah');
+
+            // Warga negara (FK, menggantikan varchar kewarganegaraan)
+            $table->foreignId('warganegara_id')
+                ->nullable()
+                ->after('kewarganegaraan')
+                ->constrained('ref_warganegara')
+                ->nullOnDelete()
+                ->comment('[P2] FK ke ref_warganegara — padanan warganegara_id OpenSID');
+
+            // -----------------------------------------------------------------
+            // [P2] Data KTP Elektronik
+            // -----------------------------------------------------------------
+            $table->tinyInteger('ktp_el')
+                ->nullable()
+                ->after('warganegara_id')
+                ->comment('[P2] Status kepemilikan KTP-el: 0=Tidak, 1=Ada. Data dari Disdukcapil');
+
+            $table->tinyInteger('status_rekam')
+                ->nullable()
+                ->after('ktp_el')
+                ->comment('[P2] Status perekaman KTP-el di Disdukcapil. Data dari Disdukcapil');
+
+            $table->string('tempat_cetak_ktp', 100)
+                ->nullable()
+                ->after('status_rekam')
+                ->comment('[P2] Tempat cetak KTP terakhir');
+
+            $table->date('tanggal_cetak_ktp')
+                ->nullable()
+                ->after('tempat_cetak_ktp')
+                ->comment('[P2] Tanggal cetak KTP terakhir');
+
+            // -----------------------------------------------------------------
+            // [P2] Detail Perkawinan (untuk Cerai Tercatat vs Tidak Tercatat)
+            // Sesuai Permendagri 108 Tahun 2019 Pasal 50 Ayat 4
+            // -----------------------------------------------------------------
+            $table->string('akta_perkawinan', 100)
+                ->nullable()
+                ->after('status_kawin_id')
+                ->comment('[P2] Nomor Akta Nikah / Perkawinan');
+
+            $table->date('tanggal_perkawinan')
+                ->nullable()
+                ->after('akta_perkawinan')
+                ->comment('[P2] Tanggal perkawinan');
+
+            $table->string('akta_perceraian', 100)
+                ->nullable()
+                ->after('tanggal_perkawinan')
+                ->comment('[P2] Nomor Akta Perceraian — jika ada → Cerai Hidup Tercatat');
+
+            $table->date('tanggal_perceraian')
+                ->nullable()
+                ->after('akta_perceraian')
+                ->comment('[P2] Tanggal perceraian — jika ada → Cerai Hidup Tercatat');
+
+            // -----------------------------------------------------------------
+            // [P3] Data Kelahiran Detail (untuk akta lahir & statistik)
+            // -----------------------------------------------------------------
+            $table->time('waktu_lahir')
+                ->nullable()
+                ->after('tanggal_lahir')
+                ->comment('[P3] Waktu lahir (jam:menit:detik)');
+
+            $table->string('tempat_dilahirkan', 100)
+                ->nullable()
+                ->after('waktu_lahir')
+                ->comment('[P3] Tempat dilahirkan: RS/Puskesmas/Rumah/dll');
+
+            $table->string('jenis_kelahiran', 50)
+                ->nullable()
+                ->after('tempat_dilahirkan')
+                ->comment('[P3] Jenis kelahiran: Tunggal/Kembar 2/Kembar 3/dst');
+
+            $table->tinyInteger('kelahiran_anak_ke')
+                ->nullable()
+                ->after('jenis_kelahiran')
+                ->comment('[P3] Kelahiran anak ke-berapa dalam keluarga');
+
+            $table->string('penolong_kelahiran', 50)
+                ->nullable()
+                ->after('kelahiran_anak_ke')
+                ->comment('[P3] Penolong kelahiran: Dokter/Bidan/Dukun/dll');
+
+            $table->decimal('berat_lahir', 5, 2)
+                ->nullable()
+                ->after('penolong_kelahiran')
+                ->comment('[P3] Berat badan saat lahir (kg)');
+
+            $table->decimal('panjang_lahir', 5, 2)
+                ->nullable()
+                ->after('berat_lahir')
+                ->comment('[P3] Panjang badan saat lahir (cm)');
+
+            $table->string('akta_lahir', 100)
+                ->nullable()
+                ->after('panjang_lahir')
+                ->comment('[P3] Nomor Akta Kelahiran');
+
+            // -----------------------------------------------------------------
+            // [P3] Data Kesehatan
+            // -----------------------------------------------------------------
+            $table->foreignId('cacat_id')
+                ->nullable()
+                ->after('golongan_darah_id')
+                ->constrained('ref_cacat')
+                ->nullOnDelete()
+                ->comment('[P3] FK ke ref_cacat — jenis disabilitas');
+
+            $table->foreignId('sakit_menahun_id')
+                ->nullable()
+                ->after('cacat_id')
+                ->constrained('ref_sakit_menahun')
+                ->nullOnDelete()
+                ->comment('[P3] FK ke ref_sakit_menahun — penyakit kronis');
+
+            $table->foreignId('cara_kb_id')
+                ->nullable()
+                ->after('sakit_menahun_id')
+                ->constrained('ref_cara_kb')
+                ->nullOnDelete()
+                ->comment('[P3] FK ke ref_cara_kb — metode KB yang digunakan');
+
+            $table->tinyInteger('hamil')
+                ->default(0)
+                ->after('cara_kb_id')
+                ->comment('[P3] Status kehamilan: 0=Tidak, 1=Hamil');
+
+            // -----------------------------------------------------------------
+            // [P3] Asuransi Kesehatan
+            // -----------------------------------------------------------------
+            $table->foreignId('asuransi_id')
+                ->nullable()
+                ->after('hamil')
+                ->constrained('ref_asuransi')
+                ->nullOnDelete()
+                ->comment('[P3] FK ke ref_asuransi — jenis asuransi/BPJS');
+
+            $table->string('no_asuransi', 100)
+                ->nullable()
+                ->after('asuransi_id')
+                ->comment('[P3] Nomor kartu asuransi/BPJS');
+
+            // -----------------------------------------------------------------
+            // [P3] Dokumen Keimigrasian (WNA)
+            // -----------------------------------------------------------------
+            $table->string('dokumen_pasport', 100)
+                ->nullable()
+                ->after('no_asuransi')
+                ->comment('[P3] Nomor paspor — untuk WNA');
+
+            $table->date('tanggal_akhir_paspor')
+                ->nullable()
+                ->after('dokumen_pasport')
+                ->comment('[P3] Tanggal kadaluarsa paspor');
+
+            $table->string('dokumen_kitas', 100)
+                ->nullable()
+                ->after('tanggal_akhir_paspor')
+                ->comment('[P3] Nomor KITAS/KITAP — untuk WNA');
+
+            $table->string('negara_asal', 100)
+                ->nullable()
+                ->after('dokumen_kitas')
+                ->comment('[P3] Negara asal — untuk WNA');
+
+            // -----------------------------------------------------------------
+            // [P3] Bahasa
+            // -----------------------------------------------------------------
+            $table->foreignId('bahasa_id')
+                ->nullable()
+                ->after('negara_asal')
+                ->constrained('ref_bahasa')
+                ->nullOnDelete()
+                ->comment('[P3] FK ke ref_bahasa — bahasa sehari-hari');
+
+            // -----------------------------------------------------------------
+            // [P3] Alamat tambahan
+            // -----------------------------------------------------------------
+            $table->text('alamat_sebelumnya')
+                ->nullable()
+                ->after('alamat')
+                ->comment('[P3] Alamat sebelumnya / asal — untuk penduduk masuk');
+
+            $table->string('no_kk_sebelumnya', 16)
+                ->nullable()
+                ->after('alamat_sebelumnya')
+                ->comment('[P3] No KK di desa asal — untuk penduduk pindah masuk');
+
+            // -----------------------------------------------------------------
+            // [P3] Catatan
+            // -----------------------------------------------------------------
+            $table->text('keterangan')
+                ->nullable()
+                ->after('no_kk_sebelumnya')
+                ->comment('[P3] Keterangan/catatan tambahan — padanan ket di OpenSID');
+
+            // -----------------------------------------------------------------
+            // Tambah index penting untuk performa
+            // -----------------------------------------------------------------
+            $table->index('keluarga_id');
+            $table->index('kk_level');
+            $table->index('status');
+            $table->index('status_dasar');
+            $table->index('nik_ayah');
+            $table->index('nik_ibu');
+        });
+
+        // =====================================================================
+        // STEP 3 — Salin data jenis_tambah ke kolom baru, lalu swap
+        // =====================================================================
+        DB::statement("UPDATE penduduk SET jenis_tambah_baru = CASE
+            WHEN jenis_tambah = 'lahir'      THEN 'lahir'
+            WHEN jenis_tambah = 'masuk'      THEN 'masuk'
+            WHEN jenis_tambah = 'meninggal'  THEN 'masuk'  -- fallback, perlu review manual
+            ELSE 'lahir'
+        END");
+
+        Schema::table('penduduk', function (Blueprint $table) {
+            $table->dropColumn('jenis_tambah');
+        });
+
+        Schema::table('penduduk', function (Blueprint $table) {
+            $table->renameColumn('jenis_tambah_baru', 'jenis_tambah');
+        });
+
+        // =====================================================================
+        // STEP 4 — Rename kolom varchar lama agar tidak konflik saat FK
+        //           aktif. Kolom lama dijadikan _lama (deprecated).
+        //           Jalankan ReferensiMappingCommand untuk isi kolom _id,
+        //           lalu jalankan migration drop_kolom_lama.
+        // =====================================================================
+        Schema::table('penduduk', function (Blueprint $table) {
+            $table->renameColumn('agama',          'agama_lama');
+            $table->renameColumn('pendidikan',     'pendidikan_lama');
+            $table->renameColumn('pekerjaan',      'pekerjaan_lama');
+            $table->renameColumn('status_kawin',   'status_kawin_lama');
+            $table->renameColumn('golongan_darah', 'golongan_darah_lama');
+            $table->renameColumn('kewarganegaraan', 'kewarganegaraan_lama');
+        });
+    }
+
+    public function down(): void {
+        Schema::table('penduduk', function (Blueprint $table) {
+            // Kembalikan rename kolom lama
+            $table->renameColumn('agama_lama',           'agama');
+            $table->renameColumn('pendidikan_lama',      'pendidikan');
+            $table->renameColumn('pekerjaan_lama',       'pekerjaan');
+            $table->renameColumn('status_kawin_lama',    'status_kawin');
+            $table->renameColumn('golongan_darah_lama',  'golongan_darah');
+            $table->renameColumn('kewarganegaraan_lama', 'kewarganegaraan');
+        });
+
+        Schema::table('penduduk', function (Blueprint $table) {
+            // Drop semua foreign keys dulu
+            $table->dropForeign(['keluarga_id']);
+            $table->dropForeign(['kk_level']);
+            $table->dropForeign(['agama_id']);
+            $table->dropForeign(['pendidikan_kk_id']);
+            $table->dropForeign(['pendidikan_sedang_id']);
+            $table->dropForeign(['pekerjaan_id']);
+            $table->dropForeign(['status_kawin_id']);
+            $table->dropForeign(['golongan_darah_id']);
+            $table->dropForeign(['warganegara_id']);
+            $table->dropForeign(['cacat_id']);
+            $table->dropForeign(['sakit_menahun_id']);
+            $table->dropForeign(['cara_kb_id']);
+            $table->dropForeign(['asuransi_id']);
+            $table->dropForeign(['bahasa_id']);
+
+            // Drop index
+            $table->dropIndex(['keluarga_id']);
+            $table->dropIndex(['kk_level']);
+            $table->dropIndex(['status']);
+            $table->dropIndex(['status_dasar']);
+            $table->dropIndex(['nik_ayah']);
+            $table->dropIndex(['nik_ibu']);
+
+            // Drop semua kolom baru
+            $table->dropColumn([
+                'keluarga_id',
+                'kk_level',
+                'status',
+                'nik_ayah',
+                'nik_ibu',
+                'agama_id',
+                'pendidikan_kk_id',
+                'pendidikan_sedang_id',
+                'pekerjaan_id',
+                'status_kawin_id',
+                'golongan_darah_id',
+                'warganegara_id',
+                'ktp_el',
+                'status_rekam',
+                'tempat_cetak_ktp',
+                'tanggal_cetak_ktp',
+                'akta_perkawinan',
+                'tanggal_perkawinan',
+                'akta_perceraian',
+                'tanggal_perceraian',
+                'waktu_lahir',
+                'tempat_dilahirkan',
+                'jenis_kelahiran',
+                'kelahiran_anak_ke',
+                'penolong_kelahiran',
+                'berat_lahir',
+                'panjang_lahir',
+                'akta_lahir',
+                'cacat_id',
+                'sakit_menahun_id',
+                'cara_kb_id',
+                'hamil',
+                'asuransi_id',
+                'no_asuransi',
+                'dokumen_pasport',
+                'tanggal_akhir_paspor',
+                'dokumen_kitas',
+                'negara_asal',
+                'bahasa_id',
+                'alamat_sebelumnya',
+                'no_kk_sebelumnya',
+                'keterangan',
+            ]);
+
+            // Kembalikan jenis_tambah lama
+            $table->dropColumn('jenis_tambah');
+            $table->enum('jenis_tambah', ['lahir', 'masuk', 'meninggal'])->default('lahir');
+        });
+
+        // Kembalikan status_dasar → status_hidup
+        Schema::table('penduduk', function (Blueprint $table) {
+            $table->dropColumn('status_dasar');
+            $table->enum('status_hidup', ['hidup', 'meninggal'])->default('hidup');
+        });
+    }
+};
