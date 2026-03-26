@@ -6,15 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Models\Letter;
 use App\Models\Penduduk;
 use App\Models\IdentitasDesa;
-use App\Models\ArsipSurat; 
+use App\Models\ArsipSurat;
 use App\Models\SuratTemplate;
 use App\Models\Keluarga; 
 use App\Models\BukuPemerintah; // Model BukuPemerintah sudah dipanggil di sini
 use App\Models\KlasifikasiSurat; 
 use App\Models\Setting; 
 use Illuminate\Http\Request;
-use Barryvdh\DomPDF\Facade\Pdf; 
-use PhpOffice\PhpWord\TemplateProcessor;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Auth; 
@@ -98,7 +97,7 @@ class LetterController extends Controller
             'template_id'  => 'required|exists:surat_templates,id'
         ], [
             'format_nomor.required' => 'Nomor surat wajib diisi.',
-            'format_nomor.unique'   => 'Nomor surat sudah terdaftar di arsip! Gunakan nomor lain.',
+            'format_nomor.unique'   => 'Nomor surat sudah terdaftar di arsip!',
         ]);
 
         $htmlContent = $template->konten_template; 
@@ -222,13 +221,12 @@ class LetterController extends Controller
                 'nama_pemohon'  => $request->nama_pemohon,
                 'nik'           => $request->nik_pemohon ?? '-',
                 'tanggal_surat' => $request->tanggal_surat ?? now()->format('Y-m-d'),
-                'file_path'     => $dbPath, 
-                'status'        => 'selesai', 
-                'user_id'       => Auth::id() ?? 1, 
+                'file_path'     => $dbPath,
+                'status'        => 'selesai',
+                'user_id'       => Auth::id() ?? 1,
             ]);
 
             return $pdf->download($fileName);
-
         } catch (\Exception $e) {
             return redirect()->route('admin.layanan-surat.cetak.index')->with('error', 'Gagal Cetak: ' . $e->getMessage());
         }
@@ -239,10 +237,10 @@ class LetterController extends Controller
         if (empty($keyword)) return response()->json([]);
         
         $penduduk = Penduduk::where('nik', 'LIKE', $keyword . '%')
-                    ->orWhere('nama', 'LIKE', '%' . $keyword . '%')
-                    ->limit(10)
-                    ->get(['nik', 'nama']);
-        
+            ->orWhere('nama', 'LIKE', '%' . $keyword . '%')
+            ->limit(10)
+            ->get(['nik', 'nama']);
+
         return response()->json($penduduk);
     }
 
@@ -267,13 +265,13 @@ class LetterController extends Controller
             }
 
             return response()->json([
-                'success' => true, 
-                'penduduk' => $penduduk, 
+                'success' => true,
+                'penduduk' => $penduduk,
                 'desa' => $desa,
                 'keluarga' => $dataKeluarga
             ]);
         }
-        
+
         return response()->json(['success' => false, 'message' => 'Warga tidak ditemukan']);
     }
 
@@ -288,39 +286,24 @@ class LetterController extends Controller
         return redirect()->route('admin.layanan-surat.cetak.show', $letter->id);
     }
 
-    public function show($id)
-    {
-        $letter = Letter::find($id);
-        if (!$letter) {
-            $letter = ArsipSurat::findOrFail($id);
-        }
-        return view('admin.layanan-surat.letters.show', compact('letter')); 
+    public function show($id) {
+        $letter = Letter::find($id) ?: ArsipSurat::findOrFail($id);
+        return view('admin.layanan-surat.letters.show', compact('letter'));
     }
 
-    public function cetak($id)
-    {
+    public function cetak($id) {
         $arsip = ArsipSurat::findOrFail($id);
         $filePath = storage_path('app/public/' . $arsip->file_path);
-        
+
         if (File::exists($filePath)) {
             return response()->file($filePath);
         }
         return back()->with('error', 'File PDF tidak ditemukan di server.');
     }
 
-    private function validateLetterRequest(Request $request)
-    {
+    private function validateLetterRequest(Request $request) {
         return $request->validate([
-            'template_id'     => 'nullable|exists:surat_templates,id', 
-            'kode_kabupaten'  => 'nullable|string|max:255',
-            'nama_kabupaten'  => 'nullable|string|max:255',
-            'kecamatan'       => 'nullable|string|max:255',
-            'kantor_desa'     => 'nullable|string|max:255',
-            'nama_desa'       => 'nullable|string|max:255',
-            'alamat_kantor'   => 'nullable|string',
-            'format_nomor'    => 'nullable|string|max:255',
-            'kepala_desa'     => 'nullable|string|max:255',
-            'kode_provinsi'   => 'nullable|string|max:255',
+            'template_id'     => 'nullable|exists:surat_templates,id',
             'nama'            => 'required|string|max:255',
             'nik'             => 'required|string|max:50',
             'no_kk'           => 'nullable|string|max:50',

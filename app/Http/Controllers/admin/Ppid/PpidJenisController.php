@@ -20,10 +20,17 @@ class PpidJenisController extends Controller {
     // ──────────────────────────────────────────────────────────────
     // INDEX
     // ──────────────────────────────────────────────────────────────
-    public function index() {
-        $jenis = PpidJenisDokumen::withCount('dokumen')
-            ->orderBy('id')  // ← ascending: lama di atas, baru di bawah
-            ->paginate(15);
+    public function index(Request $request) {
+        $query = PpidJenisDokumen::withCount('dokumen')->orderBy('id');
+        $query->when($request->filled('search'), function ($q) use ($request) {
+            $q->where('nama', 'LIKE', "%{$request->search}%")
+                ->orWhere('keterangan', 'LIKE', "%{$request->search}%");
+        });
+        $query->when($request->filled('status') && $request->status != 'semua', function ($q) use ($request) {
+            $q->where('status', $request->status);
+        });
+        $jenis = $query->paginate($request->get('per_page', 15));
+        $jenis->appends($request->only(['search', 'status', 'per_page']));
         return view('admin.ppid.jenis.index', compact('jenis'));
     }
 

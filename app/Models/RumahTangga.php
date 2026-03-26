@@ -4,10 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
-class RumahTangga extends Model
-{
-    use HasFactory;
+class RumahTangga extends Model {
+    use HasFactory, SoftDeletes;
 
     protected $table = 'rumah_tangga';
 
@@ -15,7 +15,6 @@ class RumahTangga extends Model
         'no_rumah_tangga',
         'alamat',
         'wilayah_id',
-        'jumlah_anggota',
         'klasifikasi_ekonomi',
         'tgl_terdaftar',
         'jenis_bantuan_aktif',
@@ -25,87 +24,128 @@ class RumahTangga extends Model
         'tgl_terdaftar' => 'date',
     ];
 
-    // Accessor for kode_rumah_tangga to match view
-    public function getKodeRumahTanggaAttribute()
-    {
-        return $this->no_rumah_tangga;
+    // =========================================================================
+    // RELASI
+    // =========================================================================
+
+    /**
+     * Semua KK yang tergabung dalam rumah tangga ini.
+     * Ini adalah relasi utama — penduduk diakses VIA keluarga.
+     * Tidak ada pivot rumah_tangga_penduduk; sesuai pola OpenSID.
+     */
+    public function keluarga() {
+        return $this->hasMany(Keluarga::class, 'rumah_tangga_id');
     }
 
-    // Accessor for anggota_count
-    public function getAnggotaCountAttribute()
-    {
-        return $this->jumlah_anggota;
+    /**
+     * Wilayah (RT/RW/Dusun)
+     */
+    public function wilayah() {
+        return $this->belongsTo(Wilayah::class, 'wilayah_id');
     }
 
-    // Accessor for status to match view (pindah instead of tidak_aktif)
-    public function getStatusAttribute($value)
-    {
-        return $value === 'tidak_aktif' ? 'pindah' : $value;
+    // =========================================================================
+    // HELPER METHODS
+    // =========================================================================
+
+    /**
+     * Kepala Rumah Tangga = Kepala KK dari KK pertama yang terdaftar.
+     * Di OpenSID, kepala RT adalah kepala KK pertama dalam RT tersebut.
+     */
+    public function getKepalaRumahTangga(): ?Penduduk {
+        $kkPertama = $this->relationLoaded('keluarga')
+            ? $this->keluarga->first()
+            : $this->keluarga()->oldest()->first();
+
+        return $kkPertama?->getKepalaKeluarga();
     }
 
-    // Many-to-many relationship with Penduduk via rumah_tangga_penduduk pivot
-    public function anggota()
-    {
-        return $this->belongsToMany(Penduduk::class, 'rumah_tangga_penduduk')
-                    ->withPivot('hubungan_rumah_tangga')
-                    ->withTimestamps();
+    /**
+     * Total KK dalam rumah tangga ini.
+     */
+    public function getTotalKk(): int {
+        return $this->relationLoaded('keluarga')
+            ? $this->keluarga->count()
+            : $this->keluarga()->count();
     }
 
-    // Helper method to get kepala rumah tangga
-    public function kepalaRumahTangga()
-    {
-        return $this->anggota()->wherePivot('hubungan_rumah_tangga', 'kepala_rumah_tangga')->first();
+    /**
+     * Total anggota (semua penduduk dari semua KK dalam RT ini).
+     * Dihitung dinamis via join.
+     */
+    public function getTotalAnggota(): int {
+        return Penduduk::whereIn(
+            'keluarga_id',
+            $this->keluarga()->pluck('id')
+        )->count();
     }
 
-    // Helper method to get all anggota except kepala rumah tangga
-    public function anggotaRumahTangga()
-    {
-        return $this->anggota()->wherePivot('hubungan_rumah_tangga', '!=', 'kepala_rumah_tangga');
+    /**
+     * Total laki-laki di seluruh KK dalam RT ini.
+     */
+    public function getTotalLakiLaki(): int {
+        return Penduduk::whereIn(
+            'keluarga_id',
+            $this->keluarga()->pluck('id')
+        )->where('jenis_kelamin', 'L')->count();
     }
 
-    // Get kepala_rumah_tangga id for backward compatibility
-    public function getKepalaRumahTanggaAttribute()
-    {
-        return $this->kepalaRumahTangga()?->id;
+    /**
+     * Total perempuan di seluruh KK dalam RT ini.
+     */
+    public function getTotalPerempuan(): int {
+        return Penduduk::whereIn(
+            'keluarga_id',
+            $this->keluarga()->pluck('id')
+        )->where('jenis_kelamin', 'P')->count();
     }
 
-    // Get kepala_rumah_tangga name
-    public function getKepalaRumahTanggaNameAttribute()
-    {
-        return $this->kepalaRumahTangga()?->nama ?? '-';
+    // =========================================================================
+    // ACCESSORS
+    // =========================================================================
+
+    public function getRtAttribute(): string {
+        return $this->wilayah?->rt ?? '-';
     }
 
-    // Relation to Wilayah
-    public function wilayah()
-    {
-        return $this->belongsTo(Wilayah::class);
+    public function getRwAttribute(): string {
+        return $this->wilayah?->rw ?? '-';
     }
 
-    // Accessors for rt, rw, dusun
-    public function getRtAttribute()
-    {
-        return $this->wilayah ? $this->wilayah->rt : '-';
+    public function getDusunAttribute(): string {
+        return $this->wilayah?->dusun ?? '-';
     }
 
-    public function getRwAttribute()
-    {
-        return $this->wilayah ? $this->wilayah->rw : '-';
+    // =========================================================================
+    // SCOPES
+    // =========================================================================
+
+    public function scopeMiskin($query) {
+        return $query->where('klasifikasi_ekonomi', 'miskin');
     }
 
-    public function getDusunAttribute()
-    {
-        return $this->wilayah ? $this->wilayah->dusun : '-';
+    public function scopeRendan($query) {
+        return $query->where('klasifikasi_ekonomi', 'rentan');
     }
 
-    // Validation: Prevent deletion if still has anggota
-    protected static function boot()
-    {
+    public function scopeMampu($query) {
+        return $query->where('klasifikasi_ekonomi', 'mampu');
+    }
+
+    // =========================================================================
+    // BOOT
+    // =========================================================================
+
+    protected static function boot() {
         parent::boot();
 
-        static::deleting(function ($rumahTangga) {
-            // Prevent deletion if still has anggota
-            if ($rumahTangga->anggota()->count() > 0) {
-                throw new \Exception('Rumah tangga tidak boleh dihapus jika masih memiliki anggota');
+        /**
+         * Cegah hapus RT yang masih punya KK terdaftar.
+         */
+        static::forceDeleting(function ($rt) {
+            $jumlah = $rt->keluarga()->count();
+            if ($jumlah > 0) {
+                throw new \Exception("Rumah tangga {$rt->no_rumah_tangga} tidak bisa dihapus permanen karena masih memiliki {$jumlah} KK.");
             }
         });
     }

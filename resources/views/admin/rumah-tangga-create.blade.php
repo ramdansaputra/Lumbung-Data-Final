@@ -3,250 +3,194 @@
 @section('title', 'Tambah Rumah Tangga')
 
 @section('content')
-<div class="space-y-6">
 
-    <!-- Action Bar -->
-    <div class="flex items-center justify-end">
-        <a href="{{ route('admin.rumah-tangga.index') }}"
-            class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            Kembali
-        </a>
+<div class="flex items-center justify-between mb-6">
+    <div>
+        <h2 class="text-lg font-bold text-gray-700 dark:text-slate-200">Tambah Rumah Tangga</h2>
+        <p class="text-sm text-gray-400 dark:text-slate-500 mt-0.5">Daftarkan rumah tangga baru dan pilih KK yang tergabung</p>
     </div>
-
-    <!-- Form Card -->
-    <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
-        <div class="p-6 border-b border-gray-200">
-            <h3 class="text-lg font-semibold text-gray-900">Data Rumah Tangga Baru</h3>
-            <p class="text-sm text-gray-500 mt-1">Lengkapi formulir di bawah ini untuk menambahkan rumah tangga baru</p>
-        </div>
-
-        <form action="{{ route('admin.rumah-tangga.store') }}" method="POST" class="p-6">
-            @csrf
-
-            <!-- Informasi Dasar -->
-            <div class="mb-8">
-                <h4 class="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <div class="w-6 h-6 bg-emerald-100 rounded-lg flex items-center justify-center">
-                        <span class="text-emerald-700 text-xs font-bold">1</span>
-                    </div>
-                    Informasi Dasar
-                </h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- No Rumah Tangga -->
-                    <div>
-                        <label for="no_rumah_tangga" class="block text-xs font-medium text-gray-700 mb-2">
-                            No. Rumah Tangga <span class="text-red-500">*</span>
-                        </label>
-                        <input type="text" id="no_rumah_tangga" name="no_rumah_tangga" value="{{ old('no_rumah_tangga') }}"
-                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors @error('no_rumah_tangga') border-red-500 @enderror"
-                            placeholder="Masukkan nomor rumah tangga" required maxlength="20">
-                        @error('no_rumah_tangga')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <!-- Kepala Rumah Tangga -->
-                    <div>
-                        <label for="kepala_rumah_tangga" class="block text-xs font-medium text-gray-700 mb-2">
-                            Kepala Rumah Tangga <span class="text-red-500">*</span>
-                        </label>
-                        <select id="kepala_rumah_tangga" name="kepala_rumah_tangga"
-                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors @error('kepala_rumah_tangga') border-red-500 @enderror"
-                            required>
-                            <option value="">Pilih kepala rumah tangga</option>
-                            @foreach($penduduk as $p)
-                            <option value="{{ $p->id }}" {{ old('kepala_rumah_tangga')==$p->id ? 'selected' : '' }}>
-                                {{ $p->nama }}
-                            </option>
-                            @endforeach
-                        </select>
-                        @error('kepala_rumah_tangga')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <!-- Tanggal Terdaftar -->
-                    <div>
-                        <label for="tgl_terdaftar" class="block text-xs font-medium text-gray-700 mb-2">
-                            Tanggal Terdaftar <span class="text-red-500">*</span>
-                        </label>
-                        <input type="date" id="tgl_terdaftar" name="tgl_terdaftar" value="{{ old('tgl_terdaftar', date('Y-m-d')) }}"
-                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors @error('tgl_terdaftar') border-red-500 @enderror"
-                            required>
-                        @error('tgl_terdaftar')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <!-- Status -->
-                    <div>
-                        <label for="status" class="block text-xs font-medium text-gray-700 mb-2">
-                            Status <span class="text-red-500">*</span>
-                        </label>
-                        <select id="status" name="status"
-                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors @error('status') border-red-500 @enderror"
-                            required>
-                            <option value="">Pilih status</option>
-                            <option value="aktif" {{ old('status')=='aktif' ? 'selected' : '' }}>Aktif</option>
-                            <option value="tidak_aktif" {{ old('status')=='tidak_aktif' ? 'selected' : '' }}>Pindah</option>
-                        </select>
-                        @error('status')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-                </div>
-            </div>
-
-            <!-- Informasi Wilayah & Ekonomi -->
-            <div class="mb-8">
-                <h4 class="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <div class="w-6 h-6 bg-blue-100 rounded-lg flex items-center justify-center">
-                        <span class="text-blue-700 text-xs font-bold">2</span>
-                    </div>
-                    Informasi Wilayah & Ekonomi
-                </h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- Wilayah -->
-                    <div>
-                        <label for="wilayah_id" class="block text-xs font-medium text-gray-700 mb-2">
-                            Wilayah <span class="text-red-500">*</span>
-                        </label>
-                        <select id="wilayah_id" name="wilayah_id"
-                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors @error('wilayah_id') border-red-500 @enderror"
-                            required>
-                            <option value="">Pilih wilayah</option>
-                            @foreach($wilayah as $w)
-                            <option value="{{ $w->id }}" {{ old('wilayah_id')==$w->id ? 'selected' : '' }}>
-                                RT {{ $w->rt }} / RW {{ $w->rw }} - {{ $w->dusun }}
-                            </option>
-                            @endforeach
-                        </select>
-                        @error('wilayah_id')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <!-- Klasifikasi Ekonomi -->
-                    <div>
-                        <label for="klasifikasi_ekonomi" class="block text-xs font-medium text-gray-700 mb-2">
-                            Klasifikasi Ekonomi
-                        </label>
-                        <select id="klasifikasi_ekonomi" name="klasifikasi_ekonomi"
-                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors">
-                            <option value="">Pilih klasifikasi</option>
-                            <option value="miskin" {{ old('klasifikasi_ekonomi')=='miskin' ? 'selected' : '' }}>Miskin</option>
-                            <option value="rentan" {{ old('klasifikasi_ekonomi')=='rentan' ? 'selected' : '' }}>Rentan</option>
-                            <option value="mampu" {{ old('klasifikasi_ekonomi')=='mampu' ? 'selected' : '' }}>Mampu</option>
-                        </select>
-                        @error('klasifikasi_ekonomi')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <!-- Jenis Bantuan Aktif -->
-                    <div>
-                        <label for="jenis_bantuan_aktif" class="block text-xs font-medium text-gray-700 mb-2">
-                            Jenis Bantuan Aktif
-                        </label>
-                        <input type="text" id="jenis_bantuan_aktif" name="jenis_bantuan_aktif" value="{{ old('jenis_bantuan_aktif') }}"
-                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
-                            placeholder="Contoh: PKH, BPNT">
-                        @error('jenis_bantuan_aktif')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <!-- Jumlah Anggota -->
-                    <div>
-                        <label for="jumlah_anggota" class="block text-xs font-medium text-gray-700 mb-2">
-                            Jumlah Anggota <span class="text-red-500">*</span>
-                        </label>
-                        <input type="number" id="jumlah_anggota" name="jumlah_anggota" value="{{ old('jumlah_anggota', 1) }}"
-                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors @error('jumlah_anggota') border-red-500 @enderror"
-                            min="1" required>
-                        @error('jumlah_anggota')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-                </div>
-            </div>
-
-            <!-- Alamat -->
-            <div class="mb-8">
-                <h4 class="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <div class="w-6 h-6 bg-pink-100 rounded-lg flex items-center justify-center">
-                        <span class="text-pink-700 text-xs font-bold">3</span>
-                    </div>
-                    Alamat Lengkap
-                </h4>
-                <div class="grid grid-cols-1 gap-4">
-                    <!-- Alamat -->
-                    <div>
-                        <label for="alamat" class="block text-xs font-medium text-gray-700 mb-2">
-                            Alamat Lengkap
-                        </label>
-                        <textarea id="alamat" name="alamat" rows="3"
-                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
-                            placeholder="Masukkan alamat lengkap">{{ old('alamat') }}</textarea>
-                        @error('alamat')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-                </div>
-            </div>
-
-            <!-- Submit Buttons -->
-            <div class="flex items-center justify-end gap-3 pt-6 border-t border-gray-200">
-                <a href="{{ route('admin.rumah-tangga.index') }}"
-                    class="px-6 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-                    Batal
-                </a>
-                <button type="submit"
-                    class="px-6 py-2.5 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors shadow-sm">
-                    Simpan Data
-                </button>
-            </div>
-        </form>
-    </div>
-
+    <a href="{{ route('admin.rumah-tangga.index') }}"
+       class="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-slate-200 text-sm font-semibold rounded-lg hover:bg-gray-50 transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+        </svg>
+        Kembali
+    </a>
 </div>
 
-@push('scripts')
-<script>
-    // Auto-format No Rumah Tangga input
-    document.getElementById('no_rumah_tangga')?.addEventListener('input', function(e) {
-        this.value = this.value.replace(/[^a-zA-Z0-9]/g, '').substring(0, 20);
-    });
+<div class="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-6">
+    <form action="{{ route('admin.rumah-tangga.store') }}" method="POST">
+        @csrf
 
-    // Form validation feedback
-    const form = document.querySelector('form');
-    form?.addEventListener('submit', function(e) {
-        const requiredFields = form.querySelectorAll('[required]');
-        let isValid = true;
+        {{-- SECTION 1: Informasi Dasar --}}
+        <div class="flex items-center gap-3 mb-1">
+            <div class="w-6 h-6 bg-emerald-100 dark:bg-emerald-900/40 rounded flex items-center justify-center">
+                <span class="text-emerald-700 dark:text-emerald-400 text-xs font-bold">1</span>
+            </div>
+            <h4 class="text-sm font-semibold text-gray-700 dark:text-slate-200">Informasi Dasar</h4>
+        </div>
 
-        requiredFields.forEach(field => {
-            if (!field.value.trim()) {
-                isValid = false;
-                field.classList.add('border-red-500');
-            } else {
-                field.classList.remove('border-red-500');
-            }
-        });
+        <div class="flex flex-col sm:flex-row sm:items-start gap-3 py-4 border-b border-gray-100 dark:border-slate-700">
+            <label class="sm:w-48 text-sm font-medium text-gray-700 dark:text-slate-300 pt-2.5 flex-shrink-0">
+                No. Rumah Tangga <span class="text-red-500">*</span>
+            </label>
+            <div class="flex-1">
+                <input type="text" name="no_rumah_tangga" id="no_rumah_tangga"
+                       value="{{ old('no_rumah_tangga') }}"
+                       placeholder="Maks. 20 karakter" maxlength="20" required
+                       class="w-full px-4 py-2.5 border rounded-lg
+                              bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200
+                              focus:ring-2 focus:ring-emerald-500 outline-none
+                              @error('no_rumah_tangga') border-red-400 @else border-gray-300 dark:border-slate-600 @enderror">
+                @error('no_rumah_tangga')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+            </div>
+        </div>
 
-        if (!isValid) {
-            e.preventDefault();
-            // Scroll to first error
-            const firstError = form.querySelector('.border-red-500');
-            if (firstError) {
-                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                firstError.focus();
-            }
-        }
-    });
-</script>
-@endpush
+        <div class="flex flex-col sm:flex-row sm:items-start gap-3 py-4 border-b border-gray-100 dark:border-slate-700">
+            <label class="sm:w-48 text-sm font-medium text-gray-700 dark:text-slate-300 pt-2.5 flex-shrink-0">
+                Tanggal Terdaftar <span class="text-red-500">*</span>
+            </label>
+            <div class="flex-1">
+                <input type="date" name="tgl_terdaftar" value="{{ old('tgl_terdaftar', date('Y-m-d')) }}" required
+                       class="w-full px-4 py-2.5 border rounded-lg
+                              bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200
+                              focus:ring-2 focus:ring-emerald-500 outline-none
+                              @error('tgl_terdaftar') border-red-400 @else border-gray-300 dark:border-slate-600 @enderror">
+                @error('tgl_terdaftar')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+            </div>
+        </div>
+
+        {{-- SECTION 2: Pilih KK — KONSEP BARU --}}
+        {{-- Rumah Tangga = kumpulan KK, bukan kumpulan penduduk langsung --}}
+        <div class="flex items-center gap-3 mb-1 mt-6">
+            <div class="w-6 h-6 bg-blue-100 dark:bg-blue-900/40 rounded flex items-center justify-center">
+                <span class="text-blue-700 dark:text-blue-400 text-xs font-bold">2</span>
+            </div>
+            <h4 class="text-sm font-semibold text-gray-700 dark:text-slate-200">Pilih Kartu Keluarga</h4>
+        </div>
+
+        <div class="flex flex-col sm:flex-row sm:items-start gap-3 py-4 border-b border-gray-100 dark:border-slate-700">
+            <label class="sm:w-48 text-sm font-medium text-gray-700 dark:text-slate-300 pt-2.5 flex-shrink-0">
+                KK yang Tergabung <span class="text-red-500">*</span>
+            </label>
+            <div class="flex-1">
+                <p class="text-xs text-gray-400 dark:text-slate-500 mb-3">
+                    Pilih satu atau lebih KK yang akan tergabung dalam rumah tangga ini.
+                    Hanya KK yang belum memiliki rumah tangga yang ditampilkan.
+                </p>
+                @error('keluarga_ids')<p class="text-red-500 text-xs mb-2">{{ $message }}</p>@enderror
+
+                @if($keluargaTanpaRt->isEmpty())
+                    <div class="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-sm text-amber-700 dark:text-amber-400">
+                        Semua KK sudah terdaftar di rumah tangga. Tidak ada KK tersedia untuk ditambahkan.
+                    </div>
+                @else
+                    <div class="border border-gray-200 dark:border-slate-600 rounded-lg overflow-hidden max-h-64 overflow-y-auto">
+                        @foreach($keluargaTanpaRt as $kk)
+                            <label class="flex items-center gap-3 px-4 py-3 hover:bg-emerald-50 dark:hover:bg-emerald-900/10 cursor-pointer border-b border-gray-100 dark:border-slate-700 last:border-0">
+                                <input type="checkbox" name="keluarga_ids[]" value="{{ $kk->id }}"
+                                       {{ in_array($kk->id, old('keluarga_ids', [])) ? 'checked' : '' }}
+                                       class="w-4 h-4 rounded border-gray-300 dark:border-slate-600 text-emerald-600 focus:ring-emerald-500">
+                                <div>
+                                    <p class="text-sm font-semibold font-mono text-gray-800 dark:text-slate-200">{{ $kk->no_kk }}</p>
+                                    <p class="text-xs text-gray-500 dark:text-slate-400">
+                                        Kepala: {{ $kk->kepalaKeluarga?->nama ?? '—' }}
+                                        @if($kk->wilayah)
+                                            · {{ $kk->wilayah->dusun }} RT {{ $kk->wilayah->rt }}/{{ $kk->wilayah->rw }}
+                                        @endif
+                                    </p>
+                                </div>
+                            </label>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+        </div>
+
+        {{-- SECTION 3: Wilayah & Ekonomi --}}
+        <div class="flex items-center gap-3 mb-1 mt-6">
+            <div class="w-6 h-6 bg-pink-100 dark:bg-pink-900/40 rounded flex items-center justify-center">
+                <span class="text-pink-700 dark:text-pink-400 text-xs font-bold">3</span>
+            </div>
+            <h4 class="text-sm font-semibold text-gray-700 dark:text-slate-200">Wilayah &amp; Ekonomi</h4>
+        </div>
+
+        <div class="flex flex-col sm:flex-row sm:items-start gap-3 py-4 border-b border-gray-100 dark:border-slate-700">
+            <label class="sm:w-48 text-sm font-medium text-gray-700 dark:text-slate-300 pt-2.5 flex-shrink-0">
+                Wilayah <span class="text-red-500">*</span>
+            </label>
+            <div class="flex-1">
+                <select name="wilayah_id" required
+                        class="w-full px-4 py-2.5 border rounded-lg
+                               bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200
+                               focus:ring-2 focus:ring-emerald-500 outline-none
+                               @error('wilayah_id') border-red-400 @else border-gray-300 dark:border-slate-600 @enderror">
+                    <option value="">Pilih wilayah</option>
+                    @foreach($wilayah as $w)
+                        <option value="{{ $w->id }}" {{ old('wilayah_id') == $w->id ? 'selected' : '' }}>
+                            {{ $w->dusun }} — RT {{ $w->rt }} / RW {{ $w->rw }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('wilayah_id')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+            </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row sm:items-start gap-3 py-4 border-b border-gray-100 dark:border-slate-700">
+            <label class="sm:w-48 text-sm font-medium text-gray-700 dark:text-slate-300 pt-2.5 flex-shrink-0">
+                Klasifikasi Ekonomi
+            </label>
+            <div class="flex-1 flex gap-3">
+                <div class="flex-1">
+                    <select name="klasifikasi_ekonomi"
+                            class="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-600 rounded-lg
+                                   bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200
+                                   focus:ring-2 focus:ring-emerald-500 outline-none">
+                        <option value="">Pilih klasifikasi</option>
+                        <option value="miskin" {{ old('klasifikasi_ekonomi') == 'miskin' ? 'selected' : '' }}>Miskin</option>
+                        <option value="rentan" {{ old('klasifikasi_ekonomi') == 'rentan' ? 'selected' : '' }}>Rentan</option>
+                        <option value="mampu"  {{ old('klasifikasi_ekonomi') == 'mampu'  ? 'selected' : '' }}>Mampu</option>
+                    </select>
+                </div>
+                <div class="flex-1">
+                    <input type="text" name="jenis_bantuan_aktif" value="{{ old('jenis_bantuan_aktif') }}"
+                           placeholder="Jenis Bantuan (PKH, BPNT, dll)"
+                           class="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-600 rounded-lg
+                                  bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200
+                                  focus:ring-2 focus:ring-emerald-500 outline-none">
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row sm:items-start gap-3 py-4 border-b border-gray-100 dark:border-slate-700">
+            <label class="sm:w-48 text-sm font-medium text-gray-700 dark:text-slate-300 pt-2.5 flex-shrink-0">Alamat</label>
+            <div class="flex-1">
+                <textarea name="alamat" rows="3"
+                          placeholder="Alamat lengkap rumah tangga"
+                          class="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-600 rounded-lg
+                                 bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200
+                                 focus:ring-2 focus:ring-emerald-500 outline-none resize-none">{{ old('alamat') }}</textarea>
+            </div>
+        </div>
+
+        {{-- Tombol --}}
+        <div class="flex items-center justify-between mt-6 pt-2">
+            <a href="{{ route('admin.rumah-tangga.index') }}"
+               class="inline-flex items-center gap-2 px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium text-sm transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+                Batal
+            </a>
+            <button type="submit"
+                    class="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium text-sm transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                Simpan
+            </button>
+        </div>
+    </form>
+</div>
 
 @endsection

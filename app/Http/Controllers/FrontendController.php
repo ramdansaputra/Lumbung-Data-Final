@@ -15,31 +15,29 @@ use App\Models\Wilayah;
 use App\Models\Artikel;
 use App\Models\IdentitasDesa;
 use App\Models\PerangkatDesa;
-use App\Models\AsetDesa;          
+use App\Models\AsetDesa;
 use App\Models\Apbdes;
 use App\Models\KategoriKonten;
 use App\Models\Pengaduan;
 use App\Models\KomentarArtikel;
 use App\Models\Lapak;
+use App\Models\Pembangunan;
 
-class FrontendController extends Controller
-{
+class FrontendController extends Controller {
     /*
     |--------------------------------------------------------------------------
     | HELPER PRIVATE
     |--------------------------------------------------------------------------
     */
 
-    private function getIdentitasDesa(): IdentitasDesa
-    {
+    private function getIdentitasDesa(): IdentitasDesa {
         return IdentitasDesa::first() ?? new IdentitasDesa();
     }
 
     /**
      * Resolve path gambar dari storage. Jika tidak ada, kembalikan placeholder.
      */
-    private function resolveGambar(?string $filename, string $folder, string $placeholder = ''): string
-    {
+    private function resolveGambar(?string $filename, string $folder, string $placeholder = ''): string {
         if ($filename && file_exists(storage_path('app/public/' . $folder . '/' . $filename))) {
             return asset('storage/' . $folder . '/' . $filename);
         }
@@ -49,8 +47,7 @@ class FrontendController extends Controller
     /**
      * Ambil data perangkat desa secara defensif (tanpa asumsi scope atau relasi).
      */
-    private function getPerangkat(): \Illuminate\Support\Collection
-    {
+    private function getPerangkat(): \Illuminate\Support\Collection {
         try {
             // Coba dengan relasi jabatan jika ada
             if (class_exists(\App\Models\PerangkatDesa::class)) {
@@ -73,8 +70,7 @@ class FrontendController extends Controller
     /**
      * Ambil nama jabatan dari perangkat secara aman.
      */
-    private function getJabatanNama($perangkat): string
-    {
+    private function getJabatanNama($perangkat): string {
         if (isset($perangkat->jabatan) && $perangkat->jabatan) {
             return $perangkat->jabatan->nama ?? ($perangkat->jabatan->nama_jabatan ?? '-');
         }
@@ -85,8 +81,7 @@ class FrontendController extends Controller
     /**
      * Format foto perangkat desa.
      */
-    private function getFotoPerangkat($perangkat): string
-    {
+    private function getFotoPerangkat($perangkat): string {
         if (!empty($perangkat->foto)) {
             return asset('storage/' . $perangkat->foto);
         }
@@ -99,8 +94,7 @@ class FrontendController extends Controller
     |--------------------------------------------------------------------------
     */
 
-    public function home()
-    {
+    public function home() {
         $identitas = $this->getIdentitasDesa();
 
         // 1. Variabel $desaInfo (Satu deklarasi, data lengkap)
@@ -114,8 +108,8 @@ class FrontendController extends Controller
             'alamat_kantor'     => $identitas->alamat_kantor ?? '-',
             'deskripsi_singkat' => $identitas->deskripsi_singkat ?? 'Selamat datang di portal resmi transformasi digital Pemerintah Desa.',
             'gambar_kantor'     => $this->resolveGambar(
-                $identitas->gambar_kantor, 
-                'gambar-kantor', 
+                $identitas->gambar_kantor,
+                'gambar-kantor',
                 'https://via.placeholder.com/600x600?text=Kantor+Desa'
             ),
             'logo'              => $identitas->logo_desa ? $this->resolveGambar($identitas->logo_desa, 'logo-desa') : null,
@@ -147,11 +141,11 @@ class FrontendController extends Controller
             ->whereHas('jabatan', fn($q) => $q->whereIn('nama', ['Kepala Desa', 'Sekretaris Desa']))
             ->where('status', '1')
             ->orderBy('urutan')
-            ->get()->map(function($p) {
+            ->get()->map(function ($p) {
                 return [
                     'nama'   => $p->nama,
                     'posisi' => $p->jabatan->nama ?? '-',
-                    'foto'   => $p->foto ? asset('storage/' . $p->foto) : 'https://ui-avatars.com/api/?name='.urlencode($p->nama).'&background=10b981&color=fff&size=500'
+                    'foto'   => $p->foto ? asset('storage/' . $p->foto) : 'https://ui-avatars.com/api/?name=' . urlencode($p->nama) . '&background=10b981&color=fff&size=500'
                 ];
             });
 
@@ -164,7 +158,8 @@ class FrontendController extends Controller
                     ->select('sumber_dana.nama_sumber', DB::raw('sum(apbdes.anggaran) as total'))
                     ->groupBy('sumber_dana.nama_sumber')->get();
             }
-        } catch (\Exception $e) {}
+        } catch (\Exception $e) {
+        }
 
         $anggaranChart = [
             'total'  => 'Rp ' . number_format($totalAnggaran, 0, ',', '.'),
@@ -188,23 +183,27 @@ class FrontendController extends Controller
                         'lokasi'  => $item->lokasi_kegiatan ?? 'Balai Desa',
                     ]);
             }
-        } catch (\Exception $e) {}
+        } catch (\Exception $e) {
+        }
 
         // 7. Return (Satu return, kirim semua variabel yang diminta Blade)
         return view('frontend.pages.home', compact(
-            'desaInfo', 'statistik', 'artikelTerbaru',
-            'perangkatUtama', 'anggaranChart', 'agendaTerbaru'
+            'desaInfo',
+            'statistik',
+            'artikelTerbaru',
+            'perangkatUtama',
+            'anggaranChart',
+            'agendaTerbaru'
         ));
     }
 
-/*
+    /*
     |--------------------------------------------------------------------------
     | BERITA / ARTIKEL
     |--------------------------------------------------------------------------
     */
 
-    public function berita(Request $request)
-    {
+    public function berita(Request $request) {
         $query = Artikel::query();
 
         // Filter Pencarian
@@ -212,7 +211,7 @@ class FrontendController extends Controller
             $keyword = $request->search;
             $query->where(function ($q) use ($keyword) {
                 $q->where('nama', 'like', '%' . $keyword . '%')
-                  ->orWhere('deskripsi', 'like', '%' . $keyword . '%');
+                    ->orWhere('deskripsi', 'like', '%' . $keyword . '%');
             });
         }
 
@@ -230,7 +229,8 @@ class FrontendController extends Controller
                 $db = KategoriKonten::where('status', 'aktif')->pluck('nama_kategori', 'slug')->toArray();
                 $kategoriBlog = array_merge($kategoriBlog, $db);
             }
-        } catch (\Exception $e) {}
+        } catch (\Exception $e) {
+        }
 
         // Format data untuk x-article-card di index.blade.php
         $artikelList = collect($artikels->items())->map(function ($item) {
@@ -249,12 +249,14 @@ class FrontendController extends Controller
         $artikelTerbaru = $artikelList->take(3);
 
         return view('frontend.pages.artikel.index', compact(
-            'artikels', 'kategoriBlog', 'artikelList', 'artikelTerbaru'
+            'artikels',
+            'kategoriBlog',
+            'artikelList',
+            'artikelTerbaru'
         ));
     }
 
-    public function artikelShow($id)
-    {
+    public function artikelShow($id) {
         $artikel = Artikel::findOrFail($id);
 
         // Format ke Object agar sinkron dengan $artikel->title di show.blade.php
@@ -266,7 +268,7 @@ class FrontendController extends Controller
             'date'    => $artikel->created_at,
             'image'   => $this->resolveGambar($artikel->gambar, 'artikel', 'https://via.placeholder.com/800x400?text=Berita'),
             'author'  => 'Admin',
-            'category'=> 'Berita',
+            'category' => 'Berita',
         ];
 
         // Artikel Terkait untuk sidebar "Baca Juga"
@@ -291,8 +293,7 @@ class FrontendController extends Controller
         ]);
     }
 
-    public function storeKomentar(Request $request, $id)
-    {
+    public function storeKomentar(Request $request, $id) {
         $request->validate([
             'nama'         => 'required|string|max:100',
             'email'        => 'required|email|max:255',
@@ -310,14 +311,13 @@ class FrontendController extends Controller
         return redirect()->back()->with('success', 'Terima kasih! Komentar Anda berhasil dikirim dan sedang menunggu moderasi.');
     }
 
-/*
+    /*
     |--------------------------------------------------------------------------
     | PROFIL / IDENTITAS DESA
     |--------------------------------------------------------------------------
     */
 
-    public function profil()
-    {
+    public function profil() {
         $identitas = $this->getIdentitasDesa();
 
         // 1. Variabel $profil (Data lengkap untuk index.blade.php)
@@ -332,8 +332,8 @@ class FrontendController extends Controller
             'ponsel_desa'   => $identitas->ponsel_desa ?? 'Belum diatur',
             'alamat_kantor' => $identitas->alamat_kantor ?? 'Alamat belum diatur',
             'gambar_kantor' => $this->resolveGambar(
-                $identitas->gambar_kantor, 
-                'gambar-kantor', 
+                $identitas->gambar_kantor,
+                'gambar-kantor',
                 'https://via.placeholder.com/800x400?text=Foto+Kantor'
             ),
             'latitude'      => $identitas->latitude,
@@ -358,16 +358,15 @@ class FrontendController extends Controller
         ];
 
         return view('frontend.pages.identitas-desa.index', compact(
-            'profil', 
-            'deskripsi', 
+            'profil',
+            'deskripsi',
             'visiMisi'
         ));
     }
 
-    public function profilKepalaDesa()
-    {
+    public function profilKepalaDesa() {
         $identitas = $this->getIdentitasDesa();
-        
+
         // Ambil data Kades asli dari tabel PerangkatDesa
         $dataKades = PerangkatDesa::with('jabatan')
             ->whereHas('jabatan', fn($q) => $q->where('nama', 'Kepala Desa'))
@@ -404,18 +403,17 @@ class FrontendController extends Controller
         ));
     }
 
-/*
+    /*
     |--------------------------------------------------------------------------
     | PEMERINTAHAN
     |--------------------------------------------------------------------------
     */
 
-    public function pemerintahan()
-    {
+    public function pemerintahan() {
         // 1. Ambil Semua Perangkat Desa yang aktif (Golongan Pemerintah Desa)
         // Kita gunakan eager loading 'jabatan' agar data jabatan muncul di Blade
         $perangkat = PerangkatDesa::with('jabatan')
-            ->whereHas('jabatan', function($q) {
+            ->whereHas('jabatan', function ($q) {
                 $q->where('golongan', 'pemerintah_desa');
             })
             ->where('status', '1')
@@ -423,21 +421,21 @@ class FrontendController extends Controller
             ->get();
 
         // 2. Memilah jabatan secara spesifik untuk layout struktur organisasi di Blade
-        
+
         // Ambil Kepala Desa (Hanya satu)
         $kades = $perangkat->first(fn($p) => str_contains(strtolower($p->jabatan->nama ?? ''), 'kepala desa'));
-        
+
         // Ambil Sekretaris Desa (Hanya satu)
         $sekdes = $perangkat->first(fn($p) => str_contains(strtolower($p->jabatan->nama ?? ''), 'sekretaris desa'));
-        
+
         // Ambil Kasi dan Kaur (Semua yang mengandung kata 'seksi' atau 'urusan')
-        $kasiKaur = $perangkat->filter(function($p) {
+        $kasiKaur = $perangkat->filter(function ($p) {
             $jabatan = strtolower($p->jabatan->nama ?? '');
             return str_contains($jabatan, 'seksi') || str_contains($jabatan, 'urusan');
         })->values();
 
         // Ambil Kepala Dusun (Semua yang mengandung kata 'dusun' atau 'kadus')
-        $kadus = $perangkat->filter(function($p) {
+        $kadus = $perangkat->filter(function ($p) {
             $jabatan = strtolower($p->jabatan->nama ?? '');
             return str_contains($jabatan, 'dusun') || str_contains($jabatan, 'kadus');
         })->values();
@@ -448,19 +446,18 @@ class FrontendController extends Controller
 
         // 4. Return View dengan semua variabel yang diminta index.blade.php
         return view('frontend.pages.pemerintahan.index', compact(
-            'kades', 
-            'sekdes', 
-            'kasiKaur', 
-            'kadus', 
+            'kades',
+            'sekdes',
+            'kasiKaur',
+            'kadus',
             'wilayahRw'
         ));
     }
 
-    public function bpd()
-    {
+    public function bpd() {
         // AMBIL ANGGOTA BPD (Hanya Golongan BPD)
         $bpd = PerangkatDesa::with('jabatan')
-            ->whereHas('jabatan', function($q) {
+            ->whereHas('jabatan', function ($q) {
                 $q->where('golongan', 'bpd');
             })
             ->where('status', '1') // Hanya yang aktif
@@ -471,8 +468,8 @@ class FrontendController extends Controller
         $ketuaBpd = $bpd->first(fn($p) => str_contains(strtolower($p->jabatan->nama ?? ''), 'ketua') && !str_contains(strtolower($p->jabatan->nama ?? ''), 'wakil'));
         $wakilKetuaBpd = $bpd->first(fn($p) => str_contains(strtolower($p->jabatan->nama ?? ''), 'wakil ketua'));
         $sekretarisBpd = $bpd->first(fn($p) => str_contains(strtolower($p->jabatan->nama ?? ''), 'sekretaris'));
-        
-        $anggotaBpd = $bpd->filter(function($p) {
+
+        $anggotaBpd = $bpd->filter(function ($p) {
             $jabatan = strtolower($p->jabatan->nama ?? '');
             return str_contains($jabatan, 'anggota');
         })->values();
@@ -486,12 +483,15 @@ class FrontendController extends Controller
         ];
 
         return view('frontend.pages.bpd.index', compact(
-            'ketuaBpd', 'wakilKetuaBpd', 'sekretarisBpd', 'anggotaBpd', 'tugasFungsi'
+            'ketuaBpd',
+            'wakilKetuaBpd',
+            'sekretarisBpd',
+            'anggotaBpd',
+            'tugasFungsi'
         ));
     }
 
-    public function kemasyarakatan()
-    {
+    public function kemasyarakatan() {
         // Mengambil kategori lembaga (PKK, Karang Taruna, LPM, dll)
         $kategoriLembaga = DB::table('kelompok_master')
             ->orderBy('id', 'asc')
@@ -507,14 +507,13 @@ class FrontendController extends Controller
         return view('frontend.pages.kemasyarakatan.index', compact('kategoriLembaga', 'dataKelompok'));
     }
 
-/*
+    /*
     |--------------------------------------------------------------------------
     | DATA DESA / DEMOGRAFI
     |--------------------------------------------------------------------------
     */
 
-    public function dataDesa()
-    {
+    public function dataDesa() {
         // 1. Ambil Data Dasar
         $identitas = $this->getIdentitasDesa();
         $totalPenduduk = Penduduk::where('status_hidup', 'hidup')->count();
@@ -528,9 +527,9 @@ class FrontendController extends Controller
         $persenPerempuan = $totalPenduduk > 0 ? round(($perempuan / $totalPenduduk) * 100, 1) : 0;
 
         // 3. Helper untuk Format Data Chart (Label, Total, Persen)
-        $formatChart = function($dataArray) use ($totalPenduduk) {
+        $formatChart = function ($dataArray) use ($totalPenduduk) {
             $result = [];
-            foreach($dataArray as $label => $total) {
+            foreach ($dataArray as $label => $total) {
                 $result[] = [
                     'label'  => $label,
                     'total'  => $total,
@@ -560,10 +559,10 @@ class FrontendController extends Controller
             ->select('pekerjaan', DB::raw('count(*) as total'))
             ->groupBy('pekerjaan')->orderBy('total', 'desc')->get()
             ->pluck('total', 'pekerjaan')->toArray();
-        
+
         // Ubah key pekerjaan agar lebih rapi (hilangkan underscore)
         $pekerjaanClean = [];
-        foreach($pekerjaanDataRaw as $key => $val) {
+        foreach ($pekerjaanDataRaw as $key => $val) {
             $label = ucwords(str_replace('_', ' ', $key ?: 'Lainnya'));
             $pekerjaanClean[$label] = $val;
         }
@@ -592,14 +591,13 @@ class FrontendController extends Controller
         ]);
     }
 
- /*
+    /*
     |--------------------------------------------------------------------------
     | WILAYAH
     |--------------------------------------------------------------------------
     */
 
-    public function wilayah()
-    {
+    public function wilayah() {
         // 1. Ambil semua data wilayah
         $wilayahRecords = Wilayah::all();
 
@@ -619,7 +617,7 @@ class FrontendController extends Controller
                 'jumlah_rw'       => $dusunGroup->unique('rw')->count(),
                 'jumlah_rt'       => $dusunGroup->count(),
                 'jumlah_penduduk' => $dusunGroup->sum('jumlah_penduduk'),
-                
+
                 // Grouping RW di dalam Dusun tersebut
                 'data_rw' => $dusunGroup->groupBy('rw')->map(function ($rwGroup, $rwName) {
                     return [
@@ -636,8 +634,7 @@ class FrontendController extends Controller
         return view('frontend.pages.wilayah.index', compact('statistik', 'wilayahList'));
     }
 
-    public function wilayahShow($id)
-    {
+    public function wilayahShow($id) {
         // Ambil satu record wilayah sebagai representasi dusun
         $dataWilayah = Wilayah::findOrFail($id);
         $namaDusun = $dataWilayah->dusun;
@@ -656,7 +653,7 @@ class FrontendController extends Controller
         ];
 
         // 2. Format Variabel $rwRt (Untuk tabel di bagian bawah detail)
-        $rwRt = $allInDusun->map(function($item) {
+        $rwRt = $allInDusun->map(function ($item) {
             return [
                 'nomor_rw'        => $item->rw,
                 'nomor_rt'        => $item->rt,
@@ -671,14 +668,13 @@ class FrontendController extends Controller
     }
 
 
-/*
+    /*
     |--------------------------------------------------------------------------
     | APBD / TRANSPARANSI KEUANGAN
     |--------------------------------------------------------------------------
     */
 
-    public function apbd(Request $request)
-    {
+    public function apbd(Request $request) {
         // 1. Ambil Tahun Aktif dari Database atau Request
         $tahunAktif = DB::table('tahun_anggaran')
             ->where('status', 'aktif')
@@ -695,7 +691,7 @@ class FrontendController extends Controller
         // Pastikan filter tahun_id digunakan agar data akurat sesuai tahun yang dipilih
         $totalPendapatan = Apbdes::where('tahun_id', $tahunId)->where('kategori', 'pendapatan')->sum('anggaran') ?? 0;
         $totalBelanja = Apbdes::where('tahun_id', $tahunId)->where('kategori', 'belanja')->sum('anggaran') ?? 0;
-        
+
         // 3. Hitung Realisasi Belanja (Penyebab Error Sebelumnya)
         // Kita join dengan tabel realisasi_anggaran
         $realisasiBelanja = DB::table('realisasi_anggaran')
@@ -717,7 +713,7 @@ class FrontendController extends Controller
             ->groupBy('sumber_dana.nama_sumber')
             ->orderBy('total', 'desc')
             ->get()
-            ->map(function($item) use ($totalPendapatan) {
+            ->map(function ($item) use ($totalPendapatan) {
                 // Tambahkan key 'persen' agar Blade bisa merender bar progress
                 $item->persen = $totalPendapatan > 0 ? round(($item->total / $totalPendapatan) * 100, 1) : 0;
                 return $item;
@@ -733,7 +729,7 @@ class FrontendController extends Controller
             ->groupBy('bidang_anggaran.nama_bidang')
             ->orderBy('total', 'desc')
             ->get()
-            ->map(function($item) use ($totalBelanja) {
+            ->map(function ($item) use ($totalBelanja) {
                 // Tambahkan key 'persen' untuk ditampilkan di badge kartu belanja
                 $item->persen = $totalBelanja > 0 ? round(($item->total / $totalBelanja) * 100, 1) : 0;
                 return $item;
@@ -744,14 +740,14 @@ class FrontendController extends Controller
 
         // 8. Return dengan data lengkap tanpa duplikasi
         return view('frontend.pages.apbd.index', compact(
-            'tahun', 
-            'totalPendapatan', 
-            'totalBelanja', 
-            'realisasiBelanja', 
-            'sisaAnggaran', 
-            'progressPersen', 
-            'sumberPendapatan', 
-            'alokasiBelanja', 
+            'tahun',
+            'totalPendapatan',
+            'totalBelanja',
+            'realisasiBelanja',
+            'sisaAnggaran',
+            'progressPersen',
+            'sumberPendapatan',
+            'alokasiBelanja',
             'daftarTahun'
         ));
     }
@@ -762,8 +758,7 @@ class FrontendController extends Controller
     |--------------------------------------------------------------------------
     */
 
-    public function kontak()
-    {
+    public function kontak() {
         $identitas = $this->getIdentitasDesa();
 
         $infoKontak = [
@@ -789,8 +784,7 @@ class FrontendController extends Controller
         return view('frontend.pages.kontak.index', compact('infoKontak', 'departemen'));
     }
 
-    public function storeKontak(Request $request)
-    {
+    public function storeKontak(Request $request) {
         $request->validate([
             'nama'   => 'required|string|max:100',
             'email'  => 'required|email|max:255',
@@ -817,8 +811,7 @@ class FrontendController extends Controller
     |--------------------------------------------------------------------------
     */
 
-    public function faq()
-    {
+    public function faq() {
         $faqs = [
             'Layanan Administrasi & Surat' => [
                 [
@@ -909,11 +902,10 @@ class FrontendController extends Controller
     |--------------------------------------------------------------------------
     */
 
-    public function lapak(Request $request)
-    {
+    public function lapak(Request $request) {
         $query = Lapak::with('penduduk')
             ->withCount('produkAktif')
-            ->where('status', 'aktif'); 
+            ->where('status', 'aktif');
 
         if ($request->filled('search')) {
             $query->where('nama_toko', 'like', '%' . $request->search . '%');
@@ -924,8 +916,7 @@ class FrontendController extends Controller
         return view('frontend.pages.lapak.index', compact('lapakList'));
     }
 
-    public function lapakShow($slug)
-    {
+    public function lapakShow($slug) {
         $lapak = Lapak::where('slug', $slug)
             ->where('status', 'aktif')
             ->with('penduduk')
@@ -934,5 +925,26 @@ class FrontendController extends Controller
         $produk = $lapak->produkAktif()->paginate(12);
 
         return view('frontend.pages.lapak.show', compact('lapak', 'produk'));
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | PEMBANGUNAN — Halaman Publik
+    | Target tombol Preview di halaman admin pembangunan
+    |--------------------------------------------------------------------------
+    */
+
+    public function pembangunanShow(Pembangunan $pembangunan) {
+        // Hanya tampilkan kegiatan yang aktif (status = 1)
+        abort_if($pembangunan->status != 1, 404);
+
+        $pembangunan->load(['bidang', 'sasaran', 'sumberDana', 'dokumentasis']);
+
+        // Progres terbaru = dokumentasi pertama (relasi diorder DESC)
+        $progresTerbaru = $pembangunan->dokumentasis->isNotEmpty()
+            ? (int) $pembangunan->dokumentasis->first()->persentase
+            : 0;
+
+        return view('frontend.pages.pembangunan.show', compact('pembangunan', 'progresTerbaru'));
     }
 }

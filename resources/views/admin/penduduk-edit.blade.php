@@ -4,448 +4,900 @@
 
 @section('content')
 
-{{-- ============================================================ --}}
-{{-- HEADER: Title kiri + Breadcrumb + Tombol kanan               --}}
-{{-- ============================================================ --}}
-<div class="flex items-center justify-between mb-6">
-    <div>
-        <h2 class="text-lg font-bold text-gray-700 dark:text-slate-200">Edit Penduduk</h2>
-        <p class="text-sm text-gray-400 dark:text-slate-500 mt-0.5">Perbarui data penduduk</p>
-    </div>
-    <div class="flex items-center gap-3">
+    {{-- ══ PAGE HEADER ══ --}}
+    <div class="flex items-center justify-between mb-5">
+        <div>
+            <h2 class="text-lg font-bold text-gray-800 dark:text-slate-100">Biodata Penduduk</h2>
+            <p class="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Formulir perubahan data penduduk</p>
+        </div>
         <nav class="flex items-center gap-1.5 text-sm">
-            <a href="/admin/dashboard" class="flex items-center gap-1 text-gray-400 dark:text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+            <a href="{{ route('admin.dashboard') }}"
+                class="flex items-center gap-1 text-gray-400 dark:text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
                 Beranda
             </a>
-            <svg class="w-3.5 h-3.5 text-gray-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            <svg class="w-3.5 h-3.5 text-gray-300 dark:text-slate-600" fill="none" stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>
-            <a href="{{ route('admin.penduduk') }}" class="text-gray-400 dark:text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors font-medium">
-                Penduduk
-            </a>
-            <svg class="w-3.5 h-3.5 text-gray-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-            </svg>
-            <span class="text-gray-600 dark:text-slate-300 font-medium">Edit</span>
-        </nav>
-        <div class="flex gap-2">
-            <a href="{{ route('admin.penduduk.show', $penduduk) }}"
-                class="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-700 hover:bg-gray-50 dark:hover:bg-slate-600 text-gray-700 dark:text-slate-200 text-xs font-semibold rounded-xl shadow-sm border border-gray-200 dark:border-slate-600 transition-all duration-200 hover:shadow-md">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                </svg>
-                Detail
-            </a>
             <a href="{{ route('admin.penduduk') }}"
-                class="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-700 hover:bg-gray-50 dark:hover:bg-slate-600 text-gray-700 dark:text-slate-200 text-xs font-semibold rounded-xl shadow-sm border border-gray-200 dark:border-slate-600 transition-all duration-200 hover:shadow-md">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-                </svg>
-                Kembali
+                class="text-gray-400 dark:text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+                Data Penduduk
             </a>
-        </div>
-    </div>
-</div>
-
-{{-- ============================================================ --}}
-{{-- FORM CARD                                                   --}}
-{{-- ============================================================ --}}
-<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-
-    {{-- Card Header --}}
-    <div class="bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-5">
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                </svg>
-            </div>
-            <div>
-                <h2 class="text-white font-semibold text-base">Edit Data Penduduk</h2>
-                <p class="text-white/80 text-xs mt-0.5">
-                    Memperbarui: <span class="font-semibold text-white">{{ $penduduk->nama }}</span>
-                    <span class="font-mono text-white/70 ml-1">· {{ $penduduk->nik }}</span>
-                </p>
-            </div>
-        </div>
+            <svg class="w-3.5 h-3.5 text-gray-300 dark:text-slate-600" fill="none" stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+            <span class="text-gray-600 dark:text-slate-300 font-medium">Ubah Biodata</span>
+        </nav>
     </div>
 
-    <form action="{{ route('admin.penduduk.update', $penduduk) }}" method="POST" class="p-6 space-y-8">
+    <form method="POST" action="{{ route('admin.penduduk.update', $penduduk) }}" enctype="multipart/form-data">
         @csrf
         @method('PUT')
 
-        <!-- SECTION 1: Informasi Dasar -->
-        <div>
-            <div class="flex items-center gap-3 mb-4">
-                <div class="w-7 h-7 bg-emerald-100 dark:bg-emerald-900/40 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <span class="text-emerald-700 dark:text-emerald-400 text-xs font-bold">1</span>
+        <div class="flex items-start gap-5">
+
+            {{-- KOLOM KIRI: Foto --}}
+            <div
+                class="w-52 flex-shrink-0 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 overflow-hidden p-5 flex flex-col gap-3">
+                <div
+                    class="rounded-lg overflow-hidden border-2 border-gray-200 dark:border-slate-600 aspect-square bg-gray-100 dark:bg-slate-700">
+                    <img id="preview-foto" src="{{ $penduduk->foto_url }}" alt="{{ $penduduk->nama }}"
+                        class="w-full h-full object-cover"
+                        onerror="this.src='{{ asset('images/avatar-placeholder.png') }}'">
                 </div>
-                <h4 class="text-sm font-semibold text-gray-900 dark:text-slate-100">Informasi Dasar</h4>
-                <div class="flex-1 h-px bg-gray-100 dark:bg-slate-700"></div>
+                <label for="input-foto"
+                    class="flex items-center justify-center gap-1.5 w-full px-3 py-2
+                      bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-semibold rounded-lg cursor-pointer transition-all shadow-sm">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4-4m0 0L8 8m4-4v12" />
+                    </svg>
+                    Ganti Foto
+                </label>
+                <input type="file" id="input-foto" name="foto" accept="image/*" class="hidden"
+                    onchange="previewFoto(this)">
+                <button type="button" onclick="bukaKamera()"
+                    class="flex items-center justify-center gap-1.5 w-full px-3 py-2
+                       bg-red-500 hover:bg-red-600 text-white text-xs font-semibold rounded-lg transition-all shadow-sm">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    Kamera
+                </button>
+                <p class="text-xs text-gray-400 dark:text-slate-500 text-center">JPG / PNG · Maks 2 MB</p>
+                <p class="text-xs text-gray-400 dark:text-slate-500 text-center -mt-2">Kosongkan jika tidak diubah</p>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-                <!-- NIK -->
-                <div>
-                    <label for="nik" class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1.5">
-                        NIK <span class="text-red-500">*</span>
-                    </label>
-                    <input type="text" id="nik" name="nik" value="{{ old('nik', $penduduk->nik) }}"
-                        class="w-full px-3 py-2.5 text-sm border rounded-xl bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-colors font-mono
-                        {{ $errors->has('nik') ? 'border-red-400 dark:border-red-600' : 'border-gray-200 dark:border-slate-600' }}"
-                        placeholder="16 digit NIK" required maxlength="16">
-                    @error('nik')
-                    <p class="text-red-500 text-xs mt-1 flex items-center gap-1"><svg class="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>{{ $message }}</p>
-                    @enderror
-                </div>
+            {{-- KOLOM KANAN: Form --}}
+            <div
+                class="flex-1 min-w-0 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 overflow-hidden">
 
-                <!-- Nama Lengkap -->
-                <div>
-                    <label for="nama" class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1.5">
-                        Nama Lengkap <span class="text-red-500">*</span>
-                    </label>
-                    <input type="text" id="nama" name="nama" value="{{ old('nama', $penduduk->nama) }}"
-                        class="w-full px-3 py-2.5 text-sm border rounded-xl bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-colors
-                        {{ $errors->has('nama') ? 'border-red-400 dark:border-red-600' : 'border-gray-200 dark:border-slate-600' }}"
-                        required>
-                    @error('nama')
-                    <p class="text-red-500 text-xs mt-1 flex items-center gap-1"><svg class="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <!-- Jenis Kelamin -->
-                <div>
-                    <label for="jenis_kelamin" class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1.5">
-                        Jenis Kelamin <span class="text-red-500">*</span>
-                    </label>
-                    <select id="jenis_kelamin" name="jenis_kelamin" required
-                        class="w-full px-3 py-2.5 text-sm border rounded-xl bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-colors
-                        {{ $errors->has('jenis_kelamin') ? 'border-red-400 dark:border-red-600' : 'border-gray-200 dark:border-slate-600' }}">
-                        <option value="">Pilih jenis kelamin</option>
-                        <option value="L" {{ old('jenis_kelamin', $penduduk->jenis_kelamin) == 'L' ? 'selected' : '' }}>Laki-laki</option>
-                        <option value="P" {{ old('jenis_kelamin', $penduduk->jenis_kelamin) == 'P' ? 'selected' : '' }}>Perempuan</option>
-                    </select>
-                    @error('jenis_kelamin')
-                    <p class="text-red-500 text-xs mt-1 flex items-center gap-1"><svg class="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <!-- Tempat Lahir -->
-                <div>
-                    <label for="tempat_lahir" class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1.5">
-                        Tempat Lahir <span class="text-red-500">*</span>
-                    </label>
-                    <input type="text" id="tempat_lahir" name="tempat_lahir" value="{{ old('tempat_lahir', $penduduk->tempat_lahir) }}"
-                        class="w-full px-3 py-2.5 text-sm border rounded-xl bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-colors
-                        {{ $errors->has('tempat_lahir') ? 'border-red-400 dark:border-red-600' : 'border-gray-200 dark:border-slate-600' }}"
-                        required>
-                    @error('tempat_lahir')
-                    <p class="text-red-500 text-xs mt-1 flex items-center gap-1"><svg class="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <!-- Tanggal Lahir -->
-                <div>
-                    <label for="tanggal_lahir" class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1.5">
-                        Tanggal Lahir <span class="text-red-500">*</span>
-                    </label>
-                    <input type="date" id="tanggal_lahir" name="tanggal_lahir"
-                        value="{{ old('tanggal_lahir', $penduduk->tanggal_lahir->format('Y-m-d')) }}"
-                        class="w-full px-3 py-2.5 text-sm border rounded-xl bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-colors
-                        {{ $errors->has('tanggal_lahir') ? 'border-red-400 dark:border-red-600' : 'border-gray-200 dark:border-slate-600' }}"
-                        required>
-                    @error('tanggal_lahir')
-                    <p class="text-red-500 text-xs mt-1 flex items-center gap-1"><svg class="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <!-- Golongan Darah -->
-                <div>
-                    <label for="golongan_darah" class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1.5">Golongan Darah</label>
-                    <select id="golongan_darah" name="golongan_darah"
-                        class="w-full px-3 py-2.5 text-sm border border-gray-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-colors">
-                        <option value="">Pilih golongan darah</option>
-                        @foreach(['A','B','AB','O'] as $gd)
-                        <option value="{{ $gd }}" {{ old('golongan_darah', $penduduk->golongan_darah) == $gd ? 'selected' : '' }}>{{ $gd }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <!-- Agama -->
-                <div>
-                    <label for="agama" class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1.5">
-                        Agama <span class="text-red-500">*</span>
-                    </label>
-                    <select id="agama" name="agama" required
-                        class="w-full px-3 py-2.5 text-sm border rounded-xl bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-colors
-                        {{ $errors->has('agama') ? 'border-red-400 dark:border-red-600' : 'border-gray-200 dark:border-slate-600' }}">
-                        <option value="">Pilih agama</option>
-                        @foreach(['Islam','Kristen','Katolik','Hindu','Budha','Konghucu'] as $agama)
-                        <option value="{{ $agama }}" {{ old('agama', $penduduk->agama) == $agama ? 'selected' : '' }}>{{ $agama }}</option>
-                        @endforeach
-                    </select>
-                    @error('agama')
-                    <p class="text-red-500 text-xs mt-1 flex items-center gap-1"><svg class="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <!-- Kewarganegaraan -->
-                <div>
-                    <label for="kewarganegaraan" class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1.5">Kewarganegaraan</label>
-                    <select id="kewarganegaraan" name="kewarganegaraan"
-                        class="w-full px-3 py-2.5 text-sm border border-gray-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-colors">
-                        <option value="WNI" {{ old('kewarganegaraan', $penduduk->kewarganegaraan) == 'WNI' ? 'selected' : '' }}>WNI</option>
-                        <option value="WNA" {{ old('kewarganegaraan', $penduduk->kewarganegaraan) == 'WNA' ? 'selected' : '' }}>WNA</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <!-- SECTION 2: Informasi Keluarga & Wilayah -->
-        <div>
-            <div class="flex items-center gap-3 mb-4">
-                <div class="w-7 h-7 bg-blue-100 dark:bg-blue-900/40 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <span class="text-blue-700 dark:text-blue-400 text-xs font-bold">2</span>
-                </div>
-                <h4 class="text-sm font-semibold text-gray-900 dark:text-slate-100">Informasi Keluarga & Wilayah</h4>
-                <div class="flex-1 h-px bg-gray-100 dark:bg-slate-700"></div>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                <!-- Keluarga -->
-                <div>
-                    <label for="keluarga_id" class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1.5">Keluarga</label>
-                    <select id="keluarga_id" name="keluarga_id"
-                        class="w-full px-3 py-2.5 text-sm border border-gray-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-colors">
-                        <option value="">Pilih keluarga (opsional)</option>
-                        @foreach($keluarga as $k)
-                        <option value="{{ $k->id }}" {{ old('keluarga_id', $currentKeluarga?->id) == $k->id ? 'selected' : '' }}>
-                            {{ $k->no_kk }} – {{ $k->kepalaKeluarga->nama ?? 'N/A' }}
-                        </option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <!-- Hubungan Keluarga -->
-                <div>
-                    <label for="hubungan_keluarga" class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1.5">Hubungan Keluarga</label>
-                    <select id="hubungan_keluarga" name="hubungan_keluarga"
-                        class="w-full px-3 py-2.5 text-sm border border-gray-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-colors">
-                        <option value="">Pilih hubungan (opsional)</option>
-                        @foreach(['kepala_keluarga' => 'Kepala Keluarga', 'istri' => 'Istri', 'anak' => 'Anak', 'orang_tua' => 'Orang Tua', 'saudara' => 'Saudara', 'lainnya' => 'Lainnya'] as $val => $label)
-                        <option value="{{ $val }}" {{ old('hubungan_keluarga', $currentKeluarga?->pivot?->hubungan_keluarga) == $val ? 'selected' : '' }}>{{ $label }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <!-- Rumah Tangga -->
-                <div>
-                    <label for="rumah_tangga_id" class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1.5">Rumah Tangga</label>
-                    <select id="rumah_tangga_id" name="rumah_tangga_id"
-                        class="w-full px-3 py-2.5 text-sm border border-gray-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-colors">
-                        <option value="">Pilih rumah tangga (opsional)</option>
-                        @foreach($rumahTangga as $rt)
-                        <option value="{{ $rt->id }}" {{ old('rumah_tangga_id', $currentRumahTangga?->id) == $rt->id ? 'selected' : '' }}>
-                            {{ $rt->nama_kepala_rumah_tangga ?? 'N/A' }} – {{ $rt->alamat }}
-                        </option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <!-- Hubungan Rumah Tangga -->
-                <div>
-                    <label for="hubungan_rumah_tangga" class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1.5">Hubungan Rumah Tangga</label>
-                    <select id="hubungan_rumah_tangga" name="hubungan_rumah_tangga"
-                        class="w-full px-3 py-2.5 text-sm border border-gray-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-colors">
-                        <option value="">Pilih hubungan (opsional)</option>
-                        @foreach(['kepala_rumah_tangga' => 'Kepala Rumah Tangga', 'istri' => 'Istri', 'anak' => 'Anak', 'orang_tua' => 'Orang Tua', 'saudara' => 'Saudara', 'lainnya' => 'Lainnya'] as $val => $label)
-                        <option value="{{ $val }}" {{ old('hubungan_rumah_tangga', $currentRumahTangga?->pivot?->hubungan_rumah_tangga) == $val ? 'selected' : '' }}>{{ $label }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <!-- Wilayah -->
-                <div class="md:col-span-2">
-                    <label for="wilayah_id" class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1.5">Wilayah</label>
-                    <select id="wilayah_id" name="wilayah_id"
-                        class="w-full px-3 py-2.5 text-sm border border-gray-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-colors">
-                        <option value="">Pilih wilayah (opsional)</option>
-                        @foreach($wilayah as $w)
-                        <option value="{{ $w->id }}" {{ old('wilayah_id', $penduduk->wilayah_id) == $w->id ? 'selected' : '' }}>
-                            RT {{ $w->rt }} / RW {{ $w->rw }} – {{ $w->dusun }}
-                        </option>
-                        @endforeach
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <!-- SECTION 3: Status & Pendidikan -->
-        <div>
-            <div class="flex items-center gap-3 mb-4">
-                <div class="w-7 h-7 bg-purple-100 dark:bg-purple-900/40 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <span class="text-purple-700 dark:text-purple-400 text-xs font-bold">3</span>
-                </div>
-                <h4 class="text-sm font-semibold text-gray-900 dark:text-slate-100">Status & Pendidikan</h4>
-                <div class="flex-1 h-px bg-gray-100 dark:bg-slate-700"></div>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                <div>
-                    <label for="status_hidup" class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1.5">Status Hidup</label>
-                    <select id="status_hidup" name="status_hidup"
-                        class="w-full px-3 py-2.5 text-sm border border-gray-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-colors">
-                        <option value="hidup" {{ old('status_hidup', $penduduk->status_hidup) == 'hidup' ? 'selected' : '' }}>Hidup</option>
-                        <option value="meninggal" {{ old('status_hidup', $penduduk->status_hidup) == 'meninggal' ? 'selected' : '' }}>Meninggal</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label for="status_kawin" class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1.5">
-                        Status Kawin <span class="text-red-500">*</span>
-                    </label>
-                    <select id="status_kawin" name="status_kawin" required
-                        class="w-full px-3 py-2.5 text-sm border rounded-xl bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-colors
-                        {{ $errors->has('status_kawin') ? 'border-red-400 dark:border-red-600' : 'border-gray-200 dark:border-slate-600' }}">
-                        <option value="">Pilih status</option>
-                        @foreach(['Belum Kawin','Kawin','Cerai Hidup','Cerai Mati'] as $status)
-                        <option value="{{ $status }}" {{ old('status_kawin', $penduduk->status_kawin) == $status ? 'selected' : '' }}>{{ $status }}</option>
-                        @endforeach
-                    </select>
-                    @error('status_kawin')
-                    <p class="text-red-500 text-xs mt-1 flex items-center gap-1"><svg class="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div>
-                    <label for="pendidikan" class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1.5">Pendidikan Terakhir</label>
-                    <select id="pendidikan" name="pendidikan"
-                        class="w-full px-3 py-2.5 text-sm border border-gray-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-colors">
-                        <option value="">Pilih pendidikan</option>
-                        @foreach(['Tidak Sekolah','SD','SMP','SMA','D1','D2','D3','S1','S2','S3'] as $pend)
-                        <option value="{{ $pend }}" {{ old('pendidikan', $penduduk->pendidikan) == $pend ? 'selected' : '' }}>{{ $pend }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div>
-                    <label for="pekerjaan" class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1.5">
-                        Pekerjaan <span class="text-red-500">*</span>
-                    </label>
-                    <select id="pekerjaan" name="pekerjaan" required
-                        class="w-full px-3 py-2.5 text-sm border rounded-xl bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-colors
-                        {{ $errors->has('pekerjaan') ? 'border-red-400 dark:border-red-600' : 'border-gray-200 dark:border-slate-600' }}">
-                        <option value="">Pilih pekerjaan</option>
-                        <option value="bekerja" {{ old('pekerjaan', $penduduk->pekerjaan) == 'bekerja' ? 'selected' : '' }}>Bekerja</option>
-                        <option value="tidak bekerja" {{ old('pekerjaan', $penduduk->pekerjaan) == 'tidak bekerja' ? 'selected' : '' }}>Tidak Bekerja</option>
-                    </select>
-                    @error('pekerjaan')
-                    <p class="text-red-500 text-xs mt-1 flex items-center gap-1"><svg class="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>{{ $message }}</p>
-                    @enderror
-                </div>
-            </div>
-        </div>
-
-        <!-- SECTION 4: Kontak & Alamat -->
-        <div>
-            <div class="flex items-center gap-3 mb-4">
-                <div class="w-7 h-7 bg-pink-100 dark:bg-pink-900/40 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <span class="text-pink-700 dark:text-pink-400 text-xs font-bold">4</span>
-                </div>
-                <h4 class="text-sm font-semibold text-gray-900 dark:text-slate-100">Kontak & Alamat</h4>
-                <div class="flex-1 h-px bg-gray-100 dark:bg-slate-700"></div>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                <div>
-                    <label for="no_telp" class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1.5">No. Telepon</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <svg class="w-4 h-4 text-gray-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                            </svg>
-                        </div>
-                        <input type="text" id="no_telp" name="no_telp" value="{{ old('no_telp', $penduduk->no_telp) }}"
-                            class="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-colors"
-                            placeholder="08123456789">
+                {{-- Tombol Kembali + Tanggal Lapor --}}
+                <div class="px-5 py-4 border-b border-gray-100 dark:border-slate-700 space-y-3">
+                    <a href="{{ route('admin.penduduk.show', $penduduk) }}"
+                        class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600
+                      text-white text-xs font-semibold rounded-lg transition-all shadow-sm group">
+                        <svg class="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                        Kembali Ke Detail Penduduk
+                    </a>
+                    <div class="flex items-center gap-3">
+                        <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span class="text-sm font-semibold text-gray-600 dark:text-slate-300">Tanggal Lapor</span>
+                        <input type="date" name="tgl_terdaftar"
+                            value="{{ old('tgl_terdaftar', $penduduk->tgl_terdaftar?->format('Y-m-d')) }}"
+                            class="px-3 py-1.5 border border-gray-300 dark:border-slate-600 rounded-lg text-sm
+                              bg-white dark:bg-slate-700 text-gray-700 dark:text-slate-200
+                              focus:ring-2 focus:ring-emerald-400 outline-none transition-all">
                     </div>
                 </div>
 
-                <div>
-                    <label for="email" class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1.5">Email</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <svg class="w-4 h-4 text-gray-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                            </svg>
+                {{-- ════════ DATA DIRI ════════ --}}
+                <div class="border-b border-gray-100 dark:border-slate-700">
+                    <div class="bg-cyan-50 dark:bg-cyan-900/20 border-b border-cyan-100 dark:border-cyan-800/40 px-5 py-2">
+                        <span class="text-xs font-bold text-cyan-700 dark:text-cyan-400 uppercase tracking-widest">Data
+                            Diri</span>
+                    </div>
+                    <div class="p-5 grid grid-cols-2 gap-x-5 gap-y-4">
+
+                        {{-- ✅ NIK + Checkbox NIK Sementara (PATCHED) --}}
+                        <div x-data="{
+                            sementara: {{ old('is_nik_sementara', $penduduk->is_nik_sementara ?? false) ? 'true' : 'false' }},
+                            nikVal: '{{ old('nik', $penduduk->nik) }}'
+                        }">
+                            <div class="flex items-center gap-2 mb-1.5">
+                                <span
+                                    class="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">
+                                    NIK <span class="text-red-500">*</span>
+                                </span>
+                                <label class="flex items-center gap-1.5 cursor-pointer select-none ml-1">
+                                    <input type="checkbox" name="is_nik_sementara" id="is_nik_sementara" value="1"
+                                        x-model="sementara"
+                                        {{ old('is_nik_sementara', $penduduk->is_nik_sementara ?? false) ? 'checked' : '' }}
+                                        class="w-3.5 h-3.5 rounded border-gray-300 text-cyan-500 focus:ring-cyan-400 cursor-pointer">
+                                    <span class="text-xs font-normal normal-case transition-colors"
+                                        :class="sementara ? 'text-red-500 font-semibold' : 'text-gray-400 dark:text-slate-500'">
+                                        (Sementara)
+                                    </span>
+                                </label>
+                            </div>
+                            <input type="text" name="nik" id="nik" x-model="nikVal"
+                                placeholder="16 digit NIK" maxlength="16"
+                                :class="sementara
+                                    ?
+                                    'bg-cyan-50 dark:bg-cyan-900/20 border-cyan-400 ring-2 ring-cyan-300/30' :
+                                    '{{ $errors->has('nik') ? 'border-red-400 bg-red-50' : 'border-gray-300 dark:border-slate-600' }}'"
+                                class="w-full px-3 py-2 border rounded-lg text-sm font-mono bg-white dark:bg-slate-700
+                                  text-gray-800 dark:text-slate-200 placeholder-gray-300 dark:placeholder-slate-500
+                                  focus:ring-2 focus:ring-cyan-400 outline-none transition-all">
+                            <div x-show="sementara">
+                                <p class="text-xs text-red-500 mt-1">NIK sementara — wajib diganti dengan NIK resmi</p>
+                            </div>
+                            <div x-show="!sementara">
+                                @error('nik')
+                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
                         </div>
-                        <input type="email" id="email" name="email" value="{{ old('email', $penduduk->email) }}"
-                            class="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-colors"
-                            placeholder="contoh@email.com">
+
+                        {{-- Nama --}}
+                        <div>
+                            <label
+                                class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">
+                                Nama Lengkap <span class="text-gray-400 font-normal normal-case">(Tanpa Gelar)</span>
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" name="nama" value="{{ old('nama', $penduduk->nama) }}"
+                                class="w-full px-3 py-2 border rounded-lg text-sm bg-white dark:bg-slate-700
+                                  text-gray-800 dark:text-slate-200 focus:ring-2 focus:ring-cyan-400 outline-none transition-all
+                                  {{ $errors->has('nama') ? 'border-red-400 bg-red-50' : 'border-gray-300 dark:border-slate-600' }}">
+                            @error('nama')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        {{-- Kartu Keluarga + SHDK — DIUBAH: dari pivot ke FK langsung --}}
+                        <div>
+                            <label
+                                class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">
+                                No. Kartu Keluarga
+                            </label>
+                            <select name="keluarga_id"
+                                class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm
+                               bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200
+                               focus:ring-2 focus:ring-cyan-400 outline-none transition-all">
+                                <option value="">Pilih No. KK</option>
+                                @foreach ($keluarga as $kk)
+                                    <option value="{{ $kk->id }}"
+                                        {{ old('keluarga_id', $penduduk->keluarga_id) == $kk->id ? 'selected' : '' }}>
+                                        {{ $kk->no_kk }}
+                                        @if ($kk->kepalaKeluarga)
+                                            — {{ $kk->kepalaKeluarga->nama }}
+                                        @endif
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        {{-- SHDK — DIUBAH: dari hubungan_keluarga string ke kk_level FK --}}
+                        <div>
+                            <label
+                                class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">
+                                Status Hubungan Dalam Keluarga (SHDK)
+                            </label>
+                            <select name="kk_level"
+                                class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm
+                               bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200
+                               focus:ring-2 focus:ring-cyan-400 outline-none transition-all">
+                                <option value="">Pilih SHDK</option>
+                                @foreach ($refShdk as $shdk)
+                                    <option value="{{ $shdk->id }}"
+                                        {{ old('kk_level', $penduduk->kk_level) == $shdk->id ? 'selected' : '' }}>
+                                        {{ $shdk->nama }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        {{-- Jenis Kelamin --}}
+                        <div>
+                            <label
+                                class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">
+                                Jenis Kelamin <span class="text-red-500">*</span>
+                            </label>
+                            <select name="jenis_kelamin"
+                                class="w-full px-3 py-2 border rounded-lg text-sm bg-white dark:bg-slate-700
+                               text-gray-800 dark:text-slate-200 focus:ring-2 focus:ring-cyan-400 outline-none transition-all
+                               {{ $errors->has('jenis_kelamin') ? 'border-red-400 bg-red-50' : 'border-gray-300 dark:border-slate-600' }}">
+                                <option value="L"
+                                    {{ old('jenis_kelamin', $penduduk->jenis_kelamin) == 'L' ? 'selected' : '' }}>Laki-laki
+                                </option>
+                                <option value="P"
+                                    {{ old('jenis_kelamin', $penduduk->jenis_kelamin) == 'P' ? 'selected' : '' }}>Perempuan
+                                </option>
+                            </select>
+                            @error('jenis_kelamin')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        {{-- Agama — DIUBAH: dari string ke agama_id FK --}}
+                        <div>
+                            <label
+                                class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">
+                                Agama <span class="text-red-500">*</span>
+                            </label>
+                            <select name="agama_id"
+                                class="w-full px-3 py-2 border rounded-lg text-sm bg-white dark:bg-slate-700
+                               text-gray-800 dark:text-slate-200 focus:ring-2 focus:ring-cyan-400 outline-none transition-all
+                               {{ $errors->has('agama_id') ? 'border-red-400 bg-red-50' : 'border-gray-300 dark:border-slate-600' }}">
+                                <option value="">Pilih Agama</option>
+                                @foreach ($refAgama as $agama)
+                                    <option value="{{ $agama->id }}"
+                                        {{ old('agama_id', $penduduk->agama_id) == $agama->id ? 'selected' : '' }}>
+                                        {{ $agama->nama }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('agama_id')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        {{-- Jenis Tambah — DIUBAH: hapus 'meninggal' --}}
+                        <div>
+                            <label
+                                class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">
+                                Cara Terdaftar
+                            </label>
+                            <select name="jenis_tambah"
+                                class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm
+                               bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200
+                               focus:ring-2 focus:ring-cyan-400 outline-none transition-all">
+                                <option value="lahir"
+                                    {{ old('jenis_tambah', $penduduk->jenis_tambah) == 'lahir' ? 'selected' : '' }}>Lahir
+                                </option>
+                                <option value="masuk"
+                                    {{ old('jenis_tambah', $penduduk->jenis_tambah) == 'masuk' ? 'selected' : '' }}>Masuk /
+                                    Datang</option>
+                            </select>
+                        </div>
+
+                        {{-- Status Penduduk — DIUBAH: dari status_hidup ke status (jenis penduduk) --}}
+                        <div>
+                            <label
+                                class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">
+                                Jenis Penduduk <span class="text-red-500">*</span>
+                            </label>
+                            <select name="status"
+                                class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm
+                               bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200
+                               focus:ring-2 focus:ring-cyan-400 outline-none transition-all">
+                                <option value="1" {{ old('status', $penduduk->status) == 1 ? 'selected' : '' }}>Tetap
+                                </option>
+                                <option value="2" {{ old('status', $penduduk->status) == 2 ? 'selected' : '' }}>Tidak
+                                    Tetap</option>
+                                <option value="3" {{ old('status', $penduduk->status) == 3 ? 'selected' : '' }}>
+                                    Pendatang</option>
+                            </select>
+                        </div>
+
+                        {{-- Tag ID Card --}}
+                        <div>
+                            <label
+                                class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Tag
+                                ID Card</label>
+                            <input type="text" name="tag_id_card"
+                                value="{{ old('tag_id_card', $penduduk->tag_id_card) }}" placeholder="Tag ID Card"
+                                class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm
+                                  bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200 placeholder-gray-300
+                                  focus:ring-2 focus:ring-cyan-400 outline-none transition-all">
+                        </div>
+
                     </div>
                 </div>
 
-                <div class="md:col-span-2">
-                    <label for="alamat" class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1.5">Alamat Lengkap</label>
-                    <textarea id="alamat" name="alamat" rows="3"
-                        class="w-full px-3 py-2.5 text-sm border border-gray-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-colors resize-none"
-                        placeholder="Masukkan alamat lengkap...">{{ old('alamat', $penduduk->alamat) }}</textarea>
+                {{-- ════════ DATA KELAHIRAN ════════ --}}
+                <div class="border-b border-gray-100 dark:border-slate-700">
+                    <div class="bg-cyan-50 dark:bg-cyan-900/20 border-b border-cyan-100 dark:border-cyan-800/40 px-5 py-2">
+                        <span class="text-xs font-bold text-cyan-700 dark:text-cyan-400 uppercase tracking-widest">Data
+                            Kelahiran</span>
+                    </div>
+                    <div class="p-5 grid grid-cols-3 gap-x-5 gap-y-4">
+                        <div>
+                            <label
+                                class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Tempat
+                                Lahir <span class="text-red-500">*</span></label>
+                            <input type="text" name="tempat_lahir"
+                                value="{{ old('tempat_lahir', $penduduk->tempat_lahir) }}" placeholder="Kota / Kabupaten"
+                                class="w-full px-3 py-2 border rounded-lg text-sm bg-white dark:bg-slate-700
+                                  text-gray-800 dark:text-slate-200 placeholder-gray-300 focus:ring-2 focus:ring-cyan-400 outline-none transition-all
+                                  {{ $errors->has('tempat_lahir') ? 'border-red-400 bg-red-50' : 'border-gray-300 dark:border-slate-600' }}">
+                            @error('tempat_lahir')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div>
+                            <label
+                                class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Tanggal
+                                Lahir <span class="text-red-500">*</span></label>
+                            <input type="date" name="tanggal_lahir"
+                                value="{{ old('tanggal_lahir', $penduduk->tanggal_lahir?->format('Y-m-d')) }}"
+                                class="w-full px-3 py-2 border rounded-lg text-sm bg-white dark:bg-slate-700
+                                  text-gray-800 dark:text-slate-200 focus:ring-2 focus:ring-cyan-400 outline-none transition-all
+                                  {{ $errors->has('tanggal_lahir') ? 'border-red-400 bg-red-50' : 'border-gray-300 dark:border-slate-600' }}">
+                            @error('tanggal_lahir')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div>
+                            <label
+                                class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Tanggal
+                                Peristiwa</label>
+                            <input type="date" name="tgl_peristiwa"
+                                value="{{ old('tgl_peristiwa', $penduduk->tgl_peristiwa?->format('Y-m-d')) }}"
+                                class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm
+                                  bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200 focus:ring-2 focus:ring-cyan-400 outline-none transition-all">
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
 
-        {{-- Action Buttons --}}
-        <div class="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-slate-700">
-            <button type="button"
-                @click="$dispatch('buka-modal-hapus', {
-                    action: '{{ route('admin.penduduk.destroy', $penduduk) }}',
-                    nama: '{{ addslashes($penduduk->nama) }}'
-                })"
-                class="inline-flex items-center gap-2 px-4 py-2.5 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm font-semibold rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-150">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-                Hapus Data
-            </button>
+                {{-- ════════ DATA PENDIDIKAN & PEKERJAAN ════════ --}}
+                <div class="border-b border-gray-100 dark:border-slate-700">
+                    <div class="bg-cyan-50 dark:bg-cyan-900/20 border-b border-cyan-100 dark:border-cyan-800/40 px-5 py-2">
+                        <span class="text-xs font-bold text-cyan-700 dark:text-cyan-400 uppercase tracking-widest">Data
+                            Pendidikan &amp; Pekerjaan</span>
+                    </div>
+                    <div class="p-5 grid grid-cols-2 gap-x-5 gap-y-4">
 
-            <div class="flex items-center gap-3">
-                <a href="{{ route('admin.penduduk') }}"
-                    class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-gray-600 text-sm font-semibold rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all duration-150 shadow-sm">
+                        {{-- DIUBAH: dari string ke pendidikan_kk_id FK --}}
+                        <div>
+                            <label
+                                class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Pendidikan
+                                Dalam KK</label>
+                            <select name="pendidikan_kk_id"
+                                class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm
+                               bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200 focus:ring-2 focus:ring-cyan-400 outline-none transition-all">
+                                <option value="">Pilih Pendidikan</option>
+                                @foreach ($refPendidikan as $pend)
+                                    <option value="{{ $pend->id }}"
+                                        {{ old('pendidikan_kk_id', $penduduk->pendidikan_kk_id) == $pend->id ? 'selected' : '' }}>
+                                        {{ $pend->nama }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        {{-- DIUBAH: dari string ke pekerjaan_id FK --}}
+                        <div>
+                            <label
+                                class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Pekerjaan</label>
+                            <select name="pekerjaan_id"
+                                class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm
+                               bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200 focus:ring-2 focus:ring-cyan-400 outline-none transition-all">
+                                <option value="">Pilih Pekerjaan</option>
+                                @foreach ($refPekerjaan as $pek)
+                                    <option value="{{ $pek->id }}"
+                                        {{ old('pekerjaan_id', $penduduk->pekerjaan_id) == $pek->id ? 'selected' : '' }}>
+                                        {{ $pek->nama }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                    </div>
+                </div>
+
+                {{-- ════════ DATA KEWARGANEGARAAN ════════ --}}
+                <div class="border-b border-gray-100 dark:border-slate-700">
+                    <div class="bg-cyan-50 dark:bg-cyan-900/20 border-b border-cyan-100 dark:border-cyan-800/40 px-5 py-2">
+                        <span class="text-xs font-bold text-cyan-700 dark:text-cyan-400 uppercase tracking-widest">Data
+                            Kewarganegaraan</span>
+                    </div>
+                    <div class="p-5 grid grid-cols-2 gap-x-5 gap-y-4">
+
+                        {{-- DIUBAH: dari string ke warganegara_id FK --}}
+                        <div>
+                            <label
+                                class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Status
+                                Warga Negara <span class="text-red-500">*</span></label>
+                            <select name="warganegara_id"
+                                class="w-full px-3 py-2 border rounded-lg text-sm bg-white dark:bg-slate-700
+                               text-gray-800 dark:text-slate-200 focus:ring-2 focus:ring-cyan-400 outline-none transition-all
+                               {{ $errors->has('warganegara_id') ? 'border-red-400 bg-red-50' : 'border-gray-300 dark:border-slate-600' }}">
+                                <option value="">Pilih Warga Negara</option>
+                                @foreach ($refWarganegara as $wn)
+                                    <option value="{{ $wn->id }}"
+                                        {{ old('warganegara_id', $penduduk->warganegara_id) == $wn->id ? 'selected' : '' }}>
+                                        {{ $wn->nama }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('warganegara_id')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        {{-- DIUBAH: dari string ke golongan_darah_id FK --}}
+                        <div>
+                            <label
+                                class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Golongan
+                                Darah</label>
+                            <select name="golongan_darah_id"
+                                class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm
+                               bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200 focus:ring-2 focus:ring-cyan-400 outline-none transition-all">
+                                <option value="">Pilih Golongan Darah</option>
+                                @foreach ($refGolDarah as $gd)
+                                    <option value="{{ $gd->id }}"
+                                        {{ old('golongan_darah_id', $penduduk->golongan_darah_id) == $gd->id ? 'selected' : '' }}>
+                                        {{ $gd->nama }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                    </div>
+                </div>
+
+                {{-- ════════ DATA ORANG TUA ════════ --}}
+                <div class="border-b border-gray-100 dark:border-slate-700">
+                    <div class="bg-cyan-50 dark:bg-cyan-900/20 border-b border-cyan-100 dark:border-cyan-800/40 px-5 py-2">
+                        <span class="text-xs font-bold text-cyan-700 dark:text-cyan-400 uppercase tracking-widest">Data
+                            Orang Tua</span>
+                    </div>
+                    <div class="p-5 grid grid-cols-2 gap-x-5 gap-y-4">
+                        <div>
+                            <label
+                                class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Nama
+                                Ayah</label>
+                            <input type="text" name="nama_ayah" value="{{ old('nama_ayah', $penduduk->nama_ayah) }}"
+                                placeholder="Nama Lengkap Ayah"
+                                class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm
+                                  bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200 placeholder-gray-300
+                                  focus:ring-2 focus:ring-cyan-400 outline-none transition-all">
+                        </div>
+                        <div>
+                            <label
+                                class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Nama
+                                Ibu <span class="text-red-500">*</span></label>
+                            <input type="text" name="nama_ibu" value="{{ old('nama_ibu', $penduduk->nama_ibu) }}"
+                                placeholder="Nama Lengkap Ibu"
+                                class="w-full px-3 py-2 border rounded-lg text-sm bg-white dark:bg-slate-700
+                                  text-gray-800 dark:text-slate-200 placeholder-gray-300 focus:ring-2 focus:ring-cyan-400 outline-none transition-all
+                                  {{ $errors->has('nama_ibu') ? 'border-red-400 bg-red-50' : 'border-gray-300 dark:border-slate-600' }}">
+                            @error('nama_ibu')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        {{-- BARU: NIK Ayah & Ibu --}}
+                        <div>
+                            <label
+                                class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">NIK
+                                Ayah</label>
+                            <input type="text" name="nik_ayah" id="nik_ayah"
+                                value="{{ old('nik_ayah', $penduduk->nik_ayah) }}" placeholder="16 digit NIK Ayah"
+                                maxlength="16"
+                                class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm font-mono
+                                  bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200 placeholder-gray-300
+                                  focus:ring-2 focus:ring-cyan-400 outline-none transition-all">
+                        </div>
+                        <div>
+                            <label
+                                class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">NIK
+                                Ibu</label>
+                            <input type="text" name="nik_ibu" id="nik_ibu"
+                                value="{{ old('nik_ibu', $penduduk->nik_ibu) }}" placeholder="16 digit NIK Ibu"
+                                maxlength="16"
+                                class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm font-mono
+                                  bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200 placeholder-gray-300
+                                  focus:ring-2 focus:ring-cyan-400 outline-none transition-all">
+                        </div>
+                    </div>
+                </div>
+
+                {{-- ════════ DATA ALAMAT ════════ --}}
+                <div class="border-b border-gray-100 dark:border-slate-700">
+                    <div class="bg-cyan-50 dark:bg-cyan-900/20 border-b border-cyan-100 dark:border-cyan-800/40 px-5 py-2">
+                        <span class="text-xs font-bold text-cyan-700 dark:text-cyan-400 uppercase tracking-widest">Data
+                            Alamat</span>
+                    </div>
+                    <div class="p-5 space-y-4" x-data="{
+                        wilayahAll: {{ $wilayah->toJson() }},
+                        selectedDusun: '',
+                        selectedRw: '',
+                        selectedWilayahId: '{{ old('wilayah_id', $penduduk->wilayah_id) }}',
+                        get dusunList() {
+                            return [...new Set(this.wilayahAll.map(w => w.dusun))].sort();
+                        },
+                        get rwList() {
+                            if (!this.selectedDusun) return [];
+                            return [...new Set(this.wilayahAll.filter(w => w.dusun === this.selectedDusun).map(w => w.rw))].sort();
+                        },
+                        get rtList() {
+                            if (!this.selectedDusun || !this.selectedRw) return [];
+                            return this.wilayahAll.filter(w => w.dusun === this.selectedDusun && w.rw === this.selectedRw)
+                                .sort((a, b) => a.rt.localeCompare(b.rt));
+                        },
+                        onDusunChange() { this.selectedRw = '';
+                            this.selectedWilayahId = ''; },
+                        onRwChange() { this.selectedWilayahId = ''; },
+                    }" x-init="const existing = wilayahAll.find(w => w.id == selectedWilayahId);
+                    if (existing) {
+                        selectedDusun = existing.dusun;
+                        $nextTick(() => { selectedRw = existing.rw; });
+                    }">
+
+                        <div>
+                            <label
+                                class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-2">
+                                Wilayah Tempat Tinggal <span class="text-red-500">*</span>
+                            </label>
+                            <div class="grid grid-cols-3 gap-3">
+                                <div>
+                                    <label class="block text-xs text-gray-400 dark:text-slate-500 mb-1">Dusun</label>
+                                    <select x-model="selectedDusun" @change="onDusunChange()"
+                                        class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm
+                               bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200
+                               focus:ring-2 focus:ring-cyan-400 outline-none transition-all">
+                                        <option value="">— Pilih Dusun —</option>
+                                        <template x-for="dusun in dusunList" :key="dusun">
+                                            <option :value="dusun" x-text="dusun"
+                                                :selected="dusun === selectedDusun"></option>
+                                        </template>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-400 dark:text-slate-500 mb-1">RW</label>
+                                    <select x-model="selectedRw" @change="onRwChange()" :disabled="!selectedDusun"
+                                        class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm
+                               bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200
+                               focus:ring-2 focus:ring-cyan-400 outline-none transition-all
+                               disabled:opacity-40 disabled:cursor-not-allowed">
+                                        <option value="">— Pilih RW —</option>
+                                        <template x-for="rw in rwList" :key="rw">
+                                            <option :value="rw" x-text="'RW ' + rw"></option>
+                                        </template>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-400 dark:text-slate-500 mb-1">RT</label>
+                                    <select x-model="selectedWilayahId" :disabled="!selectedRw"
+                                        class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm
+                               bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200
+                               focus:ring-2 focus:ring-cyan-400 outline-none transition-all
+                               disabled:opacity-40 disabled:cursor-not-allowed">
+                                        <option value="">— Pilih RT —</option>
+                                        <template x-for="w in rtList" :key="w.id">
+                                            <option :value="w.id" x-text="'RT ' + w.rt"></option>
+                                        </template>
+                                    </select>
+                                </div>
+                            </div>
+                            <input type="hidden" name="wilayah_id" :value="selectedWilayahId">
+                            @error('wilayah_id')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div class="col-span-2">
+                            <label
+                                class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Alamat
+                                Sekarang</label>
+                            <input type="text" name="alamat" value="{{ old('alamat', $penduduk->alamat) }}"
+                                placeholder="Jl. Contoh No. 1"
+                                class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm
+                                  bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200 placeholder-gray-300
+                                  focus:ring-2 focus:ring-cyan-400 outline-none transition-all">
+                        </div>
+                        <div class="col-span-2">
+                            <label
+                                class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Alamat
+                                Sebelumnya</label>
+                            <input type="text" name="alamat_sebelumnya"
+                                value="{{ old('alamat_sebelumnya', $penduduk->alamat_sebelumnya) }}"
+                                placeholder="Alamat asal sebelumnya"
+                                class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm
+                                  bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200 placeholder-gray-300
+                                  focus:ring-2 focus:ring-cyan-400 outline-none transition-all">
+                        </div>
+                        <div>
+                            <label
+                                class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Nomor
+                                Telepon</label>
+                            <input type="text" name="no_telp" id="no_telp"
+                                value="{{ old('no_telp', $penduduk->no_telp) }}" placeholder="08xxxxxxxxxx"
+                                class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm
+                                  bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200 placeholder-gray-300
+                                  focus:ring-2 focus:ring-cyan-400 outline-none transition-all">
+                        </div>
+                        <div>
+                            <label
+                                class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Email</label>
+                            <input type="email" name="email" value="{{ old('email', $penduduk->email) }}"
+                                placeholder="contoh@email.com"
+                                class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm
+                                  bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200 placeholder-gray-300
+                                  focus:ring-2 focus:ring-cyan-400 outline-none transition-all
+                                  {{ $errors->has('email') ? 'border-red-400 bg-red-50' : '' }}">
+                            @error('email')
+                                <p class="text-red-500 text-xs mt-1">Format email tidak valid</p>
+                            @enderror
+                        </div>
+                    </div>
+                </div>
+
+                {{-- ════════ DATA PERKAWINAN ════════ --}}
+                <div class="border-b border-gray-100 dark:border-slate-700">
+                    <div class="bg-cyan-50 dark:bg-cyan-900/20 border-b border-cyan-100 dark:border-cyan-800/40 px-5 py-2">
+                        <span class="text-xs font-bold text-cyan-700 dark:text-cyan-400 uppercase tracking-widest">Data
+                            Perkawinan</span>
+                    </div>
+                    <div class="p-5 grid grid-cols-2 gap-x-5 gap-y-4">
+
+                        {{-- DIUBAH: dari string ke status_kawin_id FK --}}
+                        <div>
+                            <label
+                                class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">
+                                Status Perkawinan <span class="text-red-500">*</span>
+                            </label>
+                            <select name="status_kawin_id" id="status_kawin_id"
+                                class="w-full px-3 py-2 border rounded-lg text-sm bg-white dark:bg-slate-700
+                               text-gray-800 dark:text-slate-200 focus:ring-2 focus:ring-cyan-400 outline-none transition-all
+                               {{ $errors->has('status_kawin_id') ? 'border-red-400 bg-red-50' : 'border-gray-300 dark:border-slate-600' }}"
+                                onchange="toggleDetailKawin(this.value)">
+                                <option value="">Pilih Status Perkawinan</option>
+                                @foreach ($refStatusKawin as $sk)
+                                    <option value="{{ $sk->id }}"
+                                        {{ old('status_kawin_id', $penduduk->status_kawin_id) == $sk->id ? 'selected' : '' }}>
+                                        {{ $sk->nama }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('status_kawin_id')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div id="detail-kawin"
+                            class="{{ in_array(old('status_kawin_id', $penduduk->status_kawin_id), [2, 3, 4, 5, 6]) ? '' : 'hidden' }}">
+                            <label
+                                class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">No.
+                                Akta Nikah / Perkawinan</label>
+                            <input type="text" name="akta_perkawinan"
+                                value="{{ old('akta_perkawinan', $penduduk->akta_perkawinan) }}" placeholder="Nomor akta"
+                                class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm
+                                  bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200 placeholder-gray-300
+                                  focus:ring-2 focus:ring-cyan-400 outline-none transition-all">
+                        </div>
+
+                        <div id="detail-kawin-tgl"
+                            class="{{ in_array(old('status_kawin_id', $penduduk->status_kawin_id), [2, 3, 4, 5, 6]) ? '' : 'hidden' }}">
+                            <label
+                                class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Tanggal
+                                Perkawinan</label>
+                            <input type="date" name="tanggal_perkawinan"
+                                value="{{ old('tanggal_perkawinan', $penduduk->tanggal_perkawinan?->format('Y-m-d')) }}"
+                                class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm
+                                  bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200
+                                  focus:ring-2 focus:ring-cyan-400 outline-none transition-all">
+                        </div>
+
+                        <div id="detail-cerai"
+                            class="{{ in_array(old('status_kawin_id', $penduduk->status_kawin_id), [4, 5]) ? '' : 'hidden' }}">
+                            <label
+                                class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">
+                                No. Akta Perceraian
+                                <span class="font-normal normal-case text-gray-400 ml-1">(Cerai Tercatat jika diisi)</span>
+                            </label>
+                            <input type="text" name="akta_perceraian"
+                                value="{{ old('akta_perceraian', $penduduk->akta_perceraian) }}"
+                                placeholder="Nomor akta perceraian"
+                                class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm
+                                  bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200 placeholder-gray-300
+                                  focus:ring-2 focus:ring-cyan-400 outline-none transition-all">
+                        </div>
+
+                        <div id="detail-cerai-tgl"
+                            class="{{ in_array(old('status_kawin_id', $penduduk->status_kawin_id), [4, 5]) ? '' : 'hidden' }}">
+                            <label
+                                class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Tanggal
+                                Perceraian</label>
+                            <input type="date" name="tanggal_perceraian"
+                                value="{{ old('tanggal_perceraian', $penduduk->tanggal_perceraian?->format('Y-m-d')) }}"
+                                class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm
+                                  bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200
+                                  focus:ring-2 focus:ring-cyan-400 outline-none transition-all">
+                        </div>
+
+                    </div>
+                </div>
+
+                {{-- ════════ TOMBOL AKSI ════════ --}}
+                <div class="flex items-center justify-between px-5 py-4 bg-gray-50 dark:bg-slate-800/60">
+                    <a href="{{ route('admin.penduduk.show', $penduduk) }}"
+                        class="inline-flex items-center gap-2 px-5 py-2 border border-gray-300 dark:border-slate-600
+                      bg-white dark:bg-slate-700 hover:bg-red-50 hover:border-red-300 hover:text-red-600
+                      text-gray-600 dark:text-slate-300 rounded-lg font-semibold text-sm transition-all shadow-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        Batal
+                    </a>
+                    <button type="submit"
+                        class="inline-flex items-center gap-2 px-7 py-2 bg-emerald-600 hover:bg-emerald-700
+                           text-white rounded-lg font-semibold text-sm transition-all shadow-sm hover:shadow-md
+                           focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Simpan Perubahan
+                    </button>
+                </div>
+
+            </div>{{-- end card kanan --}}
+        </div>{{-- end layout --}}
+
+    </form>
+
+    {{-- MODAL KAMERA --}}
+    <div id="modal-kamera" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div
+            class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-700 w-full max-w-md mx-4 overflow-hidden">
+            <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-slate-700">
+                <span class="font-semibold text-gray-800 dark:text-slate-200 text-sm">Ambil Foto dari Kamera</span>
+                <button type="button" onclick="tutupKamera()"
+                    class="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700 transition-all">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
-                    Batal
-                </a>
-                <button type="submit"
-                    class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-br from-emerald-500 to-teal-600 text-white text-sm font-semibold rounded-xl
-                           hover:from-emerald-600 hover:to-teal-700 hover:shadow-lg hover:shadow-emerald-200 hover:-translate-y-0.5
-                           active:translate-y-0 transition-all duration-150 shadow-md shadow-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2">
+                </button>
+            </div>
+            <div class="relative bg-black">
+                <video id="video-kamera" autoplay playsinline class="w-full"
+                    style="max-height:320px;object-fit:cover;"></video>
+                <div class="absolute inset-0 pointer-events-none flex items-center justify-center">
+                    <div class="w-40 h-48 border-2 border-white/40 rounded-xl"></div>
+                </div>
+            </div>
+            <canvas id="canvas-kamera" class="hidden"></canvas>
+            <div id="kamera-error" class="hidden px-5 py-3 bg-red-50 dark:bg-red-900/20">
+                <p class="text-sm text-red-600 text-center">Kamera tidak dapat diakses.</p>
+            </div>
+            <div class="flex gap-3 p-4">
+                <button type="button" onclick="tutupKamera()"
+                    class="flex-1 px-4 py-2.5 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-600 dark:text-slate-300 rounded-lg font-semibold text-sm transition-all">Batal</button>
+                <button type="button" onclick="ambilFoto()"
+                    class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold text-sm transition-all">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
-                    Simpan Perubahan
+                    Ambil Foto
                 </button>
             </div>
         </div>
-    </form>
-</div>
+    </div>
 
-@include('admin.partials.modal-hapus')
+    @push('scripts')
+        <script>
+            function previewFoto(input) {
+                if (input.files && input.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = e => {
+                        document.getElementById('preview-foto').src = e.target.result;
+                    };
+                    reader.readAsDataURL(input.files[0]);
+                }
+            }
 
-@push('scripts')
-<script>
-    document.getElementById('nik')?.addEventListener('input', function() {
-        this.value = this.value.replace(/\D/g, '').substring(0, 16);
-    });
-    document.getElementById('no_telp')?.addEventListener('input', function() {
-        this.value = this.value.replace(/\D/g, '');
-    });
-</script>
-@endpush
+            // ✅ PATCHED: NIK utama dikontrol x-model Alpine — nik_ayah & nik_ibu tetap listener
+            ['nik_ayah', 'nik_ibu'].forEach(id => {
+                document.getElementById(id)?.addEventListener('input', function() {
+                    this.value = this.value.replace(/\D/g, '').substring(0, 16);
+                });
+            });
+            document.getElementById('nik')?.addEventListener('input', function() {
+                this.value = this.value.replace(/\D/g, '').substring(0, 16);
+            });
+            document.getElementById('no_telp')?.addEventListener('input', function() {
+                this.value = this.value.replace(/\D/g, '');
+            });
+
+            function toggleDetailKawin(val) {
+                const id = parseInt(val);
+                const sudahKawin = [2, 3, 4, 5, 6].includes(id);
+                const sudahCerai = [4, 5].includes(id);
+                document.getElementById('detail-kawin')?.classList.toggle('hidden', !sudahKawin);
+                document.getElementById('detail-kawin-tgl')?.classList.toggle('hidden', !sudahKawin);
+                document.getElementById('detail-cerai')?.classList.toggle('hidden', !sudahCerai);
+                document.getElementById('detail-cerai-tgl')?.classList.toggle('hidden', !sudahCerai);
+            }
+
+            // Init saat page load
+            toggleDetailKawin(document.getElementById('status_kawin_id')?.value ?? '');
+
+            let streamKamera = null;
+            async function bukaKamera() {
+                const modal = document.getElementById('modal-kamera');
+                const video = document.getElementById('video-kamera');
+                const errBox = document.getElementById('kamera-error');
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                errBox.classList.add('hidden');
+                try {
+                    streamKamera = await navigator.mediaDevices.getUserMedia({
+                        video: {
+                            facingMode: 'user'
+                        },
+                        audio: false
+                    });
+                    video.srcObject = streamKamera;
+                } catch (err) {
+                    errBox.classList.remove('hidden');
+                }
+            }
+
+            function tutupKamera() {
+                const modal = document.getElementById('modal-kamera');
+                const video = document.getElementById('video-kamera');
+                if (streamKamera) {
+                    streamKamera.getTracks().forEach(t => t.stop());
+                    streamKamera = null;
+                }
+                video.srcObject = null;
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+
+            function ambilFoto() {
+                const video = document.getElementById('video-kamera');
+                const canvas = document.getElementById('canvas-kamera');
+                const preview = document.getElementById('preview-foto');
+                const inputFoto = document.getElementById('input-foto');
+                if (!streamKamera) return;
+                canvas.width = video.videoWidth || 640;
+                canvas.height = video.videoHeight || 480;
+                const ctx = canvas.getContext('2d');
+                ctx.translate(canvas.width, 0);
+                ctx.scale(-1, 1);
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                preview.src = canvas.toDataURL('image/jpeg', 0.92);
+                canvas.toBlob(blob => {
+                    const file = new File([blob], 'foto-kamera.jpg', {
+                        type: 'image/jpeg'
+                    });
+                    const dt = new DataTransfer();
+                    dt.items.add(file);
+                    inputFoto.files = dt.files;
+                }, 'image/jpeg', 0.92);
+                tutupKamera();
+            }
+            document.getElementById('modal-kamera')?.addEventListener('click', e => {
+                if (e.target === document.getElementById('modal-kamera')) tutupKamera();
+            });
+            document.addEventListener('keydown', e => {
+                if (e.key === 'Escape') tutupKamera();
+            });
+        </script>
+    @endpush
 
 @endsection
-

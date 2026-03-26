@@ -4,252 +4,568 @@
 
 @section('content')
 
-{{-- ============================================================ --}}
-{{-- HEADER: Title kiri + Breadcrumb + Tombol kanan               --}}
-{{-- ============================================================ --}}
-<div class="flex items-center justify-between mb-6">
+{{-- ══ PAGE HEADER ══ --}}
+<div class="flex items-center justify-between mb-5">
     <div>
-        <h2 class="text-lg font-bold text-gray-700 dark:text-slate-200">Detail Penduduk</h2>
-        <p class="text-sm text-gray-400 dark:text-slate-500 mt-0.5">Informasi lengkap data penduduk</p>
+        <h2 class="text-lg font-bold text-gray-800 dark:text-slate-100">Biodata Penduduk</h2>
+        <p class="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Detail data kependudukan</p>
     </div>
-    <div class="flex items-center gap-3">
-        <nav class="flex items-center gap-1.5 text-sm">
-            <a href="/admin/dashboard" class="flex items-center gap-1 text-gray-400 dark:text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-                </svg>
-                Beranda
-            </a>
-            <svg class="w-3.5 h-3.5 text-gray-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+    <nav class="flex items-center gap-1.5 text-sm">
+        <a href="{{ route('admin.dashboard') }}"
+           class="flex items-center gap-1 text-gray-400 dark:text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
             </svg>
-            <a href="{{ route('admin.penduduk') }}" class="text-gray-400 dark:text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors font-medium">
-                Penduduk
-            </a>
-            <svg class="w-3.5 h-3.5 text-gray-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-            </svg>
-            <span class="text-gray-600 dark:text-slate-300 font-medium">Detail</span>
-        </nav>
-        <div class="flex gap-2">
+            Beranda
+        </a>
+        <svg class="w-3.5 h-3.5 text-gray-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        </svg>
+        <a href="{{ route('admin.penduduk') }}"
+           class="text-gray-400 dark:text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+            Data Penduduk
+        </a>
+        <svg class="w-3.5 h-3.5 text-gray-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        </svg>
+        <span class="text-gray-600 dark:text-slate-300 font-medium">Detail</span>
+    </nav>
+</div>
+
+<div class="flex items-start gap-5">
+
+    {{-- ╔══════════════════════════════╗
+         ║  CARD KIRI — Foto Penduduk  ║
+         ╚══════════════════════════════╝ --}}
+    <div class="w-52 flex-shrink-0 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 overflow-hidden p-5 flex flex-col gap-3">
+
+        <div class="rounded-lg overflow-hidden border-2 border-gray-200 dark:border-slate-600 aspect-square bg-gray-100 dark:bg-slate-700">
+            <img src="{{ $penduduk->foto_url }}" alt="{{ $penduduk->nama }}"
+                 class="w-full h-full object-cover"
+                 onerror="this.src='{{ asset('images/avatar-placeholder.png') }}'">
+        </div>
+
+        {{-- Badge Status — DIUBAH: dari status_hidup ke status_dasar --}}
+        <div class="flex flex-col gap-1.5">
+            @php
+                $statusDasarColor = match($penduduk->status_dasar) {
+                    'hidup'       => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+                    'mati'        => 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',
+                    'pindah'      => 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+                    'hilang'      => 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
+                    'pergi'       => 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+                    'tidak_valid' => 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+                    default       => 'bg-gray-100 text-gray-500',
+                };
+                $jenisBadge = match($penduduk->jenis_tambah) {
+                    'masuk'  => 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+                    default  => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+                };
+            @endphp
+
+            <span class="flex items-center justify-center px-2 py-1 text-xs font-semibold rounded-lg {{ $statusDasarColor }}">
+                {{ $penduduk->label_status_dasar }}
+            </span>
+            <span class="flex items-center justify-center px-2 py-1 text-xs font-semibold rounded-lg {{ $jenisBadge }}">
+                {{ $penduduk->label_jenis_tambah }}
+            </span>
+            <span class="flex items-center justify-center px-2 py-1 text-xs font-semibold rounded-lg
+                {{ $penduduk->jenis_kelamin == 'L'
+                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                    : 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400' }}">
+                {{ $penduduk->jenis_kelamin == 'L' ? 'Laki-laki' : 'Perempuan' }}
+            </span>
+        </div>
+
+        <div class="text-center">
+            <p class="text-sm font-bold text-gray-800 dark:text-slate-100 leading-tight">{{ $penduduk->nama }}</p>
+            <p class="text-xs font-mono mt-0.5 {{ $penduduk->is_nik_sementara ? 'text-red-500' : 'text-blue-600 dark:text-blue-400' }}">
+                {{ $penduduk->nik }}
+                @if($penduduk->is_nik_sementara)
+                    <span class="block text-xs text-red-400">(NIK Sementara)</span>
+                @endif
+            </p>
+            @if($penduduk->umur !== null)
+                <p class="text-xs text-gray-400 dark:text-slate-500 mt-0.5">{{ $penduduk->umur }} tahun</p>
+            @endif
+        </div>
+
+        <div class="border-t border-gray-100 dark:border-slate-700 pt-3 space-y-2">
             <a href="{{ route('admin.penduduk.edit', $penduduk) }}"
-                class="inline-flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold rounded-xl transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+               class="flex items-center justify-center gap-1.5 w-full px-3 py-2
+                      bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold rounded-lg transition-all shadow-sm">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                 </svg>
-                Edit
+                Ubah Biodata
             </a>
+
+            {{-- Ubah Status Dasar — hanya tampil jika masih hidup --}}
+            @if($penduduk->status_dasar === 'hidup')
+            <button type="button" id="btn-ubah-status"
+                    onclick="document.getElementById('section-ubah-status').scrollIntoView({behavior:'smooth'})"
+                    class="flex items-center justify-center gap-1.5 w-full px-3 py-2
+                           bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold rounded-lg transition-all shadow-sm">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                </svg>
+                Ubah Status Dasar
+            </button>
+            @endif
+
+            <button type="button" onclick="window.print()"
+                    class="flex items-center justify-center gap-1.5 w-full px-3 py-2
+                           bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold rounded-lg transition-all shadow-sm">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                </svg>
+                Cetak Biodata
+            </button>
+
+            <button type="button"
+                    @click.stop="$dispatch('buka-modal-hapus', {
+                        action: '{{ route('admin.penduduk.destroy', $penduduk) }}',
+                        nama: '{{ addslashes($penduduk->nama) }}'
+                    })"
+                    class="flex items-center justify-center gap-1.5 w-full px-3 py-2
+                           bg-red-500 hover:bg-red-600 text-white text-xs font-semibold rounded-lg transition-all shadow-sm">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+                Hapus
+            </button>
+
             <a href="{{ route('admin.penduduk') }}"
-                class="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-700 text-gray-700 dark:text-slate-200 text-xs font-semibold rounded-xl hover:bg-gray-50 dark:hover:bg-slate-600 transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+               class="flex items-center justify-center gap-1.5 w-full px-3 py-2
+                      border border-gray-300 dark:border-slate-600
+                      bg-white dark:bg-slate-700 hover:bg-gray-50 dark:hover:bg-slate-600
+                      text-gray-600 dark:text-slate-300 text-xs font-semibold rounded-lg transition-all">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                 </svg>
                 Kembali
             </a>
         </div>
     </div>
-</div>
 
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    {{-- ╔═════════════════════════════════╗
+         ║  CARD KANAN — Data Biodata     ║
+         ╚═════════════════════════════════╝ --}}
+    <div class="flex-1 min-w-0 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 overflow-hidden">
 
-    {{-- ── Kartu Profil ──────────────────────────────────── --}}
-    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 p-8 flex flex-col items-center text-center gap-4">
+        @php
+            $val     = 'px-3 py-2 text-sm text-gray-700 dark:text-slate-200 bg-gray-50 dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg w-full cursor-default';
+            $valMono = $val . ' font-mono';
+        @endphp
 
-        {{-- Foto / Avatar --}}
-        <div class="w-32 h-32 rounded-2xl overflow-hidden bg-emerald-50 dark:bg-emerald-900/30 border-2 border-emerald-100 dark:border-emerald-800 flex items-center justify-center">
-            <span class="text-4xl font-bold text-emerald-500 dark:text-emerald-400">
-                {{ strtoupper(substr($penduduk->nama, 0, 2)) }}
-            </span>
-        </div>
-
-        {{-- Nama & Info --}}
+        {{-- ════════ DATA DIRI ════════ --}}
         <div>
-            <h2 class="text-xl font-bold text-gray-900 dark:text-slate-100">{{ $penduduk->nama }}</h2>
-            <p class="text-sm text-gray-500 dark:text-slate-400 font-mono mt-0.5">{{ $penduduk->nik }}</p>
-            <div class="flex flex-wrap items-center justify-center gap-2 mt-3">
-                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium {{ $penduduk->jenis_kelamin == 'L' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' : 'bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300' }}">
-                    {{ $penduduk->jenis_kelamin == 'L' ? '♂ Laki-laki' : '♀ Perempuan' }}
-                </span>
-                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium {{ $penduduk->status_hidup == 'hidup' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' }}">
-                    {{ ucfirst($penduduk->status_hidup) }}
-                </span>
-                @if($penduduk->golongan_darah)
-                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300">
-                    Gol. {{ $penduduk->golongan_darah }}
-                </span>
+            <div class="bg-cyan-50 dark:bg-cyan-900/20 border-b border-cyan-100 dark:border-cyan-800/40 px-5 py-2">
+                <span class="text-xs font-bold text-cyan-700 dark:text-cyan-400 uppercase tracking-widest">Data Diri</span>
+            </div>
+            <div class="p-5 grid grid-cols-2 gap-x-5 gap-y-3 border-b border-gray-100 dark:border-slate-700">
+
+                <div>
+                    <p class="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-1">NIK</p>
+                    <p class="{{ $valMono }}">{{ $penduduk->nik }}</p>
+                </div>
+
+                <div>
+                    <p class="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-1">Nama Lengkap</p>
+                    <p class="{{ $val }}">{{ $penduduk->nama }}</p>
+                </div>
+
+                <div>
+                    <p class="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-1">Jenis Kelamin</p>
+                    <p class="{{ $val }}">{{ $penduduk->jenis_kelamin == 'L' ? 'Laki-laki' : 'Perempuan' }}</p>
+                </div>
+
+                {{-- DIUBAH: dari $penduduk->agama ke relasi --}}
+                <div>
+                    <p class="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-1">Agama</p>
+                    <p class="{{ $val }}">{{ $penduduk->agama?->nama ?? $penduduk->agama_lama ?? '—' }}</p>
+                </div>
+
+                {{-- DIUBAH: dari status_hidup ke status (jenis penduduk) --}}
+                <div>
+                    <p class="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-1">Jenis Penduduk</p>
+                    <p class="{{ $val }}">{{ $penduduk->label_status }}</p>
+                </div>
+
+                {{-- DIUBAH: dari status_hidup ke status_dasar --}}
+                <div>
+                    <p class="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-1">Status Dasar</p>
+                    <p class="{{ $val }}">{{ $penduduk->label_status_dasar }}</p>
+                </div>
+
+                <div>
+                    <p class="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-1">Cara Terdaftar</p>
+                    <p class="{{ $val }}">{{ $penduduk->label_jenis_tambah }}</p>
+                </div>
+
+                <div>
+                    <p class="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-1">Tag ID Card</p>
+                    <p class="{{ $val }}">{{ $penduduk->tag_id_card ?: '—' }}</p>
+                </div>
+
+                {{-- DIUBAH: dari pivot keluargas ke FK keluarga + shdk --}}
+                <div>
+                    <p class="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-1">No. KK</p>
+                    <p class="{{ $valMono }}">
+                        @if($penduduk->keluarga)
+                            <a href="{{ route('admin.keluarga.show', $penduduk->keluarga) }}"
+                               class="text-emerald-600 dark:text-emerald-400 hover:underline">
+                                {{ $penduduk->keluarga->no_kk }}
+                            </a>
+                        @else
+                            —
+                        @endif
+                    </p>
+                </div>
+
+                <div>
+                    <p class="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-1">Status Hubungan Dalam KK (SHDK)</p>
+                    <p class="{{ $val }}">{{ $penduduk->shdk?->nama ?? '—' }}</p>
+                </div>
+
+            </div>
+        </div>
+
+        {{-- ════════ DATA KELAHIRAN ════════ --}}
+        <div>
+            <div class="bg-cyan-50 dark:bg-cyan-900/20 border-b border-cyan-100 dark:border-cyan-800/40 px-5 py-2">
+                <span class="text-xs font-bold text-cyan-700 dark:text-cyan-400 uppercase tracking-widest">Data Kelahiran</span>
+            </div>
+            <div class="p-5 grid grid-cols-3 gap-x-5 gap-y-3 border-b border-gray-100 dark:border-slate-700">
+
+                <div>
+                    <p class="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-1">Tempat Lahir</p>
+                    <p class="{{ $val }}">{{ $penduduk->tempat_lahir ?: '—' }}</p>
+                </div>
+
+                <div>
+                    <p class="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-1">Tanggal Lahir</p>
+                    <p class="{{ $val }}">
+                        {{ $penduduk->tanggal_lahir?->format('d M Y') ?? '—' }}
+                        @if($penduduk->umur !== null)
+                            <span class="text-gray-400">({{ $penduduk->umur }} th)</span>
+                        @endif
+                    </p>
+                </div>
+
+                <div>
+                    <p class="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-1">Tanggal Peristiwa</p>
+                    <p class="{{ $val }}">{{ $penduduk->tgl_peristiwa?->format('d M Y') ?? '—' }}</p>
+                </div>
+
+            </div>
+        </div>
+
+        {{-- ════════ DATA PENDIDIKAN & PEKERJAAN ════════ --}}
+        <div>
+            <div class="bg-cyan-50 dark:bg-cyan-900/20 border-b border-cyan-100 dark:border-cyan-800/40 px-5 py-2">
+                <span class="text-xs font-bold text-cyan-700 dark:text-cyan-400 uppercase tracking-widest">Data Pendidikan &amp; Pekerjaan</span>
+            </div>
+            <div class="p-5 grid grid-cols-2 gap-x-5 gap-y-3 border-b border-gray-100 dark:border-slate-700">
+
+                {{-- DIUBAH: dari varchar ke relasi --}}
+                <div>
+                    <p class="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-1">Pendidikan Dalam KK</p>
+                    <p class="{{ $val }}">{{ $penduduk->pendidikanKk?->nama ?? $penduduk->pendidikan_lama ?? '—' }}</p>
+                </div>
+
+                <div>
+                    <p class="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-1">Pekerjaan</p>
+                    <p class="{{ $val }}">{{ $penduduk->pekerjaan?->nama ?? $penduduk->pekerjaan_lama ?? '—' }}</p>
+                </div>
+
+            </div>
+        </div>
+
+        {{-- ════════ DATA KEWARGANEGARAAN ════════ --}}
+        <div>
+            <div class="bg-cyan-50 dark:bg-cyan-900/20 border-b border-cyan-100 dark:border-cyan-800/40 px-5 py-2">
+                <span class="text-xs font-bold text-cyan-700 dark:text-cyan-400 uppercase tracking-widest">Data Kewarganegaraan</span>
+            </div>
+            <div class="p-5 grid grid-cols-2 gap-x-5 gap-y-3 border-b border-gray-100 dark:border-slate-700">
+
+                {{-- DIUBAH: dari varchar ke relasi --}}
+                <div>
+                    <p class="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-1">Status Warga Negara</p>
+                    <p class="{{ $val }}">{{ $penduduk->warganegara?->nama ?? $penduduk->kewarganegaraan_lama ?? '—' }}</p>
+                </div>
+
+                <div>
+                    <p class="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-1">Golongan Darah</p>
+                    <p class="{{ $val }}">{{ $penduduk->golonganDarah?->nama ?? $penduduk->golongan_darah_lama ?? '—' }}</p>
+                </div>
+
+            </div>
+        </div>
+
+        {{-- ════════ DATA ORANG TUA ════════ --}}
+        <div>
+            <div class="bg-cyan-50 dark:bg-cyan-900/20 border-b border-cyan-100 dark:border-cyan-800/40 px-5 py-2">
+                <span class="text-xs font-bold text-cyan-700 dark:text-cyan-400 uppercase tracking-widest">Data Orang Tua</span>
+            </div>
+            <div class="p-5 grid grid-cols-2 gap-x-5 gap-y-3 border-b border-gray-100 dark:border-slate-700">
+
+                <div>
+                    <p class="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-1">Nama Ayah</p>
+                    {{-- Jika ayah terdaftar sebagai penduduk, tampilkan link --}}
+                    <p class="{{ $val }}">
+                        @if($penduduk->ayah)
+                            <a href="{{ route('admin.penduduk.show', $penduduk->ayah) }}"
+                               class="text-emerald-600 dark:text-emerald-400 hover:underline">
+                                {{ $penduduk->nama_ayah }}
+                            </a>
+                            <span class="text-xs text-gray-400 ml-1">({{ $penduduk->nik_ayah }})</span>
+                        @else
+                            {{ $penduduk->nama_ayah ?: '—' }}
+                            @if($penduduk->nik_ayah)
+                                <span class="text-xs text-gray-400 ml-1">({{ $penduduk->nik_ayah }})</span>
+                            @endif
+                        @endif
+                    </p>
+                </div>
+
+                <div>
+                    <p class="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-1">Nama Ibu</p>
+                    <p class="{{ $val }}">
+                        @if($penduduk->ibu)
+                            <a href="{{ route('admin.penduduk.show', $penduduk->ibu) }}"
+                               class="text-emerald-600 dark:text-emerald-400 hover:underline">
+                                {{ $penduduk->nama_ibu }}
+                            </a>
+                            <span class="text-xs text-gray-400 ml-1">({{ $penduduk->nik_ibu }})</span>
+                        @else
+                            {{ $penduduk->nama_ibu ?: '—' }}
+                            @if($penduduk->nik_ibu)
+                                <span class="text-xs text-gray-400 ml-1">({{ $penduduk->nik_ibu }})</span>
+                            @endif
+                        @endif
+                    </p>
+                </div>
+
+            </div>
+        </div>
+
+        {{-- ════════ DATA ALAMAT ════════ --}}
+        <div>
+            <div class="bg-cyan-50 dark:bg-cyan-900/20 border-b border-cyan-100 dark:border-cyan-800/40 px-5 py-2">
+                <span class="text-xs font-bold text-cyan-700 dark:text-cyan-400 uppercase tracking-widest">Data Alamat</span>
+            </div>
+            <div class="p-5 grid grid-cols-2 gap-x-5 gap-y-3 border-b border-gray-100 dark:border-slate-700">
+
+                <div class="col-span-2">
+                    <p class="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-1">Dusun / Wilayah</p>
+                    <p class="{{ $val }}">
+                        @if($penduduk->wilayah)
+                            {{ $penduduk->wilayah->dusun }} — RT {{ $penduduk->wilayah->rt }} / RW {{ $penduduk->wilayah->rw }}
+                        @else
+                            —
+                        @endif
+                    </p>
+                </div>
+
+                <div class="col-span-2">
+                    <p class="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-1">Alamat Sekarang</p>
+                    <p class="{{ $val }}">{{ $penduduk->alamat ?: '—' }}</p>
+                </div>
+
+                @if($penduduk->alamat_sebelumnya)
+                <div class="col-span-2">
+                    <p class="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-1">Alamat Sebelumnya</p>
+                    <p class="{{ $val }}">{{ $penduduk->alamat_sebelumnya }}</p>
+                </div>
                 @endif
+
+                <div>
+                    <p class="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-1">Nomor Telepon</p>
+                    <p class="{{ $val }}">{{ $penduduk->no_telp ?: '—' }}</p>
+                </div>
+
+                <div>
+                    <p class="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-1">Email</p>
+                    <p class="{{ $val }}">{{ $penduduk->email ?: '—' }}</p>
+                </div>
+
             </div>
         </div>
 
-    </div>
-
-    {{-- ── Detail Info ────────────────────────────────────── --}}
-    <div class="lg:col-span-2 space-y-5">
-
-        {{-- Identitas --}}
-        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 p-6">
-            <h3 class="text-sm font-bold text-gray-700 dark:text-slate-200 uppercase tracking-wider mb-4 pb-3 border-b border-gray-100 dark:border-slate-700 flex items-center gap-2">
-                <div class="w-5 h-5 bg-emerald-100 dark:bg-emerald-900/40 rounded flex items-center justify-center">
-                    <svg class="w-3 h-3 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                </div>
-                Identitas Dasar
-            </h3>
-            <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                    <dt class="text-xs text-gray-400 dark:text-slate-500 font-medium uppercase tracking-wider">Tempat, Tgl Lahir</dt>
-                    <dd class="text-sm font-semibold text-gray-800 dark:text-slate-200 mt-0.5">{{ $penduduk->tempat_lahir }}, {{ $penduduk->tanggal_lahir->format('d F Y') }}</dd>
-                </div>
-                <div>
-                    <dt class="text-xs text-gray-400 dark:text-slate-500 font-medium uppercase tracking-wider">Agama</dt>
-                    <dd class="text-sm font-semibold text-gray-800 dark:text-slate-200 mt-0.5">{{ $penduduk->agama }}</dd>
-                </div>
-                <div>
-                    <dt class="text-xs text-gray-400 dark:text-slate-500 font-medium uppercase tracking-wider">Kewarganegaraan</dt>
-                    <dd class="text-sm font-semibold text-gray-800 dark:text-slate-200 mt-0.5">{{ $penduduk->kewarganegaraan }}</dd>
-                </div>
-                <div>
-                    <dt class="text-xs text-gray-400 dark:text-slate-500 font-medium uppercase tracking-wider">Alamat</dt>
-                    <dd class="text-sm font-semibold text-gray-800 dark:text-slate-200 mt-0.5">{{ $penduduk->alamat ?? '-' }}</dd>
-                </div>
-            </dl>
-        </div>
-
-        {{-- Keluarga & Wilayah --}}
-        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 p-6">
-            <h3 class="text-sm font-bold text-gray-700 dark:text-slate-200 uppercase tracking-wider mb-4 pb-3 border-b border-gray-100 dark:border-slate-700 flex items-center gap-2">
-                <div class="w-5 h-5 bg-blue-100 dark:bg-blue-900/40 rounded flex items-center justify-center">
-                    <svg class="w-3 h-3 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                    </svg>
-                </div>
-                Keluarga & Wilayah
-            </h3>
-            <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                    <dt class="text-xs text-gray-400 dark:text-slate-500 font-medium uppercase tracking-wider">Keluarga (KK)</dt>
-                    @php $currentKeluarga = $penduduk->keluargas()->withPivot('hubungan_keluarga')->first(); @endphp
-                    @if($currentKeluarga)
-                    <dd class="text-sm font-semibold text-gray-800 dark:text-slate-200 mt-0.5 font-mono">{{ $currentKeluarga->no_kk }}</dd>
-                    <dd class="text-xs text-gray-500 dark:text-slate-400 mt-0.5">{{ $currentKeluarga->getKepalaKeluarga()->nama ?? 'N/A' }}</dd>
-                    <span class="mt-1 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
-                        {{ ucfirst(str_replace('_', ' ', $currentKeluarga->pivot->hubungan_keluarga)) }}
-                    </span>
-                    @else
-                    <dd class="text-sm text-gray-400 dark:text-slate-500 mt-0.5">Belum ada keluarga</dd>
-                    @endif
-                </div>
-                <div>
-                    <dt class="text-xs text-gray-400 dark:text-slate-500 font-medium uppercase tracking-wider">Rumah Tangga</dt>
-                    @php $currentRumahTangga = $penduduk->rumahTanggas()->withPivot('hubungan_rumah_tangga')->first(); @endphp
-                    @if($currentRumahTangga)
-                    <dd class="text-sm font-semibold text-gray-800 dark:text-slate-200 mt-0.5 font-mono">{{ $currentRumahTangga->no_rumah_tangga }}</dd>
-                    <dd class="text-xs text-gray-500 dark:text-slate-400 mt-0.5">{{ $currentRumahTangga->kepalaRumahTangga()->nama ?? 'N/A' }}</dd>
-                    @else
-                    <dd class="text-sm text-gray-400 dark:text-slate-500 mt-0.5">Belum ada rumah tangga</dd>
-                    @endif
-                </div>
-                <div class="sm:col-span-2">
-                    <dt class="text-xs text-gray-400 dark:text-slate-500 font-medium uppercase tracking-wider">Wilayah</dt>
-                    @if($penduduk->wilayah)
-                    <dd class="text-sm font-semibold text-gray-800 dark:text-slate-200 mt-0.5">
-                        RT {{ $penduduk->wilayah->rt }} / RW {{ $penduduk->wilayah->rw }}
-                        <span class="text-gray-500 dark:text-slate-400 font-normal">— {{ $penduduk->wilayah->dusun }}</span>
-                    </dd>
-                    @else
-                    <dd class="text-sm text-gray-400 dark:text-slate-500 mt-0.5">Belum ada wilayah</dd>
-                    @endif
-                </div>
-            </dl>
-        </div>
-
-        {{-- Status & Pendidikan --}}
-        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 p-6">
-            <h3 class="text-sm font-bold text-gray-700 dark:text-slate-200 uppercase tracking-wider mb-4 pb-3 border-b border-gray-100 dark:border-slate-700 flex items-center gap-2">
-                <div class="w-5 h-5 bg-purple-100 dark:bg-purple-900/40 rounded flex items-center justify-center">
-                    <svg class="w-3 h-3 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                    </svg>
-                </div>
-                Status & Pendidikan
-            </h3>
-            <dl class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                    <dt class="text-xs text-gray-400 dark:text-slate-500 font-medium uppercase tracking-wider">Status Kawin</dt>
-                    <dd class="text-sm font-semibold text-gray-800 dark:text-slate-200 mt-0.5">{{ $penduduk->status_kawin }}</dd>
-                </div>
-                <div>
-                    <dt class="text-xs text-gray-400 dark:text-slate-500 font-medium uppercase tracking-wider">Pendidikan</dt>
-                    <dd class="text-sm font-semibold text-gray-800 dark:text-slate-200 mt-0.5">{{ $penduduk->pendidikan ?? '—' }}</dd>
-                </div>
-                <div>
-                    <dt class="text-xs text-gray-400 dark:text-slate-500 font-medium uppercase tracking-wider">Pekerjaan</dt>
-                    <dd class="mt-0.5">
-                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium {{ $penduduk->pekerjaan == 'bekerja' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-400' }}">
-                            {{ $penduduk->pekerjaan == 'bekerja' ? 'Bekerja' : 'Tidak Bekerja' }}
-                        </span>
-                    </dd>
-                </div>
-            </dl>
-        </div>
-
-        {{-- Kontak --}}
-        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 p-6">
-            <h3 class="text-sm font-bold text-gray-700 dark:text-slate-200 uppercase tracking-wider mb-4 pb-3 border-b border-gray-100 dark:border-slate-700 flex items-center gap-2">
-                <div class="w-5 h-5 bg-pink-100 dark:bg-pink-900/40 rounded flex items-center justify-center">
-                    <svg class="w-3 h-3 text-pink-600 dark:text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                    </svg>
-                </div>
-                Kontak
-            </h3>
-            <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                    <dt class="text-xs text-gray-400 dark:text-slate-500 font-medium uppercase tracking-wider">No. Telepon</dt>
-                    @if($penduduk->no_telp)
-                    <dd class="text-sm font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5">
-                        <a href="tel:{{ $penduduk->no_telp }}" class="hover:underline">{{ $penduduk->no_telp }}</a>
-                    </dd>
-                    @else
-                    <dd class="text-sm text-gray-400 dark:text-slate-500 mt-0.5">—</dd>
-                    @endif
-                </div>
-                <div>
-                    <dt class="text-xs text-gray-400 dark:text-slate-500 font-medium uppercase tracking-wider">Email</dt>
-                    @if($penduduk->email)
-                    <dd class="text-sm font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5">
-                        <a href="mailto:{{ $penduduk->email }}" class="hover:underline truncate block">{{ $penduduk->email }}</a>
-                    </dd>
-                    @else
-                    <dd class="text-sm text-gray-400 dark:text-slate-500 mt-0.5">—</dd>
-                    @endif
-                </div>
-            </dl>
-        </div>
-
-        {{-- Metadata --}}
-        <div class="pt-4 border-t border-gray-100 dark:border-slate-700 flex flex-wrap items-center gap-4 text-xs text-gray-400 dark:text-slate-500">
-            <div class="flex items-center gap-1.5">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Dibuat: {{ $penduduk->created_at->format('d M Y H:i') }}
+        {{-- ════════ DATA PERKAWINAN ════════ --}}
+        <div>
+            <div class="bg-cyan-50 dark:bg-cyan-900/20 border-b border-cyan-100 dark:border-cyan-800/40 px-5 py-2">
+                <span class="text-xs font-bold text-cyan-700 dark:text-cyan-400 uppercase tracking-widest">Data Perkawinan</span>
             </div>
-            @if($penduduk->updated_at != $penduduk->created_at)
+            <div class="p-5 grid grid-cols-2 gap-x-5 gap-y-3 border-b border-gray-100 dark:border-slate-700">
+
+                {{-- DIUBAH: dari varchar ke relasi --}}
+                <div>
+                    <p class="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-1">Status Perkawinan</p>
+                    <p class="{{ $val }}">{{ $penduduk->statusKawin?->nama ?? $penduduk->status_kawin_lama ?? '—' }}</p>
+                </div>
+
+                @if($penduduk->akta_perkawinan || $penduduk->tanggal_perkawinan)
+                <div>
+                    <p class="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-1">Akta / Tgl Perkawinan</p>
+                    <p class="{{ $val }}">
+                        {{ $penduduk->akta_perkawinan ?: '—' }}
+                        @if($penduduk->tanggal_perkawinan)
+                            <span class="text-gray-400">({{ $penduduk->tanggal_perkawinan->format('d M Y') }})</span>
+                        @endif
+                    </p>
+                </div>
+                @endif
+
+                @if($penduduk->akta_perceraian || $penduduk->tanggal_perceraian)
+                <div>
+                    <p class="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-1">Akta / Tgl Perceraian</p>
+                    <p class="{{ $val }}">
+                        {{ $penduduk->akta_perceraian ?: '—' }}
+                        @if($penduduk->tanggal_perceraian)
+                            <span class="text-gray-400">({{ $penduduk->tanggal_perceraian->format('d M Y') }})</span>
+                        @endif
+                    </p>
+                </div>
+                @endif
+
+            </div>
+        </div>
+
+        {{-- ════════ DATA RUMAH TANGGA — DIUBAH: via keluarga.rumahTangga --}}
+        <div>
+            <div class="bg-cyan-50 dark:bg-cyan-900/20 border-b border-cyan-100 dark:border-cyan-800/40 px-5 py-2">
+                <span class="text-xs font-bold text-cyan-700 dark:text-cyan-400 uppercase tracking-widest">Data Rumah Tangga</span>
+            </div>
+            <div class="p-5 grid grid-cols-2 gap-x-5 gap-y-3 border-b border-gray-100 dark:border-slate-700">
+
+                @php $rt = $penduduk->keluarga?->rumahTangga; @endphp
+                <div>
+                    <p class="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-1">No. Rumah Tangga</p>
+                    <p class="{{ $valMono }}">
+                        @if($rt)
+                            <a href="{{ route('admin.rumah-tangga.show', $rt) }}"
+                               class="text-emerald-600 dark:text-emerald-400 hover:underline">
+                                {{ $rt->no_rumah_tangga }}
+                            </a>
+                        @else
+                            —
+                        @endif
+                    </p>
+                </div>
+
+                <div>
+                    <p class="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-1">Klasifikasi Ekonomi</p>
+                    <p class="{{ $val }}">{{ $rt?->klasifikasi_ekonomi ? ucfirst($rt->klasifikasi_ekonomi) : '—' }}</p>
+                </div>
+
+            </div>
+        </div>
+
+        {{-- ════════ UBAH STATUS DASAR (anchor) ════════ --}}
+        @if($penduduk->status_dasar === 'hidup')
+        <div id="section-ubah-status">
+            <div class="bg-orange-50 dark:bg-orange-900/20 border-b border-orange-100 dark:border-orange-800/40 px-5 py-2">
+                <span class="text-xs font-bold text-orange-700 dark:text-orange-400 uppercase tracking-widest">Ubah Status Dasar</span>
+            </div>
+            <div class="p-5 border-b border-gray-100 dark:border-slate-700">
+                <p class="text-xs text-gray-500 dark:text-slate-400 mb-4">
+                    Gunakan formulir ini untuk mencatat perubahan status penduduk (meninggal, pindah, hilang).
+                    Penduduk yang statusnya diubah tidak akan tampil di daftar penduduk aktif, namun data tersimpan di Catatan Peristiwa.
+                    @if($penduduk->kk_level == \App\Models\Penduduk::SHDK_KEPALA_KELUARGA)
+                        <span class="text-orange-500 font-semibold">⚠ Penduduk ini adalah Kepala Keluarga. Tetapkan Kepala Keluarga pengganti sebelum mengubah status menjadi Meninggal.</span>
+                    @endif
+                </p>
+                <form method="POST" action="{{ route('admin.penduduk.ubah-status-dasar', $penduduk) }}"
+                      class="grid grid-cols-3 gap-4">
+                    @csrf
+                    @method('PATCH')
+
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">
+                            Status Baru <span class="text-red-500">*</span>
+                        </label>
+                        <select name="status_dasar" required
+                            class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm
+                                   bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200
+                                   focus:ring-2 focus:ring-orange-400 outline-none transition-all">
+                            @if($penduduk->kk_level != \App\Models\Penduduk::SHDK_KEPALA_KELUARGA)
+                            <option value="mati">Meninggal</option>
+                            @endif
+                            <option value="pindah">Pindah</option>
+                            <option value="hilang">Hilang</option>
+                            <option value="pergi">Pergi</option>
+                            <option value="tidak_valid">Tidak Valid</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">
+                            Tanggal Peristiwa <span class="text-red-500">*</span>
+                        </label>
+                        <input type="date" name="tgl_peristiwa" required
+                               value="{{ date('Y-m-d') }}"
+                               class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm
+                                      bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200
+                                      focus:ring-2 focus:ring-orange-400 outline-none transition-all">
+                    </div>
+
+                    <div class="flex items-end">
+                        <button type="submit"
+                                class="w-full px-4 py-2 bg-orange-500 hover:bg-orange-600
+                                       text-white rounded-lg font-semibold text-sm transition-all shadow-sm">
+                            Simpan Status
+                        </button>
+                    </div>
+
+                    <div class="col-span-3">
+                        <label class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">
+                            Keterangan
+                        </label>
+                        <input type="text" name="keterangan"
+                               placeholder="Keterangan tambahan (opsional)"
+                               class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm
+                                      bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200 placeholder-gray-300
+                                      focus:ring-2 focus:ring-orange-400 outline-none transition-all">
+                    </div>
+                </form>
+            </div>
+        </div>
+        @endif
+
+        {{-- ════════ METADATA ════════ --}}
+        <div class="px-5 py-4 flex flex-wrap items-center gap-4 text-xs text-gray-400 dark:text-slate-500 bg-gray-50 dark:bg-slate-800/60">
             <div class="flex items-center gap-1.5">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
-                Diperbarui: {{ $penduduk->updated_at->format('d M Y H:i') }}
+                Dibuat: {{ $penduduk->created_at->format('d M Y, H:i') }}
+            </div>
+            @if($penduduk->updated_at->ne($penduduk->created_at))
+            <div class="flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                Diperbarui: {{ $penduduk->updated_at->format('d M Y, H:i') }}
             </div>
             @endif
+            <div class="flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                Terdaftar: {{ $penduduk->tgl_terdaftar?->format('d M Y') ?? '—' }}
+            </div>
         </div>
 
     </div>
 </div>
 
 @include('admin.partials.modal-hapus')
-@endsection
 
+@endsection

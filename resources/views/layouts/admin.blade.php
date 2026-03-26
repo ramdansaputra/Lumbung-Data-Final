@@ -29,27 +29,20 @@
     </script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 
-    {{-- Alpine store untuk dark mode - move before </head> to ensure it's available --}}
+    {{-- Alpine: store theme + anti-FOUC digabung dalam satu listener --}}
     <script>
         document.addEventListener('alpine:init', () => {
+            // Store dark mode
             Alpine.store('theme', {
                 dark: document.documentElement.classList.contains('dark'),
                 toggle() {
                     this.dark = !this.dark;
-                    // Langsung manipulasi class di <html> — tidak perlu refresh
-                    if (this.dark) {
-                        document.documentElement.classList.add('dark');
-                    } else {
-                        document.documentElement.classList.remove('dark');
-                    }
+                    document.documentElement.classList.toggle('dark', this.dark);
                     localStorage.setItem('lumbung_theme', this.dark ? 'dark' : 'light');
                 }
             });
-        });
-    </script>
 
-    <script>
-        document.addEventListener('alpine:init', () => {
+            // Hilangkan alpine-loading setelah Alpine siap (anti-FOUC)
             document.body.classList.remove('alpine-loading');
         });
     </script>
@@ -320,12 +313,30 @@
             background-color: #0f172a;
         }
 
+        /* bg-gray-200 di light mode → slate-900 di dark */
+        .dark .bg-gray-200 {
+            background-color: #0f172a !important;
+        }
+
+        /* Update scrollbar track agar match bg-gray-200 */
+        .main-scroll::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.08);
+        }
+
         [x-cloak] {
             display: none !important;
         }
 
         /* ================================================================ */
         /* GLOBAL DARK MODE — otomatis berlaku di semua child views         */
+        /*                                                                  */
+        /* ⚠️  CATATAN MIGRASI: Blok ini pakai `!important` sebagai         */
+        /*    shortcut agar child views (yang hanya pakai class Tailwind     */
+        /*    default seperti `bg-white`) otomatis dapat dark mode.         */
+        /*    Saat refactor tiap halaman, tambahkan dark: variant langsung  */
+        /*    di komponen tersebut (contoh: `dark:bg-slate-800`), lalu      */
+        /*    hapus rule terkait di sini. Jangan tambah rule baru ke sini   */
+        /*    untuk halaman yang sudah di-refactor.                         */
         /* ================================================================ */
 
         /* ── Card / Panel putih ── */
@@ -624,7 +635,7 @@
 </head>
 
 <body
-    class="alpine-loading bg-gradient-to-br from-gray-50 to-gray-100 dark:bg-gradient-to-br dark:from-slate-900 dark:to-slate-950 antialiased transition-colors duration-300"
+    class="alpine-loading bg-gray-200 dark:bg-slate-950 antialiased transition-colors duration-300"
     x-data="{ sidebarOpen: true, sidebarHovered: false }">
 
     <div class="flex h-screen overflow-hidden">
@@ -1284,7 +1295,7 @@
                             <div class="flex items-center gap-2">
                                 @if ($pendingComments > 0)
                                     <span
-                                        class="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full sidebar-badge">{{ $pendingComments }}</span>
+                                        class="bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full sidebar-badge">{{ $pendingComments }}</span>
                                 @endif
                                 <svg class="w-4 h-4 chevron flex-shrink-0" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
@@ -1312,7 +1323,7 @@
                                 </div>
                                 @if ($pendingComments > 0)
                                     <span
-                                        class="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full sidebar-badge">{{ $pendingComments }}</span>
+                                        class="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full sidebar-badge">{{ $pendingComments }}</span>
                                 @endif
                             </a>
                         </div>
@@ -1427,7 +1438,7 @@
                             <div class="flex items-center gap-2">
                                 @if ($unreadPesan > 0)
                                     <span
-                                        class="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full sidebar-badge">{{ $unreadPesan }}</span>
+                                        class="bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full sidebar-badge">{{ $unreadPesan }}</span>
                                 @endif
                                 <svg class="w-4 h-4 chevron flex-shrink-0" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
@@ -1493,27 +1504,19 @@
                                 <span class="menu-text whitespace-nowrap">Daftar Dokumen</span>
                             </a>
 
-                            {{-- Permohonan Informasi — coming soon --}}
-                            <div class="menu-item flex items-center justify-between px-3 py-2 rounded-lg text-sm text-white/40 cursor-not-allowed"
-                                x-show="itemVisible({label: 'Permohonan Informasi'})"
-                                title="Segera hadir">
-                                <div class="flex items-center gap-3">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-white/20 flex-shrink-0"></span>
-                                    <span class="menu-text whitespace-nowrap">Permohonan Informasi</span>
-                                </div>
-                                <span class="menu-text text-[10px] font-semibold bg-white/10 text-white/50 px-1.5 py-0.5 rounded-full whitespace-nowrap">soon</span>
-                            </div>
+<a href="/admin/ppid/permohonan-informasi"
+                                class="menu-item flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-white/80 hover:bg-white/10 hover:text-white {{ request()->is('admin/ppid/permohonan*') || request()->is('admin/ppid/permohonan-informasi*') ? 'bg-white/15 text-white' : '' }}"
+                                x-show="itemVisible({label: 'Permohonan Informasi'})">
+                                <span class="w-1.5 h-1.5 rounded-full bg-white/50 flex-shrink-0"></span>
+                                <span class="menu-text whitespace-nowrap">Permohonan Informasi</span>
+</a>
 
-                            {{-- Permohonan Keberatan — coming soon --}}
-                            <div class="menu-item flex items-center justify-between px-3 py-2 rounded-lg text-sm text-white/40 cursor-not-allowed"
-                                x-show="itemVisible({label: 'Permohonan Keberatan'})"
-                                title="Segera hadir">
-                                <div class="flex items-center gap-3">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-white/20 flex-shrink-0"></span>
-                                    <span class="menu-text whitespace-nowrap">Permohonan Keberatan</span>
-                                </div>
-                                <span class="menu-text text-[10px] font-semibold bg-white/10 text-white/50 px-1.5 py-0.5 rounded-full whitespace-nowrap">soon</span>
-                            </div>
+                            <a href="/admin/ppid/keberatan"
+                                class="menu-item flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-white/80 hover:bg-white/10 hover:text-white {{ request()->is('admin/ppid/keberatan*') ? 'bg-white/15 text-white' : '' }}"
+                                x-show="itemVisible({label: 'Permohonan Keberatan'})">
+                                <span class="w-1.5 h-1.5 rounded-full bg-white/50 flex-shrink-0"></span>
+                                <span class="menu-text whitespace-nowrap">Permohonan Keberatan</span>
+                            </a>
 
                             {{-- Jenis Dokumen — sudah ada --}}
                             <a href="{{ route('admin.ppid.jenis.index') }}"
@@ -1523,16 +1526,12 @@
                                 <span class="menu-text whitespace-nowrap">Jenis Dokumen</span>
                             </a>
 
-                            {{-- Pengaturan — coming soon --}}
-                            <div class="menu-item flex items-center justify-between px-3 py-2 rounded-lg text-sm text-white/40 cursor-not-allowed"
-                                x-show="itemVisible({label: 'Pengaturan PPID'})"
-                                title="Segera hadir">
-                                <div class="flex items-center gap-3">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-white/20 flex-shrink-0"></span>
-                                    <span class="menu-text whitespace-nowrap">Pengaturan</span>
-                                </div>
-                                <span class="menu-text text-[10px] font-semibold bg-white/10 text-white/50 px-1.5 py-0.5 rounded-full whitespace-nowrap">soon</span>
-                            </div>
+                            <a href="/admin/ppid/pengaturan"
+                                class="menu-item flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-white/80 hover:bg-white/10 hover:text-white {{ request()->is('admin/ppid/pengaturan*') ? 'bg-white/15 text-white' : '' }}"
+                                x-show="itemVisible({label: 'Pengaturan PPID'})">
+                                <span class="w-1.5 h-1.5 rounded-full bg-white/50 flex-shrink-0"></span>
+                                <span class="menu-text whitespace-nowrap">Pengaturan</span>
+                            </a>
 
                             {{-- Menu — coming soon --}}
                             <div class="menu-item flex items-center justify-between px-3 py-2 rounded-lg text-sm text-white/40 cursor-not-allowed"
@@ -1542,7 +1541,7 @@
                                     <span class="w-1.5 h-1.5 rounded-full bg-white/20 flex-shrink-0"></span>
                                     <span class="menu-text whitespace-nowrap">Menu</span>
                                 </div>
-                                <span class="menu-text text-[10px] font-semibold bg-white/10 text-white/50 px-1.5 py-0.5 rounded-full whitespace-nowrap">soon</span>
+                                <span class="menu-text text-xs font-semibold bg-white/10 text-white/50 px-1.5 py-0.5 rounded-full whitespace-nowrap">soon</span>
                             </div>
 
                         </div>
@@ -1693,7 +1692,7 @@
                                     <div class="p-3 mb-2 rounded-xl bg-gray-50 dark:bg-slate-700/50 border border-gray-100 dark:border-slate-600">
                                         <div class="flex justify-between items-start mb-1">
                                             <h4 class="font-bold text-[13px] text-gray-800 dark:text-slate-100" x-text="item.judul"></h4>
-                                            <span class="text-[10px] text-gray-400 whitespace-nowrap ml-2" x-text="item.waktu"></span>
+                                            <span class="text-xs text-gray-400 whitespace-nowrap ml-2" x-text="item.waktu"></span>
                                         </div>
                                         <p class="text-xs text-gray-600 dark:text-slate-400 leading-relaxed" x-text="item.isi"></p>
                                     </div>
@@ -1713,7 +1712,7 @@
                                     d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                             </svg>
                             <span x-show="totalUnread > 0" x-text="totalUnread > 99 ? '99+' : totalUnread"
-                                class="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 shadow-sm"></span>
+                                class="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center px-1 shadow-sm"></span>
                         </button>
 
                         {{-- Dropdown Panel --}}
@@ -1799,7 +1798,7 @@
                                                     x-text="item.title"></p>
                                                 <p class="text-xs text-gray-600 dark:text-slate-400 truncate"
                                                     x-text="item.message"></p>
-                                                <p class="text-[10px] text-gray-400 mt-0.5" x-text="item.time"></p>
+                                                <p class="text-xs text-gray-400 mt-0.5" x-text="item.time"></p>
                                             </div>
 
                                             {{-- Unread dot + mark read --}}
@@ -2001,7 +2000,7 @@
                                     <input type="number"
                                         class="w-full border dark:border-slate-600 rounded px-3 py-2 focus:ring-2 focus:ring-emerald-500 outline-none bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100"
                                         value="235">
-                                    <p class="text-[10px] text-red-500 mt-2 italic">Pengaturan rentang waktu
+                                    <p class="text-xs text-red-500 mt-2 italic">Pengaturan rentang waktu
                                         notifikasi
                                         rilis dalam satuan hari.</p>
                                 </div>
@@ -2026,7 +2025,7 @@
             <!-- CONTENT AREA                                                  -->
             <!-- ============================================================ -->
             <section
-                class="main-scroll flex-1 overflow-y-auto p-8 bg-gray-50 dark:bg-slate-900 transition-colors duration-300">
+                class="main-scroll flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 bg-gray-200 dark:bg-slate-900 transition-colors duration-300">
 
                 @if (session('success'))
                     <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 3000)" x-transition
@@ -2346,7 +2345,7 @@
             {{-- Footer Panel --}}
             <div
                 class="flex-shrink-0 px-5 py-3 bg-gray-50 dark:bg-slate-900 border-t border-gray-100 dark:border-slate-700 text-center">
-                <p class="text-[10px] text-gray-400 dark:text-slate-500">
+                <p class="text-xs text-gray-400 dark:text-slate-500">
                     © {{ date('Y') }} Lumbung Data · Dikembangkan dengan ❤️ untuk desa
                 </p>
             </div>
@@ -2396,7 +2395,7 @@
                     <div class="bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 text-gray-700 dark:text-slate-200 px-4 py-2.5 rounded-2xl rounded-tl-sm text-[13px] shadow-sm">
                         Halo, ada yang bisa dibantu mengenai sistem?
                     </div>
-                    <span class="text-[10px] text-gray-400 mt-1 ml-1">Otomatis</span>
+                    <span class="text-xs text-gray-400 mt-1 ml-1">Otomatis</span>
                 </div>
 
                 <div x-show="loading" class="text-center py-2">
@@ -2411,7 +2410,7 @@
                                 : 'bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 text-gray-700 dark:text-slate-200 rounded-2xl rounded-tl-sm'">
                             <span x-text="msg.pesan"></span>
                         </div>
-                        <span class="text-[10px] text-gray-400 mt-1" :class="msg.is_sender ? 'mr-1' : 'ml-1'" x-text="msg.time"></span>
+                        <span class="text-xs text-gray-400 mt-1" :class="msg.is_sender ? 'mr-1' : 'ml-1'" x-text="msg.time"></span>
                     </div>
                 </template>
             </div>
@@ -2853,7 +2852,7 @@
                             },
                             {
                                 label: 'Permohonan Informasi',
-                                url: '#'
+                                url: '/admin/ppid/permohonan-informasi'
                             },
                             {
                                 label: 'Permohonan Keberatan',

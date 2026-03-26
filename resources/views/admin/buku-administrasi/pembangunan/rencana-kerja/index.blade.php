@@ -31,144 +31,172 @@
 </div>
 @endif
 
-{{-- STATS --}}
-<div class="grid grid-cols-3 gap-4 mb-6">
-    <div class="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-5 hover:shadow-md transition-shadow">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-xs font-medium text-gray-500 dark:text-slate-400">Total Kegiatan</p>
-                <p class="text-2xl font-bold text-gray-800 dark:text-slate-100 mt-1">{{ number_format($pembangunan->total()) }}</p>
-            </div>
-            <div class="w-11 h-11 bg-blue-50 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
-                <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-            </div>
-        </div>
-    </div>
-    <div class="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-5 hover:shadow-md transition-shadow">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-xs font-medium text-gray-500 dark:text-slate-400">Total Anggaran</p>
-                <p class="text-2xl font-bold text-gray-800 dark:text-slate-100 mt-1">Rp {{ number_format($totalAnggaran ?? 0, 0, ',', '.') }}</p>
-            </div>
-            <div class="w-11 h-11 bg-emerald-50 dark:bg-emerald-900/30 rounded-xl flex items-center justify-center">
-                <svg class="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            </div>
-        </div>
-    </div>
-    <div class="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-5 hover:shadow-md transition-shadow">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-xs font-medium text-gray-500 dark:text-slate-400">Tahun Aktif</p>
-                <p class="text-2xl font-bold text-gray-800 dark:text-slate-100 mt-1">{{ $tahunList->first() ?? '-' }}</p>
-            </div>
-            <div class="w-11 h-11 bg-purple-50 dark:bg-purple-900/30 rounded-xl flex items-center justify-center">
-                <svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-            </div>
-        </div>
-    </div>
-</div>
+{{-- MAIN CONTAINER --}}
+<div class="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm p-5">
 
-{{-- FILTER --}}
-<form method="GET" action="{{ route('admin.buku-administrasi.pembangunan.rencana-kerja.index') }}"
-      class="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-5 mb-6">
-    <h3 class="text-sm font-semibold text-gray-900 dark:text-slate-100 mb-4 flex items-center gap-2">
-        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/></svg>
-        Filter Data
-    </h3>
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-        {{-- Search --}}
-        <div>
-            <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1.5">Pencarian</label>
-            <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                </div>
-                <input type="text" name="search" value="{{ request('search') }}" placeholder="Nama kegiatan..."
-                       class="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 placeholder-gray-400 focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-colors">
-            </div>
-        </div>
-        {{-- Tahun --}}
-        <div>
-            <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1.5">Tahun</label>
-            <select name="tahun" class="w-full px-3 py-2.5 text-sm border border-gray-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-colors">
-                <option value="">Semua Tahun</option>
+    {{-- Tombol Cetak --}}
+    <div class="mb-4">
+        <a href="{{ route('admin.buku-administrasi.pembangunan.rencana-kerja.cetak', request()->query()) }}"
+           target="_blank"
+           class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+            </svg>
+            Cetak/Unduh
+        </a>
+    </div>
+
+    {{-- Form filter (Pilih Tahun + Tampilkan entri + Cari) --}}
+    <form method="GET" action="{{ route('admin.buku-administrasi.pembangunan.rencana-kerja.index') }}" id="form-filter">
+
+        {{-- Pilih Tahun --}}
+        <div class="mb-4">
+            <select name="tahun" onchange="document.getElementById('form-filter').submit()"
+                    class="px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-700 dark:text-slate-200 focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-colors">
+                <option value="">Pilih Tahun</option>
                 @foreach($tahunList as $tahun)
-                <option value="{{ $tahun }}" {{ request('tahun') == $tahun ? 'selected' : '' }}>{{ $tahun }}</option>
+                    <option value="{{ $tahun }}" {{ request('tahun') == $tahun ? 'selected' : '' }}>{{ $tahun }}</option>
                 @endforeach
             </select>
+            @if(request('tahun'))
+                <a href="{{ route('admin.buku-administrasi.pembangunan.rencana-kerja.index') }}"
+                   class="ml-2 text-xs text-gray-400 hover:text-red-500 transition-colors">✕ Reset</a>
+            @endif
         </div>
-        {{-- Tombol --}}
-        <div class="flex items-end gap-2 md:col-span-2">
-            <button type="submit" class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-500 text-white text-sm font-medium rounded-xl hover:bg-emerald-600 transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/></svg>
-                Filter
-            </button>
-            <a href="{{ route('admin.buku-administrasi.pembangunan.rencana-kerja.index') }}" class="inline-flex items-center justify-center px-3 py-2.5 bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-400 text-sm rounded-xl hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-            </a>
-        </div>
-    </div>
-</form>
 
-{{-- TABLE --}}
-<div class="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
+        {{-- Tampilkan X entri + Cari --}}
+        <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-slate-400">
+                <span>Tampilkan</span>
+                <select name="per_page" onchange="document.getElementById('form-filter').submit()"
+                        class="px-2 py-1 text-sm border border-gray-300 dark:border-slate-600 rounded bg-white dark:bg-slate-700 text-gray-700 dark:text-slate-200">
+                    @foreach([10, 25, 50, 100] as $n)
+                        <option value="{{ $n }}" {{ request('per_page', 10) == $n ? 'selected' : '' }}>{{ $n }}</option>
+                    @endforeach
+                </select>
+                <span>entri</span>
+            </div>
+            <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-slate-400">
+                <span>Cari:</span>
+                <input type="text" name="search" value="{{ request('search') }}"
+                       placeholder="kata kunci pencarian"
+                       class="px-3 py-1.5 text-sm border border-gray-300 dark:border-slate-600 rounded bg-white dark:bg-slate-700 text-gray-700 dark:text-slate-200 placeholder-gray-400 focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-colors w-52">
+            </div>
+        </div>
+
+    </form>{{-- end form --}}
+
+    {{-- TABLE --}}
     @if($pembangunan->isEmpty())
-    <div class="flex flex-col items-center justify-center py-16 text-gray-400">
-        <svg class="w-16 h-16 mb-4 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-        <p class="text-lg font-semibold text-gray-500 dark:text-slate-400">Belum ada data rencana kerja</p>
-        <p class="text-sm mt-1 dark:text-slate-500">Data pembangunan akan ditampilkan di sini</p>
-    </div>
+        <div class="flex flex-col items-center justify-center py-14 text-gray-400">
+            <svg class="w-14 h-14 mb-3 opacity-25" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+            </svg>
+            <p class="font-semibold text-gray-500 dark:text-slate-400">Belum ada data rencana kerja</p>
+            <p class="text-xs mt-1 dark:text-slate-500">Data pembangunan akan ditampilkan di sini</p>
+        </div>
     @else
-    <div class="overflow-x-auto">
-        <table class="w-full text-sm">
-            <thead>
-                <tr class="bg-gray-50 dark:bg-slate-700/50 border-b border-gray-200 dark:border-slate-700">
-                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider w-10">No</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Nama Kegiatan</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider hidden md:table-cell">Bidang</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider hidden lg:table-cell">Tahun</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider hidden lg:table-cell">Sumber Dana</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider hidden md:table-cell">Total Anggaran</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider hidden xl:table-cell">Pelaksana</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider hidden xl:table-cell">Keterangan</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100 dark:divide-slate-700">
-                @foreach($pembangunan as $index => $p)
-                <tr class="hover:bg-gray-50 dark:hover:bg-slate-700/40 transition-colors">
-                    <td class="px-4 py-4 text-gray-400 text-xs font-medium">{{ $pembangunan->firstItem() + $index }}</td>
-                    <td class="px-4 py-4 font-semibold text-gray-900 dark:text-slate-100 whitespace-nowrap">
-                        {{ $p->nama }}
-                    </td>
-                    <td class="px-4 py-4 text-gray-600 dark:text-slate-400 hidden md:table-cell text-xs">
-                        {{ $p->bidang->nama ?? '-' }}
-                    </td>
-                    <td class="px-4 py-4 text-gray-600 dark:text-slate-400 hidden lg:table-cell text-xs">
-                        {{ $p->tahun_anggaran }}
-                    </td>
-                    <td class="px-4 py-4 text-gray-600 dark:text-slate-400 hidden lg:table-cell text-xs">
-                        {{ $p->sumberDana->nama ?? '-' }}
-                    </td>
-                    <td class="px-4 py-4 text-gray-800 dark:text-slate-200 font-medium hidden md:table-cell text-xs">
-                        Rp {{ number_format($p->total_anggaran, 0, ',', '.') }}
-                    </td>
-                    <td class="px-4 py-4 text-gray-600 dark:text-slate-400 hidden xl:table-cell text-xs">
-                        {{ $p->pelaksana ?? '-' }}
-                    </td>
-                    <td class="px-4 py-4 text-gray-600 dark:text-slate-400 hidden xl:table-cell text-xs">
-                        {{ $p->keterangan ?? '-' }}
-                    </td>
-                </tr>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm border-collapse">
+                <thead>
+                    {{-- Baris 1 --}}
+                    <tr class="bg-gray-100 dark:bg-slate-700">
+                        <th rowspan="2" class="px-3 py-3 text-center text-xs font-semibold text-gray-600 dark:text-slate-300 uppercase border border-gray-300 dark:border-slate-600 align-middle w-12">Nomor Urut</th>
+                        <th rowspan="2" class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-slate-300 uppercase border border-gray-300 dark:border-slate-600 align-middle min-w-[180px]">Nama Proyek / Kegiatan</th>
+                        <th rowspan="2" class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-slate-300 uppercase border border-gray-300 dark:border-slate-600 align-middle min-w-[120px]">Lokasi</th>
+                        <th colspan="5" class="px-4 py-2 text-center text-xs font-semibold text-gray-600 dark:text-slate-300 uppercase border border-gray-300 dark:border-slate-600">Sumber Dana</th>
+                        <th rowspan="2" class="px-4 py-3 text-center text-xs font-semibold text-gray-600 dark:text-slate-300 uppercase border border-gray-300 dark:border-slate-600 align-middle min-w-[100px]">Jumlah</th>
+                        <th rowspan="2" class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-slate-300 uppercase border border-gray-300 dark:border-slate-600 align-middle min-w-[100px]">Pelaksana</th>
+                        <th rowspan="2" class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-slate-300 uppercase border border-gray-300 dark:border-slate-600 align-middle min-w-[120px]">Manfaat</th>
+                        <th rowspan="2" class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-slate-300 uppercase border border-gray-300 dark:border-slate-600 align-middle">Ket.</th>
+                    </tr>
+                    {{-- Baris 2: sub-header SUMBER DANA --}}
+                    <tr class="bg-gray-100 dark:bg-slate-700">
+                        <th class="px-3 py-2 text-center text-xs font-semibold text-gray-600 dark:text-slate-300 uppercase border border-gray-300 dark:border-slate-600 min-w-[90px]">Pemerintah</th>
+                        <th class="px-3 py-2 text-center text-xs font-semibold text-gray-600 dark:text-slate-300 uppercase border border-gray-300 dark:border-slate-600 min-w-[90px]">Provinsi</th>
+                        <th class="px-3 py-2 text-center text-xs font-semibold text-gray-600 dark:text-slate-300 uppercase border border-gray-300 dark:border-slate-600 min-w-[90px]">Kab/Kota</th>
+                        <th class="px-3 py-2 text-center text-xs font-semibold text-gray-600 dark:text-slate-300 uppercase border border-gray-300 dark:border-slate-600 min-w-[90px]">Swadaya</th>
+                        <th class="px-3 py-2 text-center text-xs font-semibold text-gray-600 dark:text-slate-300 uppercase border border-gray-300 dark:border-slate-600 min-w-[90px]">Sumber Lain</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($pembangunan as $index => $p)
+                    @php $jumlah = $p->total_anggaran; @endphp
+                    <tr class="border-b border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/40 transition-colors">
+                        <td class="px-3 py-3 text-center text-gray-500 dark:text-slate-400 text-xs border border-gray-200 dark:border-slate-700">{{ $pembangunan->firstItem() + $index }}</td>
+                        <td class="px-4 py-3 text-gray-900 dark:text-slate-100 text-xs border border-gray-200 dark:border-slate-700">
+                            {{ $p->nama }}
+                            @if($p->tahun_anggaran)
+                                <span class="text-gray-400 text-xs">({{ $p->tahun_anggaran }})</span>
+                            @endif
+                        </td>
+                        <td class="px-4 py-3 text-gray-600 dark:text-slate-400 text-xs border border-gray-200 dark:border-slate-700">{{ $p->lokasi->label ?? '-' }}</td>
+                        <td class="px-3 py-3 text-right text-gray-700 dark:text-slate-300 text-xs border border-gray-200 dark:border-slate-700">
+                            @if($p->dana_pemerintah > 0) Rp {{ number_format($p->dana_pemerintah, 0, ',', '.') }} @else <span class="text-gray-300 dark:text-slate-600">-</span> @endif
+                        </td>
+                        <td class="px-3 py-3 text-right text-gray-700 dark:text-slate-300 text-xs border border-gray-200 dark:border-slate-700">
+                            @if($p->dana_provinsi > 0) Rp {{ number_format($p->dana_provinsi, 0, ',', '.') }} @else <span class="text-gray-300 dark:text-slate-600">-</span> @endif
+                        </td>
+                        <td class="px-3 py-3 text-right text-gray-700 dark:text-slate-300 text-xs border border-gray-200 dark:border-slate-700">
+                            @if($p->dana_kabkota > 0) Rp {{ number_format($p->dana_kabkota, 0, ',', '.') }} @else <span class="text-gray-300 dark:text-slate-600">-</span> @endif
+                        </td>
+                        <td class="px-3 py-3 text-right text-gray-700 dark:text-slate-300 text-xs border border-gray-200 dark:border-slate-700">
+                            @if($p->swadaya > 0) Rp {{ number_format($p->swadaya, 0, ',', '.') }} @else <span class="text-gray-300 dark:text-slate-600">-</span> @endif
+                        </td>
+                        <td class="px-3 py-3 text-right text-gray-700 dark:text-slate-300 text-xs border border-gray-200 dark:border-slate-700">
+                            @if($p->sumber_lain > 0) Rp {{ number_format($p->sumber_lain, 0, ',', '.') }} @else <span class="text-gray-300 dark:text-slate-600">-</span> @endif
+                        </td>
+                        <td class="px-4 py-3 text-right font-semibold text-gray-800 dark:text-slate-200 text-xs border border-gray-200 dark:border-slate-700">Rp {{ number_format($jumlah, 0, ',', '.') }}</td>
+                        <td class="px-4 py-3 text-gray-600 dark:text-slate-400 text-xs border border-gray-200 dark:border-slate-700">{{ $p->pelaksana ?? '-' }}</td>
+                        <td class="px-4 py-3 text-gray-600 dark:text-slate-400 text-xs border border-gray-200 dark:border-slate-700">{{ $p->manfaat ?? '-' }}</td>
+                        <td class="px-4 py-3 text-gray-600 dark:text-slate-400 text-xs border border-gray-200 dark:border-slate-700">{{ $p->keterangan ?? '-' }}</td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+
+        {{-- Pagination --}}
+        <div class="flex items-center justify-between mt-4">
+            <p class="text-xs text-gray-500 dark:text-slate-400">
+                Menampilkan {{ $pembangunan->firstItem() }} sampai {{ $pembangunan->lastItem() }}
+                dari {{ number_format($pembangunan->total()) }} entri
+            </p>
+            <div class="flex items-center gap-1">
+                {{-- Sebelumnya --}}
+                @if($pembangunan->onFirstPage())
+                    <span class="px-3 py-1.5 text-xs text-gray-400 border border-gray-200 dark:border-slate-600 rounded cursor-not-allowed">Sebelumnya</span>
+                @else
+                    <a href="{{ $pembangunan->appends(request()->query())->previousPageUrl() }}"
+                       class="px-3 py-1.5 text-xs text-gray-600 dark:text-slate-300 border border-gray-300 dark:border-slate-600 rounded hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">Sebelumnya</a>
+                @endif
+
+                {{-- Nomor halaman --}}
+                @foreach($pembangunan->appends(request()->query())->getUrlRange(
+                    max(1, $pembangunan->currentPage() - 2),
+                    min($pembangunan->lastPage(), $pembangunan->currentPage() + 2)
+                ) as $page => $url)
+                    @if($page == $pembangunan->currentPage())
+                        <span class="px-3 py-1.5 text-xs font-semibold text-white bg-emerald-600 border border-emerald-600 rounded">{{ $page }}</span>
+                    @else
+                        <a href="{{ $url }}" class="px-3 py-1.5 text-xs text-gray-600 dark:text-slate-300 border border-gray-300 dark:border-slate-600 rounded hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">{{ $page }}</a>
+                    @endif
                 @endforeach
-            </tbody>
-        </table>
-    </div>
-    @if($pembangunan->hasPages())
-    <div class="px-5 py-4 border-t border-gray-100 dark:border-slate-700">{{ $pembangunan->links() }}</div>
-    @endif
-    @endif
-</div>
 
-</div>
+                {{-- Selanjutnya --}}
+                @if($pembangunan->hasMorePages())
+                    <a href="{{ $pembangunan->appends(request()->query())->nextPageUrl() }}"
+                       class="px-3 py-1.5 text-xs text-gray-600 dark:text-slate-300 border border-gray-300 dark:border-slate-600 rounded hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">Selanjutnya</a>
+                @else
+                    <span class="px-3 py-1.5 text-xs text-gray-400 border border-gray-200 dark:border-slate-600 rounded cursor-not-allowed">Selanjutnya</span>
+                @endif
+            </div>
+        </div>
+    @endif{{-- end @else --}}
+
+</div>{{-- end main container --}}
+
+</div>{{-- end x-data --}}
 @endsection
-

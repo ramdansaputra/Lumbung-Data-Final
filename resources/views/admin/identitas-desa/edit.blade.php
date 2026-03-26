@@ -5,7 +5,7 @@
 @section('content')
 
 {{-- ============================================================ --}}
-{{-- HEADER: Title kiri + Breadcrumb + Tombol kanan               --}}
+{{-- HEADER                                                       --}}
 {{-- ============================================================ --}}
 <div class="flex items-center justify-between mb-6">
     <div>
@@ -41,6 +41,27 @@
     </div>
 </div>
 
+{{-- ============================================================ --}}
+{{-- FIX: Notifikasi error global jika ada validasi yang gagal    --}}
+{{-- ============================================================ --}}
+@if ($errors->any())
+    <div class="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
+        <div class="flex items-start gap-3">
+            <svg class="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <div>
+                <p class="text-sm font-semibold text-red-700 dark:text-red-400">Terdapat {{ $errors->count() }} kesalahan pada form:</p>
+                <ul class="mt-1 text-sm text-red-600 dark:text-red-400 list-disc list-inside space-y-0.5">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        </div>
+    </div>
+@endif
+
 <form action="{{ route('admin.identitas-desa.update') }}" method="POST" enctype="multipart/form-data">
     @csrf
     @method('PUT')
@@ -73,14 +94,8 @@
                     </div>
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-2">Dimensi Logo (px)</label>
-                            <input type="text" name="dimensi_logo" placeholder="Contoh: 512"
-                                class="w-full px-4 py-2.5 text-sm rounded-xl border border-gray-300 dark:border-slate-600 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all placeholder:text-gray-400 dark:placeholder:text-slate-500 bg-gray-50 dark:bg-slate-700 hover:bg-white dark:hover:bg-slate-600 text-gray-900 dark:text-slate-100">
-                            <p class="mt-1 text-xs text-gray-500 dark:text-slate-400">Kosongkan untuk dimensi otomatis</p>
-                        </div>
-                        <div>
                             <label class="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-2">Upload Logo Baru</label>
-                            <label class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-xl cursor-pointer bg-gray-50 dark:bg-slate-700/50 hover:bg-gray-100 dark:hover:bg-slate-700 transition-all">
+                            <label class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed {{ $errors->has('logo_desa') ? 'border-red-400' : 'border-gray-300 dark:border-slate-600' }} rounded-xl cursor-pointer bg-gray-50 dark:bg-slate-700/50 hover:bg-gray-100 dark:hover:bg-slate-700 transition-all">
                                 <div class="flex flex-col items-center justify-center pt-5 pb-6">
                                     <svg class="w-8 h-8 mb-2 text-gray-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -90,6 +105,13 @@
                                 </div>
                                 <input type="file" name="logo_desa" id="logo_desa_input" accept="image/*" class="hidden">
                             </label>
+                            {{-- FIX: Tampilkan error logo --}}
+                            @error('logo_desa')
+                                <p class="mt-1 text-xs text-red-500 flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                                    {{ $message }}
+                                </p>
+                            @enderror
                         </div>
                     </div>
                 </div>
@@ -120,16 +142,23 @@
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-2">Upload Gambar Baru</label>
-                        <label class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-xl cursor-pointer bg-gray-50 dark:bg-slate-700/50 hover:bg-gray-100 dark:hover:bg-slate-700 transition-all">
+                        <label class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed {{ $errors->has('gambar_kantor') ? 'border-red-400' : 'border-gray-300 dark:border-slate-600' }} rounded-xl cursor-pointer bg-gray-50 dark:bg-slate-700/50 hover:bg-gray-100 dark:hover:bg-slate-700 transition-all">
                             <div class="flex flex-col items-center justify-center pt-5 pb-6">
                                 <svg class="w-8 h-8 mb-2 text-gray-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                                 </svg>
                                 <p class="text-xs text-gray-500 dark:text-slate-400 font-medium">Klik untuk upload</p>
-                                <p class="text-xs text-gray-400 dark:text-slate-500">PNG, JPG (MAX. 5MB)</p>
+                                <p class="text-xs text-gray-400 dark:text-slate-500">PNG, JPG (MAX. 2MB)</p>
                             </div>
                             <input type="file" name="gambar_kantor" id="gambar_kantor_input" accept="image/*" class="hidden">
                         </label>
+                        {{-- FIX: Tampilkan error gambar kantor --}}
+                        @error('gambar_kantor')
+                            <p class="mt-1 text-xs text-red-500 flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                                {{ $message }}
+                            </p>
+                        @enderror
                     </div>
                 </div>
             </div>
@@ -151,9 +180,18 @@
                 <div class="p-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">Nama Desa <span class="text-red-500">*</span></label>
+                            <label class="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">
+                                Nama Desa <span class="text-red-500">*</span>
+                            </label>
                             <input type="text" name="nama_desa" value="{{ old('nama_desa', $desa->nama_desa) }}"
-                                class="w-full px-4 py-2.5 text-sm rounded-xl border border-gray-300 dark:border-slate-600 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all bg-gray-50 dark:bg-slate-700 hover:bg-white dark:hover:bg-slate-600 text-gray-900 dark:text-slate-100" required>
+                                class="w-full px-4 py-2.5 text-sm rounded-xl border {{ $errors->has('nama_desa') ? 'border-red-400 bg-red-50 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 dark:border-slate-600 focus:ring-emerald-500 focus:border-emerald-500 bg-gray-50 dark:bg-slate-700 hover:bg-white dark:hover:bg-slate-600' }} text-gray-900 dark:text-slate-100 transition-all" required>
+                            {{-- FIX: Error nama_desa --}}
+                            @error('nama_desa')
+                                <p class="mt-1 text-xs text-red-500 flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                                    {{ $message }}
+                                </p>
+                            @enderror
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">Kode Desa</label>
@@ -220,16 +258,23 @@
                     </div>
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">Link Embed Google Maps (Iframe URL)</label>
-                        <textarea name="link_peta" id="link_peta" rows="3"
+                        <textarea name="link_peta" rows="3"
                             class="w-full px-4 py-2.5 text-sm rounded-xl border border-gray-300 dark:border-slate-600 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all bg-gray-50 dark:bg-slate-700 hover:bg-white dark:hover:bg-slate-600 text-gray-900 dark:text-slate-100 resize-none"
                             placeholder="Contoh: https://www.google.com/maps/embed?pb=...">{{ old('link_peta', $desa->link_peta) }}</textarea>
-                        <p class="text-xs text-gray-500 dark:text-slate-400 mt-1">Buka Google Maps > Cari Desa > Klik Bagikan > Pilih 'Sematkan Peta' > Salin hanya bagian URL di dalam src="..."</p>
+                        <p class="text-xs text-gray-500 dark:text-slate-400 mt-1">Buka Google Maps > Cari Desa > Klik Bagikan > Pilih 'Sematkan Peta' > Salin URL dari src="..."</p>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">Email Desa</label>
                             <input type="email" name="email_desa" value="{{ old('email_desa', $desa->email_desa) }}"
-                                class="w-full px-4 py-2.5 text-sm rounded-xl border border-gray-300 dark:border-slate-600 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all bg-gray-50 dark:bg-slate-700 hover:bg-white dark:hover:bg-slate-600 text-gray-900 dark:text-slate-100">
+                                class="w-full px-4 py-2.5 text-sm rounded-xl border {{ $errors->has('email_desa') ? 'border-red-400 bg-red-50' : 'border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 hover:bg-white dark:hover:bg-slate-600' }} focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all text-gray-900 dark:text-slate-100">
+                            {{-- FIX: Error email --}}
+                            @error('email_desa')
+                                <p class="mt-1 text-xs text-red-500 flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                                    {{ $message }}
+                                </p>
+                            @enderror
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">Telepon Desa</label>
@@ -243,14 +288,25 @@
                         </div>
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">Website Desa</label>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">
+                            Website Desa
+                            <span class="text-xs font-normal text-gray-400 ml-1">(harus diawali https://)</span>
+                        </label>
                         <input type="text" name="website_desa" value="{{ old('website_desa', $desa->website_desa) }}"
-                            class="w-full px-4 py-2.5 text-sm rounded-xl border border-gray-300 dark:border-slate-600 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all bg-gray-50 dark:bg-slate-700 hover:bg-white dark:hover:bg-slate-600 text-gray-900 dark:text-slate-100"
+                            class="w-full px-4 py-2.5 text-sm rounded-xl border {{ $errors->has('website_desa') ? 'border-red-400 bg-red-50' : 'border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 hover:bg-white dark:hover:bg-slate-600' }} focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all text-gray-900 dark:text-slate-100"
                             placeholder="https://desa.example.com">
+                        {{-- FIX: Error website --}}
+                        @error('website_desa')
+                            <p class="mt-1 text-xs text-red-500 flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                                {{ $message }}
+                            </p>
+                        @enderror
                     </div>
                 </div>
             </div>
 
+            <!-- Media Sosial -->
             <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 overflow-hidden">
                 <div class="px-6 py-4 bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 border-b border-gray-200 dark:border-slate-700">
                     <div class="flex items-center gap-3">
@@ -280,8 +336,15 @@
                             </label>
                             <input type="url" name="facebook" value="{{ old('facebook', $desa->facebook) }}"
                                 placeholder="https://facebook.com/namahalaman"
-                                class="w-full px-4 py-2.5 text-sm rounded-xl border border-gray-300 dark:border-slate-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-gray-50 dark:bg-slate-700 hover:bg-white dark:hover:bg-slate-600 text-gray-900 dark:text-slate-100 placeholder:text-gray-400 dark:placeholder:text-slate-500">
-                            @if($desa->facebook)
+                                class="w-full px-4 py-2.5 text-sm rounded-xl border {{ $errors->has('facebook') ? 'border-red-400 bg-red-50' : 'border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 hover:bg-white dark:hover:bg-slate-600' }} focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-900 dark:text-slate-100 placeholder:text-gray-400">
+                            {{-- FIX: Error facebook --}}
+                            @error('facebook')
+                                <p class="mt-1 text-xs text-red-500 flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                                    {{ $message }}
+                                </p>
+                            @enderror
+                            @if($desa->facebook && !$errors->has('facebook'))
                                 <a href="{{ $desa->facebook }}" target="_blank" class="inline-flex items-center gap-1 mt-1.5 text-xs text-blue-600 dark:text-blue-400 hover:underline">
                                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                                     Lihat halaman
@@ -301,8 +364,15 @@
                             </label>
                             <input type="url" name="instagram" value="{{ old('instagram', $desa->instagram) }}"
                                 placeholder="https://instagram.com/namaakun"
-                                class="w-full px-4 py-2.5 text-sm rounded-xl border border-gray-300 dark:border-slate-600 focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all bg-gray-50 dark:bg-slate-700 hover:bg-white dark:hover:bg-slate-600 text-gray-900 dark:text-slate-100 placeholder:text-gray-400 dark:placeholder:text-slate-500">
-                            @if($desa->instagram)
+                                class="w-full px-4 py-2.5 text-sm rounded-xl border {{ $errors->has('instagram') ? 'border-red-400 bg-red-50' : 'border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 hover:bg-white dark:hover:bg-slate-600' }} focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all text-gray-900 dark:text-slate-100 placeholder:text-gray-400">
+                            {{-- FIX: Error instagram --}}
+                            @error('instagram')
+                                <p class="mt-1 text-xs text-red-500 flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                                    {{ $message }}
+                                </p>
+                            @enderror
+                            @if($desa->instagram && !$errors->has('instagram'))
                                 <a href="{{ $desa->instagram }}" target="_blank" class="inline-flex items-center gap-1 mt-1.5 text-xs text-pink-600 dark:text-pink-400 hover:underline">
                                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                                     Lihat profil
@@ -322,8 +392,15 @@
                             </label>
                             <input type="url" name="youtube" value="{{ old('youtube', $desa->youtube) }}"
                                 placeholder="https://youtube.com/@namachannel"
-                                class="w-full px-4 py-2.5 text-sm rounded-xl border border-gray-300 dark:border-slate-600 focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all bg-gray-50 dark:bg-slate-700 hover:bg-white dark:hover:bg-slate-600 text-gray-900 dark:text-slate-100 placeholder:text-gray-400 dark:placeholder:text-slate-500">
-                            @if($desa->youtube)
+                                class="w-full px-4 py-2.5 text-sm rounded-xl border {{ $errors->has('youtube') ? 'border-red-400 bg-red-50' : 'border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 hover:bg-white dark:hover:bg-slate-600' }} focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all text-gray-900 dark:text-slate-100 placeholder:text-gray-400">
+                            {{-- FIX: Error youtube --}}
+                            @error('youtube')
+                                <p class="mt-1 text-xs text-red-500 flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                                    {{ $message }}
+                                </p>
+                            @enderror
+                            @if($desa->youtube && !$errors->has('youtube'))
                                 <a href="{{ $desa->youtube }}" target="_blank" class="inline-flex items-center gap-1 mt-1.5 text-xs text-red-600 dark:text-red-400 hover:underline">
                                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                                     Lihat channel
@@ -349,9 +426,15 @@
                     </div>
                     <div class="p-6 space-y-4">
                         <div>
-                            <label class="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-2">Nama Kecamatan</label>
+                            <label class="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-2">Nama Kecamatan <span class="text-red-500">*</span></label>
                             <input type="text" name="kecamatan" value="{{ old('kecamatan', $desa->kecamatan) }}"
-                                class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-slate-600 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all bg-gray-50 dark:bg-slate-700 hover:bg-white dark:hover:bg-slate-600 text-gray-900 dark:text-slate-100">
+                                class="w-full px-3 py-2 text-sm rounded-lg border {{ $errors->has('kecamatan') ? 'border-red-400 bg-red-50' : 'border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 hover:bg-white dark:hover:bg-slate-600' }} focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all text-gray-900 dark:text-slate-100">
+                            @error('kecamatan')
+                                <p class="mt-1 text-xs text-red-500 flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                                    {{ $message }}
+                                </p>
+                            @enderror
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-2">Kode Kecamatan</label>
@@ -384,9 +467,15 @@
                     </div>
                     <div class="p-6 space-y-4">
                         <div>
-                            <label class="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-2">Nama Kabupaten</label>
+                            <label class="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-2">Nama Kabupaten <span class="text-red-500">*</span></label>
                             <input type="text" name="kabupaten" value="{{ old('kabupaten', $desa->kabupaten) }}"
-                                class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-slate-600 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-gray-50 dark:bg-slate-700 hover:bg-white dark:hover:bg-slate-600 text-gray-900 dark:text-slate-100">
+                                class="w-full px-3 py-2 text-sm rounded-lg border {{ $errors->has('kabupaten') ? 'border-red-400 bg-red-50' : 'border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 hover:bg-white dark:hover:bg-slate-600' }} focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all text-gray-900 dark:text-slate-100">
+                            @error('kabupaten')
+                                <p class="mt-1 text-xs text-red-500 flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                                    {{ $message }}
+                                </p>
+                            @enderror
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-2">Kode Kabupaten</label>
@@ -407,18 +496,22 @@
                             <h3 class="text-sm font-bold text-gray-900 dark:text-slate-100">Provinsi</h3>
                         </div>
                     </div>
-                    <div class="p-6">
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-2">Nama Provinsi</label>
-                                <input type="text" name="provinsi" value="{{ old('provinsi', $desa->provinsi) }}"
-                                    class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-slate-600 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all bg-gray-50 dark:bg-slate-700 hover:bg-white dark:hover:bg-slate-600 text-gray-900 dark:text-slate-100">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-2">Kode Provinsi</label>
-                                <input type="text" name="kode_provinsi" value="{{ old('kode_provinsi', $desa->kode_provinsi) }}"
-                                    class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-slate-600 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all bg-gray-50 dark:bg-slate-700 hover:bg-white dark:hover:bg-slate-600 text-gray-900 dark:text-slate-100">
-                            </div>
+                    <div class="p-6 space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-2">Nama Provinsi <span class="text-red-500">*</span></label>
+                            <input type="text" name="provinsi" value="{{ old('provinsi', $desa->provinsi) }}"
+                                class="w-full px-3 py-2 text-sm rounded-lg border {{ $errors->has('provinsi') ? 'border-red-400 bg-red-50' : 'border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 hover:bg-white dark:hover:bg-slate-600' }} focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all text-gray-900 dark:text-slate-100">
+                            @error('provinsi')
+                                <p class="mt-1 text-xs text-red-500 flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                                    {{ $message }}
+                                </p>
+                            @enderror
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-2">Kode Provinsi</label>
+                            <input type="text" name="kode_provinsi" value="{{ old('kode_provinsi', $desa->kode_provinsi) }}"
+                                class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-slate-600 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all bg-gray-50 dark:bg-slate-700 hover:bg-white dark:hover:bg-slate-600 text-gray-900 dark:text-slate-100">
                         </div>
                     </div>
                 </div>
