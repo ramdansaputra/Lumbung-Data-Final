@@ -14,7 +14,7 @@
     use App\Http\Controllers\Admin\InfoDesa\KerjasamaController;
 
     // Kependudukan
-    use App\Http\Controllers\Admin\kependudukan\PendudukController;
+use App\Http\Controllers\Admin\kependudukan\PendudukController;
     use App\Http\Controllers\Admin\kependudukan\KeluargaController;
     use App\Http\Controllers\Admin\kependudukan\RumahTanggaController;
     use App\Http\Controllers\Admin\kependudukan\KelompokController;
@@ -109,7 +109,8 @@
     use App\Http\Controllers\Admin\ArtikelController;
     use App\Http\Controllers\Admin\DashboardController;
     use App\Http\Controllers\Admin\InfoDesaController;
-    use App\Http\Controllers\Admin\LembagaController;
+    use App\Http\Controllers\InfoDesa\LembagaKategoriController;
+    use App\Http\Controllers\InfoDesa\LembagaDesaController;
     use App\Http\Controllers\Admin\PengaduanController;
     use App\Http\Controllers\Admin\PenggunaController;
     use App\Http\Controllers\Admin\RumahTanggaAnggotaController;
@@ -680,10 +681,47 @@
 
         /*
         |--------------------------------------------------------------------------
-        | LEMBAGA DESA
+        | INFO DESA - LEMBAGA
         |--------------------------------------------------------------------------
         */
-        Route::resource('lembaga', LembagaController::class);
+        Route::prefix('info-desa')->group(function () {
+            Route::resource('lembaga-kategori', LembagaKategoriController::class);
+            Route::delete('lembaga-kategori/bulk-destroy', [LembagaKategoriController::class, 'destroy'])->name('lembaga-kategori.bulk-destroy');
+
+            // ← Taruh cetak & unduh SEBELUM resource, tanpa prefix 'info-desa/'
+            Route::get('lembaga-desa/cetak', [LembagaDesaController::class, 'cetak'])->name('lembaga-desa.cetak');
+            Route::get('lembaga-desa/unduh', [LembagaDesaController::class, 'unduh'])->name('lembaga-desa.unduh');
+
+            Route::resource('lembaga-desa', LembagaDesaController::class);
+            Route::delete('lembaga-desa/bulk-destroy', [LembagaDesaController::class, 'destroy'])->name('lembaga-desa.bulk-destroy');
+
+            Route::prefix('lembaga-desa/{lembaga}/dokumen')->name('lembaga-desa.dokumen.')->group(function () {
+                Route::get('/',                  [\App\Http\Controllers\InfoDesa\lembagaDokumenController::class, 'index'])->name('index');
+                Route::get('/create',            [\App\Http\Controllers\InfoDesa\lembagaDokumenController::class, 'create'])->name('create');
+                Route::post('/',                 [\App\Http\Controllers\InfoDesa\lembagaDokumenController::class, 'store'])->name('store');
+                Route::get('/{dokumen}/edit',    [\App\Http\Controllers\InfoDesa\lembagaDokumenController::class, 'edit'])->name('edit');
+                Route::put('/{dokumen}',         [\App\Http\Controllers\InfoDesa\lembagaDokumenController::class, 'update'])->name('update');
+                Route::delete('/{dokumen}',      [\App\Http\Controllers\InfoDesa\lembagaDokumenController::class, 'destroy'])->name('destroy');
+                Route::delete('/',               [\App\Http\Controllers\InfoDesa\lembagaDokumenController::class, 'bulkDestroy'])->name('bulk-destroy');
+                Route::get('/{dokumen}/download', [\App\Http\Controllers\InfoDesa\lembagaDokumenController::class, 'download'])->name('download');
+            });
+
+            Route::prefix('lembaga-desa/{lembaga}/anggota')->name('lembaga-desa.anggota.')->group(function () {
+                Route::get('/', [\App\Http\Controllers\InfoDesa\LembagaAnggotaController::class, 'index'])->name('index');
+                Route::get('/create', [\App\Http\Controllers\InfoDesa\LembagaAnggotaController::class, 'create'])->name('create');
+                Route::post('/', [\App\Http\Controllers\InfoDesa\LembagaAnggotaController::class, 'store'])->name('store');
+                Route::get('/{anggota}/edit', [\App\Http\Controllers\InfoDesa\LembagaAnggotaController::class, 'edit'])->name('edit');
+                Route::put('/{anggota}', [\App\Http\Controllers\InfoDesa\LembagaAnggotaController::class, 'update'])->name('update');
+                Route::delete('/{anggota}', [\App\Http\Controllers\InfoDesa\LembagaAnggotaController::class, 'destroy'])->name('destroy');
+                Route::delete('/', [\App\Http\Controllers\InfoDesa\LembagaAnggotaController::class, 'bulkDestroy'])->name('bulk-destroy');
+                Route::get('/cetak', [\App\Http\Controllers\InfoDesa\LembagaAnggotaController::class, 'cetak'])->name('cetak');
+                Route::get('/unduh', [\App\Http\Controllers\InfoDesa\LembagaAnggotaController::class, 'unduh'])->name('unduh');
+            
+                // Load additional lembaga-desa anggota routes (create-bulk, store-bulk)
+                require __DIR__ . '/web-lembaga-anggota.php';
+            });
+        });
+
 
         /*
         |--------------------------------------------------------------------------
@@ -694,27 +732,36 @@
         Route::get('/penduduk/create', [PendudukController::class, 'create'])->name('penduduk.create');
         Route::post('/penduduk', [PendudukController::class, 'store'])->name('penduduk.store');
         Route::post('/penduduk/import', [PendudukController::class, 'import'])->name('penduduk.import');
+        Route::post('/penduduk/import-bip', [PendudukController::class, 'importBip'])->name('penduduk.import-bip');
         Route::get('/penduduk/template', [PendudukController::class, 'downloadTemplate'])->name('penduduk.template');
         Route::get('/penduduk/export/excel', [PendudukController::class, 'exportExcel'])->name('penduduk.export.excel');
+        Route::get('/penduduk/export/huruf', [PendudukController::class, 'exportExcel'])->name('penduduk.export.huruf');
         Route::get('/penduduk/export/pdf', [PendudukController::class, 'exportPdf'])->name('penduduk.export.pdf');
 
         Route::delete('/penduduk/bulk-destroy', [PendudukController::class, 'bulkDestroy'])->name('penduduk.bulk-destroy');
-
+        Route::get('/penduduk/cetak-data', [PendudukController::class, 'cetakData'])
+            ->name('penduduk.cetak-data');
+            
         // ── Route wildcard /{penduduk} ────────────────────────────────────────────
         // CATATAN: pencarian-spesifik, program-bantuan, kumpulan-nik sekarang jadi modal
         //          di halaman index — tidak perlu route terpisah
         Route::get('/penduduk/{penduduk}', [PendudukController::class, 'show'])->name('penduduk.show');
+        Route::get('/penduduk/{penduduk}/cetak-biodata', [PendudukController::class, 'cetakBiodata'])
+            ->name('penduduk.cetak-biodata');
         Route::get('/penduduk/{penduduk}/edit', [PendudukController::class, 'edit'])->name('penduduk.edit');
         Route::put('/penduduk/{penduduk}', [PendudukController::class, 'update'])->name('penduduk.update');
         Route::get('/penduduk/{penduduk}/delete', [PendudukController::class, 'confirmDestroy'])->name('penduduk.confirm-destroy');
         Route::delete('/penduduk/{penduduk}', [PendudukController::class, 'destroy'])->name('penduduk.destroy');
+        Route::patch('/penduduk/{penduduk}/ubah-status-dasar', [PendudukController::class, 'ubahStatusDasar'])->name('penduduk.ubah-status-dasar');
 
         // ── Sub-resource: lokasi & dokumen ───────────────────────────────────────
         Route::get('/penduduk/{penduduk}/lokasi',                    [PendudukController::class, 'lokasi'])->name('penduduk.lokasi');
         Route::post('/penduduk/{penduduk}/lokasi',                   [PendudukController::class, 'lokasiStore'])->name('penduduk.lokasi.store');
         Route::get('/penduduk/{penduduk}/dokumen',                   [PendudukController::class, 'dokumen'])->name('penduduk.dokumen');
         Route::post('/penduduk/{penduduk}/dokumen',                  [PendudukController::class, 'dokumenStore'])->name('penduduk.dokumen.store');
+        Route::patch('/penduduk/{penduduk}/dokumen/{dokumenId}',     [PendudukController::class, 'dokumenUpdate'])->name('penduduk.dokumen.update');
         Route::delete('/penduduk/{penduduk}/dokumen/{dokumenId}',    [PendudukController::class, 'dokumenDestroy'])->name('penduduk.dokumen.destroy');
+        Route::delete('/penduduk/{penduduk}/dokumen',                [PendudukController::class, 'dokumenBulkDestroy'])->name('penduduk.dokumen.bulk-destroy');
 
         /*
         |--------------------------------------------------------------------------
@@ -1576,9 +1623,21 @@
         | INFO DESA — STATUS DESA
         |--------------------------------------------------------------------------
         */
-        Route::get('status-desa/export/excel', [StatusDesaController::class, 'exportExcel'])->name('status-desa.export.excel');
-        Route::get('status-desa/export/pdf',   [StatusDesaController::class, 'exportPdf'])->name('status-desa.export.pdf');
-        Route::resource('status-desa', StatusDesaController::class)->names('status-desa');
+        Route::get('status-desa', function () {
+            return redirect()->route('admin.info-desa.status-desa.index');
+        })->name('status-desa.redirect');
+
+        Route::prefix('info-desa/status-desa')->name('info-desa.status-desa.')->group(function () {
+            Route::get('/',          [StatusDesaController::class, 'index'])->name('index');
+
+            // IDM
+            Route::post('/perbarui', [StatusDesaController::class, 'perbaruiSkor'])->name('perbarui');
+            Route::post('/simpan',   [StatusDesaController::class, 'simpan'])->name('simpan');
+            Route::post('/salin',    [StatusDesaController::class, 'salinTahunSebelumnya'])->name('salin');
+
+            // SDGS
+            Route::post('/sdgs/perbarui', [StatusDesaController::class, 'perbaruiSdgs'])->name('sdgs.perbarui');
+        });
 
         /*
         |--------------------------------------------------------------------------
