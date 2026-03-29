@@ -192,19 +192,25 @@ body { font-family: 'Sora', sans-serif; background-color: var(--bg-page); color:
 
         $nomorKeys = ['nomor_surat','no_surat','format_nomor','nomor','no_urut'];
 
+        // --- DIPERBARUI: Menambah semua mapping variabel Warga ---
         $wargaKeys = [
-            'nik','no_nik','nama','nama_lengkap','tempat_lahir','tanggal_lahir','tgl_lahir',
-            'jenis_kelamin','kelamin','jk','agama','pekerjaan','status_kawin',
-            'status_perkawinan','alamat','rt','rw','warga_negara','pendidikan',
+            'nik','no_nik','nama','nama_lengkap','tempat_lahir','tanggal_lahir','tgl_lahir','waktu_lahir',
+            'jenis_kelamin','kelamin','jk','agama','pekerjaan','status_kawin','umur',
+            'status_perkawinan','alamat','rt','rw','warga_negara','pendidikan','golongan_darah','gol_darah',
+            'nama_ayah', 'nama_ibu', 'nik_ayah', 'nik_ibu', 'no_telp', 'email', 'status_hidup',
+            'akta_lahir', 'akta_perkawinan', 'akta_perceraian', 'tanggal_perkawinan', 'tanggal_perceraian',
+            'tempat_dilahirkan', 'jenis_kelahiran', 'anak_ke', 'penolong_kelahiran', 'berat_lahir', 'panjang_lahir',
+            'dokumen_pasport', 'dokumen_kitas', 'no_asuransi'
         ];
 
+        // --- DIPERBARUI: Menambah mapping variabel Keluarga ---
         $keluargaKeys = [
             'no_kk','nomor_kk','kepala_kk','kepala_keluarga',
-            'nik_kepala','alamat_kk','alamat_keluarga',
+            'nik_kepala','alamat_kk','alamat_keluarga', 'shdk'
         ];
 
-        $suratKeys = ['tgl_surat','tanggal_surat','penandatangan','jabatan','perihal','judul_surat'];
-
+        $suratKeys = ['tgl_surat','tanggal_surat','penandatangan','jabatan','perihal','judul_surat', 'nama_pamong']; 
+        
         $desaKeys = [
             'nama_desa','desa','kecamatan','kabupaten','provinsi',
             'alamat_kantor','kode_pos','nama_kades','nip_kades','kepala_desa','nip_kepala_desa',
@@ -228,7 +234,8 @@ body { font-family: 'Sora', sans-serif; background-color: var(--bg-page); color:
 
         function getFieldType(string $v): string {
             $n = strtolower($v);
-            return (str_contains($n,'tanggal') || str_contains($n,'tgl')) ? 'date' : 'text';
+            // Tambahkan deteksi kata "berlaku" agar jadi form kalender (date)
+            return (str_contains($n,'tanggal') || str_contains($n,'tgl') || str_contains($n,'berlaku')) ? 'date' : 'text';
         }
 
         $getDefault = function (string $v) use ($templateJudul): string {
@@ -352,13 +359,33 @@ body { font-family: 'Sora', sans-serif; background-color: var(--bg-page); color:
                     @php $isFull = in_array(strtolower($var), ['judul_surat','perihal']); @endphp
                     <div class="field-group {{ $isFull ? 'full-width' : '' }}">
                         <label>{{ $lbl($var) }} <span class="var-badge">[{{ $var }}]</span></label>
-                        <input
-                            type="{{ getFieldType($var) }}"
-                            id="field_{{ strtolower($var) }}"
-                            name="{{ $var }}"
-                            class="form-input"
-                            value="{{ old($var, $getDefault($var)) }}"
-                        >
+                        
+                        {{-- JIKA VARIABELNYA PENANDATANGAN ATAU NAMA PAMONG, JADIKAN DROPDOWN --}}
+                        @if(in_array(strtolower($var), ['penandatangan', 'nama_pamong']))
+                            <select 
+                                id="field_{{ strtolower($var) }}" 
+                                name="{{ $var }}" 
+                                class="form-input"
+                            >
+                                <option value="">-- Pilih Aparatur Desa --</option>
+                                @if(isset($pemerintah) && $pemerintah->count() > 0)
+                                    @foreach($pemerintah as $pejabat)
+                                        <option value="{{ $pejabat->id }}" {{ old($var) == $pejabat->id ? 'selected' : '' }}>
+                                            {{ $pejabat->nama }} ({{ $pejabat->jabatan->nama ?? '-' }})
+                                        </option>
+                                    @endforeach
+                                @endif
+                            </select>
+                        @else
+                            {{-- Jika bukan, biarkan jadi input biasa (text/date) --}}
+                            <input
+                                type="{{ getFieldType($var) }}"
+                                id="field_{{ strtolower($var) }}"
+                                name="{{ $var }}"
+                                class="form-input"
+                                value="{{ old($var, $getDefault($var)) }}"
+                            >
+                        @endif
                     </div>
                 @endforeach
             </div>
@@ -426,7 +453,7 @@ body { font-family: 'Sora', sans-serif; background-color: var(--bg-page); color:
                     <div class="field-group full-width">
                         <label>{{ $lbl($var) }} <span class="var-badge">[{{ $var }}]</span></label>
                         <input
-                            type="text"
+                            type="{{ getFieldType($var) }}"
                             id="field_{{ strtolower($var) }}"
                             name="{{ $var }}"
                             class="form-input"
@@ -500,9 +527,7 @@ document.addEventListener('DOMContentLoaded', function () {
         statusEl.textContent = msg;
     }
 
-    /* ── Sync nilai format_nomor ke semua hidden alias ──
-       Tujuan: tag [nomor_surat], [no_surat], [nomor], [no_urut]
-       di konten_template juga terganti oleh str_ireplace controller */
+    /* ── Sync nilai format_nomor ke semua hidden alias ── */
     function syncNomorAliases() {
         var val = nomorInput ? nomorInput.value : '';
         var ids = ['alias_nomor_surat','alias_no_surat','alias_nomor','alias_no_urut'];
@@ -514,7 +539,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (nomorInput) {
         nomorInput.addEventListener('input', syncNomorAliases);
-        // Jalankan sekali saat pertama kali di-load supaya sinkron ke semua alias
         syncNomorAliases();
     }
 
@@ -540,7 +564,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    /* Khusus set hidden field desa */
     function setHiddenValue(id, val) {
         var el = document.getElementById(id);
         if (el && val) el.value = val;
@@ -595,7 +618,7 @@ document.addEventListener('DOMContentLoaded', function () {
         fetchFullData(inputField.value.trim());
     });
 
-    /* ── Fetch full data NIK ── */
+    /* ── Fetch full data NIK (UPDATED) ── */
     function fetchFullData(nik) {
         if (!nik) return;
         setStatus('⏳ Menarik data warga & keluarga...', 'loading');
@@ -617,26 +640,61 @@ document.addEventListener('DOMContentLoaded', function () {
                 var d = res.desa     || {};
                 var k = res.keluarga || null;
 
-                /* 1. DATA WARGA */
+                /* 1. DATA WARGA & DATA TAMBAHAN BARU */
                 setInputValue('nik',               p.nik);
                 setInputValue('no_nik',            p.nik);
                 setInputValue('nama',              p.nama);
                 setInputValue('nama_lengkap',      p.nama);
                 setInputValue('tempat_lahir',      p.tempat_lahir);
-                setInputValue('tanggal_lahir',     fmtDate(p.tanggal_lahir));
-                setInputValue('tgl_lahir',         fmtDate(p.tanggal_lahir));
+                setInputValue('tanggal_lahir',     p.tanggal_lahir_format || fmtDate(p.tanggal_lahir));
+                setInputValue('tgl_lahir',         p.tanggal_lahir_format || fmtDate(p.tanggal_lahir));
+                setInputValue('waktu_lahir',       p.waktu_lahir);
+                setInputValue('umur',              p.umur);
                 setInputValue('jenis_kelamin',     p.jenis_kelamin);
                 setInputValue('kelamin',           p.jenis_kelamin);
                 setInputValue('jk',                p.jenis_kelamin);
-                setInputValue('agama',             p.agama);
-                setInputValue('pekerjaan',         p.pekerjaan);
-                setInputValue('status_kawin',      p.status_kawin);
-                setInputValue('status_perkawinan', p.status_kawin);
                 setInputValue('alamat',            p.alamat);
+                setInputValue('alamat_lengkap',    p.alamat);
                 setInputValue('rt',                p.rt);
                 setInputValue('rw',                p.rw);
-                setInputValue('warga_negara',      p.warga_negara || 'WNI');
-                setInputValue('pendidikan',        p.pendidikan);
+                setInputValue('warga_negara',      p.warga_negara_teks || 'WNI');
+                setInputValue('agama',             p.agama_teks || p.agama);
+                setInputValue('pekerjaan',         p.pekerjaan_teks || p.pekerjaan);
+                setInputValue('pendidikan',        p.pendidikan_teks || p.pendidikan);
+                setInputValue('status_kawin',      p.status_kawin_teks || p.status_kawin);
+                setInputValue('status_perkawinan', p.status_kawin_teks || p.status_kawin);
+                setInputValue('status',            p.status_kawin_teks || p.status_kawin);
+                setInputValue('golongan_darah',    p.gol_darah_teks || p.golongan_darah);
+                setInputValue('gol_darah',         p.gol_darah_teks || p.golongan_darah);
+                
+                // Info Orang Tua
+                setInputValue('nama_ayah',         p.nama_ayah);
+                setInputValue('nama_ibu',          p.nama_ibu);
+                setInputValue('nik_ayah',          p.nik_ayah);
+                setInputValue('nik_ibu',           p.nik_ibu);
+
+                // Kontak
+                setInputValue('no_telp',           p.no_telp);
+                setInputValue('email',             p.email);
+
+                // Dokumen Kependudukan Lainnya
+                setInputValue('akta_lahir',         p.akta_lahir);
+                setInputValue('akta_perkawinan',    p.akta_perkawinan);
+                setInputValue('akta_perceraian',    p.akta_perceraian);
+                setInputValue('tanggal_perkawinan', fmtDate(p.tanggal_perkawinan));
+                setInputValue('tanggal_perceraian', fmtDate(p.tanggal_perceraian));
+                setInputValue('tempat_dilahirkan',  p.tempat_dilahirkan);
+                setInputValue('jenis_kelahiran',    p.jenis_kelahiran);
+                setInputValue('anak_ke',            p.kelahiran_anak_ke);
+                setInputValue('penolong_kelahiran', p.penolong_kelahiran);
+                setInputValue('berat_lahir',        p.berat_lahir);
+                setInputValue('panjang_lahir',      p.panjang_lahir);
+                setInputValue('dokumen_pasport',    p.dokumen_pasport);
+                setInputValue('dokumen_kitas',      p.dokumen_kitas);
+                setInputValue('no_asuransi',        p.no_asuransi);
+
+                // Info Status di Sistem
+                setInputValue('status_hidup',      p.status_hidup);
 
                 var hNama = document.getElementById('hidden_nama_pemohon');
                 var hNik  = document.getElementById('hidden_nik_pemohon');
@@ -653,6 +711,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     setInputValue('alamat_kk',       k.alamat_kk);
                     setInputValue('alamat_keluarga', k.alamat_kk);
                 }
+                // Jika relasi SHDK (Hubungan Keluarga) tersedia dari get data by nik
+                setInputValue('shdk', p.shdk_teks || '');
 
                 /* 3. DATA DESA — isi hidden fields */
                 if (d) {
@@ -681,30 +741,23 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!val) return '';
         return String(val).split(' ')[0];
     }
+
     /* ── AUTO-FILL DARI DATA PERMOHONAN (JIKA ADA) ── */
     @if(isset($permohonan) && $permohonan->penduduk)
         var autoNik = '{{ $permohonan->penduduk->nik }}';
         if(autoNik && inputField) {
-            // Isi kolom pencarian
             inputField.value = autoNik;
-            
-            // Beri jeda 0.5 detik agar DOM form siap, lalu jalankan fungsi tarik data otomatis
             setTimeout(function() { 
                 fetchFullData(autoNik); 
-                
-                // Auto-fill field Keperluan/Perihal dari permohonan
                 @if($permohonan->keperluan)
                     setInputValue('keperluan', `{{ $permohonan->keperluan }}`);
                     setInputValue('perihal', `{{ $permohonan->keperluan }}`);
                 @endif
-
-                // Auto-fill dari Data Isian tambahan (jika warga mengisi form tambahan)
                 @if(is_array($permohonan->data_isian))
                     @foreach($permohonan->data_isian as $key => $val)
                         setInputValue('{{ strtolower($key) }}', `{{ $val }}`);
                     @endforeach
                 @endif
-                
             }, 500);
         }
     @endif

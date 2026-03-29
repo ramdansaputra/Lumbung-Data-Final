@@ -50,7 +50,7 @@
         'mampu'  => 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300',
         default  => 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-400',
     };
-    {{-- Kepala RT = kepala KK pertama dalam RT ini --}}
+    // {{-- Kepala RT = kepala KK pertama dalam RT ini --}}
     $kepalaRt = $rumahTangga->getKepalaRumahTangga();
     $totalKk  = $rumahTangga->getTotalKk();
     $totalAnggota = $rumahTangga->getTotalAnggota();

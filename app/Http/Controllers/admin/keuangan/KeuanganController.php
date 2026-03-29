@@ -362,7 +362,7 @@ class KeuanganController extends Controller {
         $bidang        = BidangAnggaran::with('kegiatanAnggaran')->orderBy('nama_bidang')->get();
         $sumberDana    = SumberDana::orderBy('nama_sumber')->get();
 
-        return view('admin.keuangan.laporan-apbdes-creat', compact(
+        return view('admin.keuangan.laporan-apbdes-create', compact(
             'tahunAnggaran',
             'bidang',
             'sumberDana'

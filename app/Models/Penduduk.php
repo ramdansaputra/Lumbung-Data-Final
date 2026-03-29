@@ -11,27 +11,27 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * Pemetaan ke OpenSID tweb_penduduk.
  *
  * Catatan perbedaan yang disengaja vs OpenSID:
- *  - Nama tabel          : 'penduduk'        (OpenSID: tweb_penduduk)
- *  - FK keluarga         : 'keluarga_id'     (OpenSID: id_kk)
- *  - FK wilayah          : 'wilayah_id'      (OpenSID: id_cluster)
- *  - NIK ayah/ibu        : 'nik_ayah'/'nik_ibu' (OpenSID: ayah_nik/ibu_nik)
- *  - Telepon             : 'no_telp'         (OpenSID: telepon)
- *  - Alamat              : 'alamat'          (OpenSID: alamat_sekarang)
- *  - jenis_kelamin       : enum('L','P')     (OpenSID: sex tinyint 1/2)
- *  - status_dasar        : string enum       (OpenSID: integer 1/2/3/4/5/6)
- *  - SoftDeletes         : dipakai           (OpenSID: hard delete + log_penduduk_hapus)
- *  - jenis_tambah        : kolom custom      (OpenSID: tidak ada, dicatat di log_penduduk)
- *  - tgl_peristiwa       : kolom custom      (OpenSID: tidak ada)
- *  - tgl_terdaftar       : kolom custom      (OpenSID: tidak ada)
- *  - kolom _lama         : kolom custom      (OpenSID: disimpan di log_penduduk)
+ * - Nama tabel          : 'penduduk'        (OpenSID: tweb_penduduk)
+ * - FK keluarga         : 'keluarga_id'     (OpenSID: id_kk)
+ * - FK wilayah          : 'wilayah_id'      (OpenSID: id_cluster)
+ * - NIK ayah/ibu        : 'nik_ayah'/'nik_ibu' (OpenSID: ayah_nik/ibu_nik)
+ * - Telepon             : 'no_telp'         (OpenSID: telepon)
+ * - Alamat              : 'alamat'          (OpenSID: alamat_sekarang)
+ * - jenis_kelamin       : enum('L','P')     (OpenSID: sex tinyint 1/2)
+ * - status_hidup        : string enum       (OpenSID: integer 1/2/3/4/5/6)
+ * - SoftDeletes         : dipakai           (OpenSID: hard delete + log_penduduk_hapus)
+ * - jenis_tambah        : kolom custom      (OpenSID: tidak ada, dicatat di log_penduduk)
+ * - tgl_peristiwa       : kolom custom      (OpenSID: tidak ada)
+ * - tgl_terdaftar       : kolom custom      (OpenSID: tidak ada)
+ * - kolom _lama         : kolom custom      (OpenSID: disimpan di log_penduduk)
  *
  * Catatan pemetaan asuransi:
- *  OpenSID punya DUA kolom: id_asuransi (FK) + no_asuransi (nomor kartu).
- *  Di sini: 'asuransi_id' (FK) + 'no_asuransi' (nomor kartu) — semantik sama.
+ * OpenSID punya DUA kolom: id_asuransi (FK) + no_asuransi (nomor kartu).
+ * Di sini: 'asuransi_id' (FK) + 'no_asuransi' (nomor kartu) — semantik sama.
  *
  * Relasi RTM:
- *  Tidak ada pivot rumah_tangga_penduduk. Akses RTM via rantai:
- *  Penduduk → keluarga() → RumahTangga (sesuai pola OpenSID).
+ * Tidak ada pivot rumah_tangga_penduduk. Akses RTM via rantai:
+ * Penduduk → keluarga() → RumahTangga (sesuai pola OpenSID).
  */
 class Penduduk extends Model {
     use SoftDeletes;
@@ -49,6 +49,7 @@ class Penduduk extends Model {
         'nama_ibu',
         'nik_ayah',         // OpenSID: ayah_nik
         'nik_ibu',          // OpenSID: ibu_nik
+        'status_dasar',
 
         // --- Demografi ---
         'jenis_kelamin',    // OpenSID: sex (tinyint 1/2) → di sini enum('L','P')
@@ -63,7 +64,7 @@ class Penduduk extends Model {
 
         // --- Status ---
         'status',           // integer: 1=Tetap, 2=TidakTetap, 3=Pendatang
-        'status_dasar',     // string: hidup|mati|pindah|hilang|pergi|tidak_valid
+        'status_hidup',     // string: hidup|mati|pindah|hilang|pergi|tidak_valid (DULU: status_dasar)
         'jenis_tambah',     // string: lahir|masuk (custom, tidak ada di OpenSID)
 
         // --- Referensi Master (FK integer) ---
@@ -461,34 +462,34 @@ class Penduduk extends Model {
     // SCOPES
     // =========================================================================
 
-    /** Penduduk aktif (status_dasar = hidup) — dipakai di hampir semua query */
+    /** Penduduk aktif (status_hidup = hidup) — dipakai di hampir semua query */
     public function scopeHidup($query) {
-        return $query->where('status_dasar', self::STATUS_DASAR_HIDUP);
+        return $query->where('status_hidup', self::STATUS_DASAR_HIDUP);
     }
 
     /** Alias scopeHidup — untuk konsistensi pemanggilan */
     public function scopeWargaAktif($query) {
-        return $query->where('status_dasar', self::STATUS_DASAR_HIDUP);
+        return $query->where('status_hidup', self::STATUS_DASAR_HIDUP);
     }
 
     public function scopeMati($query) {
-        return $query->where('status_dasar', self::STATUS_DASAR_MATI);
+        return $query->where('status_hidup', self::STATUS_DASAR_MATI);
     }
 
     public function scopePindah($query) {
-        return $query->where('status_dasar', self::STATUS_DASAR_PINDAH);
+        return $query->where('status_hidup', self::STATUS_DASAR_PINDAH);
     }
 
     public function scopeHilang($query) {
-        return $query->where('status_dasar', self::STATUS_DASAR_HILANG);
+        return $query->where('status_hidup', self::STATUS_DASAR_HILANG);
     }
 
     public function scopePergi($query) {
-        return $query->where('status_dasar', self::STATUS_DASAR_PERGI);
+        return $query->where('status_hidup', self::STATUS_DASAR_PERGI);
     }
 
     public function scopeTidakValid($query) {
-        return $query->where('status_dasar', self::STATUS_DASAR_TIDAK_VALID);
+        return $query->where('status_hidup', self::STATUS_DASAR_TIDAK_VALID);
     }
 
     /**
@@ -496,7 +497,7 @@ class Penduduk extends Model {
      * Mencakup: mati, pindah, hilang, pergi, tidak_valid.
      */
     public function scopeNonAktif($query) {
-        return $query->whereIn('status_dasar', [
+        return $query->whereIn('status_hidup', [
             self::STATUS_DASAR_MATI,
             self::STATUS_DASAR_PINDAH,
             self::STATUS_DASAR_HILANG,
@@ -563,7 +564,7 @@ class Penduduk extends Model {
 
     /** Apakah penduduk ini masih aktif (belum mati/pindah/hilang/pergi/tidak_valid)? */
     public function getIsAktifAttribute(): bool {
-        return $this->status_dasar === self::STATUS_DASAR_HIDUP;
+        return $this->status_hidup === self::STATUS_DASAR_HIDUP;
     }
 
     /**
@@ -582,9 +583,9 @@ class Penduduk extends Model {
         return false;
     }
 
-    /** Label status_dasar */
+    /** Label status_hidup (Dulu status_dasar) */
     public function getLabelStatusDasarAttribute(): string {
-        return self::STATUS_DASAR_LABEL[$this->status_dasar] ?? '-';
+        return self::STATUS_DASAR_LABEL[$this->status_hidup] ?? '-';
     }
 
     /** Label status (jenis penduduk) */

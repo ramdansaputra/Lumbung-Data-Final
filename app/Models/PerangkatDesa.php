@@ -11,18 +11,27 @@ class PerangkatDesa extends Model {
     protected $table = 'perangkat_desa';
 
     protected $fillable = [
-        'penduduk_id',
-        'jabatan_id',
-        'nama',
-        'nik',
-        'foto',
-        'no_sk',
-        'tanggal_sk',
-        'periode_mulai',
-        'periode_selesai',
-        'status',
-        'keterangan',
+        'penduduk_id', 
+        'jabatan_id', 
+        'nama', 'nik', 
+        'foto', 'no_sk', 
+        'tanggal_sk', 
+        'periode_mulai', 
+        'periode_selesai', 
+        'status', 
+        'keterangan', 
         'urutan',
+        // --- TAMBAHAN BARU DI BAWAH INI ---
+        'niap', 
+        'nip', 
+        'jenis_kelamin', 
+        'tempat_lahir', 
+        'tanggal_lahir', 
+        'agama', 
+        'pangkat_golongan', 
+        'pendidikan_terakhir', 
+        'nomor_keputusan_pemberhentian', 
+        'tanggal_keputusan_pemberhentian'
     ];
 
     protected $casts = [

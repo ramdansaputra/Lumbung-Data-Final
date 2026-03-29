@@ -311,7 +311,7 @@
                         </th>
                         <th class="px-5 py-4 text-left text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider w-10">NO</th>
                         
-                        {{-- KOLOM AKSI DIPINDAH KE SINI --}}
+                        {{-- KOLOM AKSI --}}
                         <th class="px-5 py-4 text-center text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider w-32">AKSI</th>
                         
                         <th class="px-5 py-4 text-left text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider">PERANGKAT</th>
@@ -340,7 +340,7 @@
                             {{ $perangkat->firstItem() + $index }}
                         </td>
 
-                        {{-- AKSI DIPINDAH KE SINI --}}
+                        {{-- AKSI --}}
                         <td class="px-5 py-4">
                             <div class="flex items-center justify-center gap-1">
                                 <a href="{{ route('admin.buku-administrasi.umum.pemerintah.show', $item->id) }}" title="Detail"
@@ -497,8 +497,6 @@
                 @if($perangkat->hasMorePages())
                     <a href="{{ $perangkat->appends(request()->query())->nextPageUrl() }}"
                        class="px-3 py-1.5 text-sm text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors">Selanjutnya</a>
-                @else
-                    <span class="px-3 py-1.5 text-sm text-gray-400 dark:text-slate-500 border border-gray-200 dark:border-slate-600 rounded-lg bg-gray-50 dark:bg-slate-700/50 cursor-not-allowed">Selanjutnya</span>
                 @endif
             </div>
         </div>

@@ -24,12 +24,14 @@ class PemerintahController extends Controller {
             $query->whereHas('jabatan', fn($q) => $q->where('golongan', $request->golongan));
         }
 
-        // Search nama / NIK (atau NIAP)
+        // Search nama / NIK / NIP / NIAP
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('nama', 'like', "%{$search}%")
-                  ->orWhere('nik', 'like', "%{$search}%"); 
+                  ->orWhere('nik', 'like', "%{$search}%")
+                  ->orWhere('nip', 'like', "%{$search}%")
+                  ->orWhere('niap', 'like', "%{$search}%"); 
             });
         }
 
@@ -56,9 +58,23 @@ class PemerintahController extends Controller {
             'jabatan_id'      => 'required|exists:jabatan_perangkat,id',
             'nama'            => 'required|string|max:100',
             'nik'             => 'nullable|digits:16|unique:perangkat_desa,nik',
+            
+            // --- TAMBAHAN FIELD BARU ---
+            'niap'            => 'nullable|string|max:50',
+            'nip'             => 'nullable|string|max:50|unique:perangkat_desa,nip',
+            'jenis_kelamin'   => 'nullable|string|max:20',
+            'tempat_lahir'    => 'nullable|string|max:100',
+            'tanggal_lahir'   => 'nullable|date',
+            'agama'           => 'nullable|string|max:50',
+            'pangkat_golongan'=> 'nullable|string|max:100',
+            'pendidikan_terakhir' => 'nullable|string|max:100',
+            'nomor_keputusan_pemberhentian'   => 'nullable|string|max:100',
+            'tanggal_keputusan_pemberhentian' => 'nullable|date',
+            // ---------------------------
+
             'foto'            => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-            'no_sk'           => 'nullable|string|max:100',
-            'tanggal_sk'      => 'nullable|date',
+            'no_sk'           => 'nullable|string|max:100', // Ini nomor pengangkatan
+            'tanggal_sk'      => 'nullable|date',           // Ini tanggal pengangkatan
             'periode_mulai'   => 'nullable|date',
             'periode_selesai' => 'nullable|date|after_or_equal:periode_mulai',
             'status'          => 'required|in:1,2',
@@ -69,6 +85,7 @@ class PemerintahController extends Controller {
             'nama.required'                  => 'Nama wajib diisi.',
             'nik.digits'                     => 'NIK harus 16 digit.',
             'nik.unique'                     => 'NIK sudah terdaftar.',
+            'nip.unique'                     => 'NIP sudah terdaftar.',
             'foto.image'                     => 'File harus berupa gambar.',
             'foto.max'                       => 'Ukuran foto maksimal 2MB.',
             'periode_selesai.after_or_equal' => 'Periode selesai harus setelah atau sama dengan periode mulai.',
@@ -112,6 +129,20 @@ class PemerintahController extends Controller {
             'jabatan_id'      => 'required|exists:jabatan_perangkat,id',
             'nama'            => 'required|string|max:100',
             'nik'             => ['nullable', 'digits:16', Rule::unique('perangkat_desa', 'nik')->ignore($pemerintahDesa->id)],
+            
+            // --- TAMBAHAN FIELD BARU ---
+            'niap'            => 'nullable|string|max:50',
+            'nip'             => ['nullable', 'string', 'max:50', Rule::unique('perangkat_desa', 'nip')->ignore($pemerintahDesa->id)],
+            'jenis_kelamin'   => 'nullable|string|max:20',
+            'tempat_lahir'    => 'nullable|string|max:100',
+            'tanggal_lahir'   => 'nullable|date',
+            'agama'           => 'nullable|string|max:50',
+            'pangkat_golongan'=> 'nullable|string|max:100',
+            'pendidikan_terakhir' => 'nullable|string|max:100',
+            'nomor_keputusan_pemberhentian'   => 'nullable|string|max:100',
+            'tanggal_keputusan_pemberhentian' => 'nullable|date',
+            // ---------------------------
+
             'foto'            => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'no_sk'           => 'nullable|string|max:100',
             'tanggal_sk'      => 'nullable|date',
@@ -152,7 +183,6 @@ class PemerintahController extends Controller {
     }
 
     // ── Bulk Destroy (Hapus Massal) ─────────────────────────────
-    // FUNGSI INI BARU DITAMBAHKAN
     public function bulkDestroy(Request $request) {
         // Tangkap id dari request (baik dari query string maupun form input)
         $ids = $request->input('ids');

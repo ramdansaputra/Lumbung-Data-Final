@@ -9,7 +9,7 @@ use App\Models\IdentitasDesa;
 use App\Models\ArsipSurat;
 use App\Models\SuratTemplate;
 use App\Models\Keluarga; 
-use App\Models\BukuPemerintah; // Model BukuPemerintah sudah dipanggil di sini
+use App\Models\PerangkatDesa;
 use App\Models\KlasifikasiSurat; 
 use App\Models\Setting; 
 use Illuminate\Http\Request;
@@ -17,19 +17,19 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Auth; 
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
-class LetterController extends Controller
+class LetterController extends Controller 
 {
     /**
      * Menampilkan halaman Pengaturan Kop/Header Surat
      */
     public function pengaturan()
     {
-        // Mengambil data setting dengan key 'header_surat'
         $setting = Setting::where('key', 'header_surat')->first();
         
-        // Kirim ke view dalam bentuk array agar cocok dengan $setting['header_surat'] di Blade
         $settingArray = [
             'header_surat' => $setting ? $setting->value : null
         ];
@@ -72,11 +72,8 @@ class LetterController extends Controller
         }
 
         $autoNomorSurat = $this->generateAutoNomorSuratPreview($selectedTemplate);
+        $pemerintah = PerangkatDesa::aktif()->orderBy('urutan')->get();
 
-        // Ambil data pemerintah desa untuk opsi penandatangan surat
-        $pemerintah = BukuPemerintah::all();
-
-        // Mengirimkan data $pemerintah ke view
         return view('admin.layanan-surat.letters.create', compact('selectedTemplate', 'variables', 'autoNomorSurat', 'pemerintah'));
     }
 
@@ -103,13 +100,128 @@ class LetterController extends Controller
         $htmlContent = $template->konten_template; 
         $formData = $request->except(['_token', 'template_id']);
 
-        // 1. Penggantian variabel inputan form biasa untuk Isi Surat
-        foreach ($formData as $key => $value) {
-            $htmlContent = str_ireplace('[' . $key . ']', $value ?? '', $htmlContent);
+        // =========================================================
+        // 1. AUTO GENERATE SEMUA DATA PENDUDUK (SISTEM BACKEND)
+        // Ini memastikan jika ada tag seperti [nama_ayah], [umur], dll 
+        // di template tapi tidak dikirim via form, sistem tetap mengisinya!
+        // =========================================================
+        $dbData = [];
+        $nikPemohon = $request->nik_pemohon ?? $request->nik ?? $request->no_nik;
+        
+        if (!empty($nikPemohon)) {
+            $penduduk = Penduduk::with([
+                'agama', 'pendidikanKk', 'pekerjaan', 'statusKawin', 
+                'golonganDarah', 'warganegara', 'shdk', 'keluarga'
+            ])->where('nik', $nikPemohon)->first();
+
+            if ($penduduk) {
+                // Semua kemungkinan data dari model yang mungkin dijadikan tag
+                $dbData = [
+                    'nama' => $penduduk->nama,
+                    'nik' => $penduduk->nik,
+                    'tempat_lahir' => $penduduk->tempat_lahir,
+                    'tanggal_lahir' => $penduduk->tanggal_lahir ? $penduduk->tanggal_lahir->format('d-m-Y') : '',
+                    'tgl_lahir' => $penduduk->tanggal_lahir ? $penduduk->tanggal_lahir->format('d-m-Y') : '',
+                    'waktu_lahir' => $penduduk->waktu_lahir,
+                    'umur' => $penduduk->umur,
+                    'jenis_kelamin' => $penduduk->jenis_kelamin == 'L' ? 'Laki-Laki' : 'Perempuan',
+                    'kelamin' => $penduduk->jenis_kelamin == 'L' ? 'Laki-Laki' : 'Perempuan',
+                    'jk' => $penduduk->jenis_kelamin == 'L' ? 'Laki-Laki' : 'Perempuan',
+                    'agama' => $penduduk->agama->nama ?? $penduduk->agama_lama ?? '',
+                    'pekerjaan' => $penduduk->pekerjaan->nama ?? $penduduk->pekerjaan_lama ?? '',
+                    'pendidikan' => $penduduk->pendidikanKk->nama ?? $penduduk->pendidikan_lama ?? '',
+                    'status_kawin' => $penduduk->statusKawin->nama ?? $penduduk->status_kawin_lama ?? '',
+                    'status_perkawinan' => $penduduk->statusKawin->nama ?? $penduduk->status_kawin_lama ?? '',
+                    'golongan_darah' => $penduduk->golonganDarah->nama ?? $penduduk->golongan_darah_lama ?? '',
+                    'warga_negara' => $penduduk->warganegara->nama ?? $penduduk->kewarganegaraan_lama ?? 'WNI',
+                    'alamat' => $penduduk->alamat,
+                    'no_telp' => $penduduk->no_telp,
+                    'email' => $penduduk->email,
+                    'nama_ayah' => $penduduk->nama_ayah,
+                    'nama_ibu' => $penduduk->nama_ibu,
+                    'nik_ayah' => $penduduk->nik_ayah,
+                    'nik_ibu' => $penduduk->nik_ibu,
+                    'no_kk' => $penduduk->keluarga->no_kk ?? '',
+                    'kepala_kk' => $penduduk->keluarga->kepalaKeluarga->nama ?? '',
+                    'kepala_keluarga' => $penduduk->keluarga->kepalaKeluarga->nama ?? '',
+                    'nik_kepala' => $penduduk->keluarga->kepalaKeluarga->nik ?? '',
+                    'no_asuransi' => $penduduk->no_asuransi,
+                    'akta_lahir' => $penduduk->akta_lahir,
+                    'akta_perkawinan' => $penduduk->akta_perkawinan,
+                    'akta_perceraian' => $penduduk->akta_perceraian,
+                    'tanggal_perkawinan' => $penduduk->tanggal_perkawinan ? $penduduk->tanggal_perkawinan->format('d-m-Y') : '',
+                    'tanggal_perceraian' => $penduduk->tanggal_perceraian ? $penduduk->tanggal_perceraian->format('d-m-Y') : '',
+                    'tempat_dilahirkan' => $penduduk->tempat_dilahirkan,
+                    'jenis_kelahiran' => $penduduk->jenis_kelahiran,
+                    'anak_ke' => $penduduk->kelahiran_anak_ke,
+                    'penolong_kelahiran' => $penduduk->penolong_kelahiran,
+                    'berat_lahir' => $penduduk->berat_lahir,
+                    'panjang_lahir' => $penduduk->panjang_lahir,
+                    'dokumen_pasport' => $penduduk->dokumen_pasport,
+                    'dokumen_kitas' => $penduduk->dokumen_kitas,
+                    'status_hidup' => $penduduk->label_status_dasar,
+                    'shdk' => $penduduk->label_shdk,
+                ];
+            }
+        }
+
+        // Terapkan data dari Database DULU (Fallback jika form tidak mengirim inputannya)
+        foreach ($dbData as $key => $val) {
+            // Jika form tidak mengirim input ini, atau kosong, maka paksa isi pakai data DB
+            if (!isset($formData[$key]) || empty($formData[$key])) {
+                $htmlContent = str_ireplace('[' . $key . ']', $val ?? '', $htmlContent);
+            }
         }
 
         // =========================================================
-        // 2. PROSES PENGGABUNGAN KOP SURAT (HEADER)
+        // 2. PENGGANTIAN VARIABEL INPUTAN FORM BIASA (PRIORITAS UTAMA)
+        // =========================================================
+        // Abaikan tag pamong agar tidak tertimpa angka ID dari form request
+        $abaikanField = ['penandatangan', 'nama_pamong', 'sebutan_nip_desa', 'nip_pamong', 'jabatan_penandatangan', 'jabatan', 'pangkat_penandatangan'];
+
+        foreach ($formData as $key => $value) {
+            if (!in_array(strtolower($key), $abaikanField) && !empty($value)) {
+                $htmlContent = str_ireplace('[' . $key . ']', $value, $htmlContent);
+            }
+        }
+
+        // =========================================================
+        // 3. AUTO GENERATE VARIABEL PERANGKAT DESA (PAMONG)
+        // =========================================================
+        $penandatanganInput = $request->penandatangan ?? $request->nama_pamong;
+
+        if (!empty($penandatanganInput)) {
+            $pejabat = PerangkatDesa::with('jabatan')->find($penandatanganInput);
+
+            if ($pejabat) {
+                $cariPejabat = [
+                    '[nama_penandatangan]', '[nama_pamong]', 
+                    '[jabatan_penandatangan]', '[jabatan]', 
+                    '[nip_penandatangan]', '[nip_pamong]', 
+                    '[sebutan_nip_desa]',
+                    '[pangkat_penandatangan]'
+                ];
+                
+                $sebutanNip = (empty($pejabat->nip) || $pejabat->nip == '-' || $pejabat->nip == null) ? 'NIAP' : 'NIP';
+                $nomorNip = (empty($pejabat->nip) || $pejabat->nip == '-' || $pejabat->nip == null) ? ($pejabat->niap ?? '-') : $pejabat->nip;
+                
+                $gantiPejabat = [
+                    $pejabat->nama ?? '.......................', 
+                    $pejabat->nama ?? '.......................', 
+                    $pejabat->jabatan->nama ?? '.......................', 
+                    $pejabat->jabatan->nama ?? '.......................', 
+                    $nomorNip, 
+                    $nomorNip, 
+                    $sebutanNip, 
+                    $pejabat->pangkat_golongan ?? '-' 
+                ];
+                
+                $htmlContent = str_ireplace($cariPejabat, $gantiPejabat, $htmlContent);
+            }
+        }
+
+        // =========================================================
+        // 4. PROSES PENGGABUNGAN KOP SURAT (HEADER)
         // =========================================================
         $desa = IdentitasDesa::first();
         $setting = Setting::where('key', 'header_surat')->first(); 
@@ -117,10 +229,7 @@ class LetterController extends Controller
 
         if ($desa && !empty($templateHeader)) {
             $cariHeader = [
-                '[kabupaten]',
-                '[kecamatan]',
-                '[nama_desa]',
-                '[provinsi]'
+                '[kabupaten]', '[kecamatan]', '[nama_desa]', '[provinsi]'
             ];
             $gantiHeader = [
                 strtoupper($desa->kabupaten ?? 'KABUPATEN'),
@@ -129,15 +238,32 @@ class LetterController extends Controller
                 strtoupper($desa->provinsi ?? 'PROVINSI')
             ];
             
-            // Tukar variabel teks pada header
             $templateHeader = str_ireplace($cariHeader, $gantiHeader, $templateHeader);
-            
-            // Gabungkan Header di atas konten surat
             $htmlContent = $templateHeader . '<div style="margin-top: 15px;"></div>' . $htmlContent;
         }
 
         // =========================================================
-        // 3. AUTO LOGO DESA
+        // 5. AUTO GENERATE VARIABEL IDENTITAS DESA
+        // =========================================================
+        if ($desa) {
+            $cariDesa = [
+                '[nama_desa]', '[kode_desa]', '[kode_pos]', '[kecamatan]',
+                '[kabupaten]', '[provinsi]', '[alamat_kantor]', '[email_desa]',
+                '[telepon_desa]', '[website_desa]', '[kepala_desa]', '[nip_kepala_desa]'
+            ];
+            
+            $gantiDesa = [
+                $desa->nama_desa ?? '', $desa->kode_desa ?? '', $desa->kode_pos ?? '', 
+                $desa->kecamatan ?? '', $desa->kabupaten ?? '', $desa->provinsi ?? '', 
+                $desa->alamat_kantor ?? '', $desa->email_desa ?? '', $desa->telepon_desa ?? '', 
+                $desa->website_desa ?? '', $desa->kepala_desa ?? '', $desa->nip_kepala_desa ?? ''
+            ];
+            
+            $htmlContent = str_ireplace($cariDesa, $gantiDesa, $htmlContent);
+        }
+        
+        // =========================================================
+        // 6. AUTO LOGO DESA
         // =========================================================
         $htmlContent = preg_replace('/<img[^>]*src="\[logo_desa\]"[^>]*>/i', '[logo_desa]', $htmlContent);
 
@@ -170,8 +296,7 @@ class LetterController extends Controller
             $htmlContent = str_ireplace('[logo_desa]', $logoHtml, $htmlContent);
         }
 
-        // Mengambil data aparatur desa untuk jaga-jaga jika di view preview juga diperlukan
-        $pemerintah = BukuPemerintah::all();
+        $pemerintah = PerangkatDesa::aktif()->orderBy('urutan')->get();
 
         return view('admin.layanan-surat.letters.preview', [
             'htmlContent' => $htmlContent,
@@ -184,6 +309,8 @@ class LetterController extends Controller
     public function generateFinal(Request $request)
     {
         try {
+            $this->syncDataPendudukDanKeluarga($request);
+
             $content = $request->final_content;
             $templateId = $request->template_id;
             $template = SuratTemplate::with('klasifikasi')->find($templateId);
@@ -219,7 +346,7 @@ class LetterController extends Controller
                 'nomor_surat'   => $nomorSuratFinal, 
                 'jenis_surat'   => $request->jenis_surat, 
                 'nama_pemohon'  => $request->nama_pemohon,
-                'nik'           => $request->nik_pemohon ?? '-',
+                'nik'           => $request->nik_pemohon ?? ($request->nik ?? '-'),
                 'tanggal_surat' => $request->tanggal_surat ?? now()->format('Y-m-d'),
                 'file_path'     => $dbPath,
                 'status'        => 'selesai',
@@ -245,7 +372,14 @@ class LetterController extends Controller
     }
 
     public function getDataByNik($nik) {
-        $penduduk = Penduduk::where('nik', $nik)->first();
+        // PERBAIKAN: Me-load semua relasi tabel yang dibutuhkan
+        $penduduk = Penduduk::with([
+            'agama', 'pendidikanKk', 'pekerjaan', 'statusKawin', 
+            'golonganDarah', 'warganegara', 'shdk', 'cacat', 
+            'sakitMenahun', 'caraKb', 'asuransi', 'bahasa',
+            'keluarga.rumahTangga'
+        ])->where('nik', $nik)->first();
+
         $desa = IdentitasDesa::first();
 
         if ($penduduk) {
@@ -264,9 +398,31 @@ class LetterController extends Controller
                 ];
             }
 
+            $dataPenduduk = $penduduk->toArray();
+            
+            $dataPenduduk['tanggal_lahir_format'] = $penduduk->tanggal_lahir ? \Carbon\Carbon::parse($penduduk->tanggal_lahir)->format('Y-m-d') : '';
+
+            // Map semua teks dari Relasi Master ke response JSON agar javascript mudah membaca
+            $dataPenduduk['agama_teks'] = $penduduk->agama->nama ?? $penduduk->agama_lama ?? '';
+            $dataPenduduk['pendidikan_teks'] = $penduduk->pendidikanKk->nama ?? $penduduk->pendidikan_lama ?? '';
+            $dataPenduduk['pekerjaan_teks'] = $penduduk->pekerjaan->nama ?? $penduduk->pekerjaan_lama ?? '';
+            $dataPenduduk['status_kawin_teks'] = $penduduk->statusKawin->nama ?? $penduduk->status_kawin_lama ?? '';
+            $dataPenduduk['gol_darah_teks'] = $penduduk->golonganDarah->nama ?? $penduduk->golongan_darah_lama ?? '';
+            $dataPenduduk['warga_negara_teks'] = $penduduk->warganegara->nama ?? $penduduk->kewarganegaraan_lama ?? 'WNI';
+            
+            // Tambahan Mapping
+            $dataPenduduk['cacat_teks'] = $penduduk->cacat->nama ?? '';
+            $dataPenduduk['sakit_menahun_teks'] = $penduduk->sakitMenahun->nama ?? '';
+            $dataPenduduk['cara_kb_teks'] = $penduduk->caraKb->nama ?? '';
+            $dataPenduduk['asuransi_teks'] = $penduduk->asuransi->nama ?? '';
+            $dataPenduduk['bahasa_teks'] = $penduduk->bahasa->nama ?? '';
+            
+            $dataPenduduk['shdk_teks'] = $penduduk->shdk->nama ?? $penduduk->label_shdk ?? '';
+            $dataPenduduk['umur'] = $penduduk->umur;
+
             return response()->json([
                 'success' => true,
-                'penduduk' => $penduduk,
+                'penduduk' => $dataPenduduk, 
                 'desa' => $desa,
                 'keluarga' => $dataKeluarga
             ]);
@@ -281,6 +437,8 @@ class LetterController extends Controller
 
     public function store(Request $request)
     {
+        $this->syncDataPendudukDanKeluarga($request);
+
         $validated = $this->validateLetterRequest($request);
         $letter = Letter::create($validated);
         return redirect()->route('admin.layanan-surat.cetak.show', $letter->id);
@@ -299,6 +457,91 @@ class LetterController extends Controller
             return response()->file($filePath);
         }
         return back()->with('error', 'File PDF tidak ditemukan di server.');
+    }
+
+    // =========================================================================
+    // FUNGSI PRIVATE (LOGIKA INTERNAL)
+    // =========================================================================
+
+    private function syncDataPendudukDanKeluarga(Request $request)
+    {
+        $nik = $request->nik_pemohon ?? $request->nik;
+        $nama = $request->nama_pemohon ?? $request->nama;
+        $no_kk = $request->no_kk;
+
+        if (empty($nik) || empty($nama) || $nik === '-') {
+            return;
+        }
+
+        DB::beginTransaction();
+        try {
+            $keluargaId = null;
+
+            if (!empty($no_kk)) {
+                $keluarga = Keluarga::firstOrCreate(
+                    ['no_kk' => $no_kk],
+                    [
+                        'alamat' => $request->Alamat ?? $request->alamat ?? '-',
+                        'status' => Keluarga::STATUS_AKTIF,
+                        'tgl_terdaftar' => now()->toDateString()
+                    ]
+                );
+                $keluargaId = $keluarga->id;
+            }
+
+            $agamaId = \App\Models\Ref\RefAgama::where('nama', 'LIKE', ($request->agama ?? '') . '%')->value('id');
+            $pendidikanId = \App\Models\Ref\RefPendidikan::where('nama', 'LIKE', ($request->Pendidikan ?? '') . '%')->value('id');
+            $pekerjaanId = \App\Models\Ref\RefPekerjaan::where('nama', 'LIKE', ($request->pekerjaan ?? '') . '%')->value('id');
+            $statusKawinId = \App\Models\Ref\RefStatusKawin::where('nama', 'LIKE', ($request->status ?? '') . '%')->value('id') ?? 1;
+            $wargaNegaraId = \App\Models\Ref\RefWarganegara::where('nama', 'LIKE', ($request->warga_negara ?? '') . '%')->value('id') ?? 1;
+
+            $jenisKelamin = in_array(strtoupper($request->jenis_kelamin ?? 'L'), ['L', 'P']) ? strtoupper($request->jenis_kelamin ?? 'L') : 'L';
+
+            $tglLahir = now()->toDateString();
+            if ($request->filled('tanggal_lahir')) {
+                try {
+                    $tglLahir = \Carbon\Carbon::parse($request->tanggal_lahir)->format('Y-m-d');
+                } catch (\Exception $e) {}
+            }
+
+            $isKepala = false;
+            if ($request->filled('kepala_kk') && strtolower(trim($request->kepala_kk)) === strtolower(trim($nama))) {
+                $isKepala = true;
+            }
+
+            $penduduk = Penduduk::updateOrCreate(
+                ['nik' => $nik],
+                [
+                    'nama' => $nama,
+                    'keluarga_id' => $keluargaId,
+                    'tempat_lahir' => $request->tempat_lahir ?? '-',
+                    'tanggal_lahir' => $tglLahir,
+                    'jenis_kelamin' => $jenisKelamin,
+                    'alamat' => $request->Alamat ?? $request->alamat ?? '-',
+                    'agama_id' => $agamaId,
+                    'pendidikan_kk_id' => $pendidikanId,
+                    'pekerjaan_id' => $pekerjaanId,
+                    'status_kawin_id' => $statusKawinId,
+                    'warganegara_id' => $wargaNegaraId,
+                    'status_hidup' => Penduduk::STATUS_DASAR_HIDUP,
+                    'status' => Penduduk::STATUS_TETAP,
+                    'jenis_tambah' => Penduduk::JENIS_TAMBAH_MASUK,
+                    'kk_level' => $isKepala ? Penduduk::SHDK_KEPALA_KELUARGA : Penduduk::SHDK_FAMILI_LAIN,
+                ]
+            );
+
+            if ($keluargaId && $isKepala) {
+                Keluarga::where('id', $keluargaId)->update([
+                    'kepala_keluarga_id' => $penduduk->id,
+                    'nik_kepala' => $penduduk->nik
+                ]);
+            }
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Gagal simpan otomatis penduduk dari menu Cetak Surat: ' . $e->getMessage());
+        }
     }
 
     private function validateLetterRequest(Request $request) {

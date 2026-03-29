@@ -13,42 +13,65 @@ return new class extends Migration {
 
         Schema::table('penduduk', function (Blueprint $table) {
             // ── Foto & Tag ID Card ──────────────────────────────────────────
-            $table->string('foto')->nullable()->after('nik');
-            $table->string('tag_id_card')->nullable()->after('foto');
+            if (!Schema::hasColumn('penduduk', 'foto')) {
+                $table->string('foto')->nullable()->after('nik');
+            }
+            if (!Schema::hasColumn('penduduk', 'tag_id_card')) {
+                $table->string('tag_id_card')->nullable()->after('foto');
+            }
 
             // ── Nama Orang Tua ─────────────────────────────────────────────
-            $table->string('nama_ayah')->nullable()->after('nama');
-            $table->string('nama_ibu')->nullable()->after('nama_ayah');
+            if (!Schema::hasColumn('penduduk', 'nama_ayah')) {
+                $table->string('nama_ayah')->nullable()->after('nama');
+            }
+            if (!Schema::hasColumn('penduduk', 'nama_ibu')) {
+                $table->string('nama_ibu')->nullable()->after('nama_ayah');
+            }
 
             // ── Jenis Penambahan Penduduk ──────────────────────────────────
-            $table->enum('jenis_tambah', ['lahir', 'masuk', 'meninggal'])
-                ->default('lahir')
-                ->after('status_hidup');
+            if (!Schema::hasColumn('penduduk', 'jenis_tambah')) {
+                $table->enum('jenis_tambah', ['lahir', 'masuk', 'meninggal'])
+                    ->default('lahir')
+                    ->after('status_hidup');
+            }
 
             // ── Tanggal Peristiwa & Tanggal Terdaftar ─────────────────────
-            $table->date('tgl_peristiwa')->nullable()->after('jenis_tambah');
-            $table->date('tgl_terdaftar')->nullable()->after('tgl_peristiwa');
+            if (!Schema::hasColumn('penduduk', 'tgl_peristiwa')) {
+                $table->date('tgl_peristiwa')->nullable()->after('jenis_tambah');
+            }
+            if (!Schema::hasColumn('penduduk', 'tgl_terdaftar')) {
+                $table->date('tgl_terdaftar')->nullable()->after('tgl_peristiwa');
+            }
 
             // ── SoftDeletes ────────────────────────────────────────────────
-            // Kolom deleted_at sudah ada di DB tapi belum di migration
-            $table->softDeletes()->after('updated_at');
+            // Cek dulu apakah kolom deleted_at belum ada, kalau belum baru dibuat
+            if (!Schema::hasColumn('penduduk', 'deleted_at')) {
+                $table->softDeletes()->after('updated_at');
+            }
         });
     }
 
     public function down(): void {
         Schema::table('penduduk', function (Blueprint $table) {
-            $table->dropColumn([
-                'foto',
-                'tag_id_card',
-                'nama_ayah',
-                'nama_ibu',
-                'jenis_tambah',
-                'tgl_peristiwa',
-                'tgl_terdaftar',
-            ]);
+            // Hapus kolom hanya jika kolomnya ada
+            $columnsToDrop = [];
+            
+            if (Schema::hasColumn('penduduk', 'foto')) $columnsToDrop[] = 'foto';
+            if (Schema::hasColumn('penduduk', 'tag_id_card')) $columnsToDrop[] = 'tag_id_card';
+            if (Schema::hasColumn('penduduk', 'nama_ayah')) $columnsToDrop[] = 'nama_ayah';
+            if (Schema::hasColumn('penduduk', 'nama_ibu')) $columnsToDrop[] = 'nama_ibu';
+            if (Schema::hasColumn('penduduk', 'jenis_tambah')) $columnsToDrop[] = 'jenis_tambah';
+            if (Schema::hasColumn('penduduk', 'tgl_peristiwa')) $columnsToDrop[] = 'tgl_peristiwa';
+            if (Schema::hasColumn('penduduk', 'tgl_terdaftar')) $columnsToDrop[] = 'tgl_terdaftar';
 
-            // Hapus softDeletes (kolom deleted_at)
-            $table->dropSoftDeletes();
+            if (count($columnsToDrop) > 0) {
+                $table->dropColumn($columnsToDrop);
+            }
+
+            // Hapus softDeletes hanya jika kolom deleted_at ada
+            if (Schema::hasColumn('penduduk', 'deleted_at')) {
+                $table->dropSoftDeletes();
+            }
         });
 
         // Kembalikan pekerjaan ke enum semula

@@ -45,7 +45,7 @@ class PendudukController extends Controller {
         'pekerjaan_lama'   => 'Pekerjaan',
         'golongan_darah_lama' => 'Golongan Darah',
         'status_kawin_lama'   => 'Status Kawin',
-        'status_dasar'     => 'Status Dasar (hidup/mati/pindah/hilang)',
+        'status_hidup'     => 'Status Dasar (hidup/mati/pindah/hilang)', // <-- Diubah ke status_hidup
         'jenis_tambah'     => 'Jenis Tambah (lahir/masuk)',
         'kewarganegaraan_lama' => 'Kewarganegaraan',
         'no_telp'          => 'No. Telepon',
@@ -61,10 +61,10 @@ class PendudukController extends Controller {
     public function index(Request $request) {
         $query = Penduduk::with(['wilayah', 'keluarga', 'agama', 'pekerjaan', 'shdk']);
 
-        // ── Filter: Status Dasar (default: hidup) ─────────────────────────────
-        $statusDasar = $request->get('status_dasar', 'hidup');
-        if ($statusDasar && $statusDasar !== 'semua') {
-            $query->where('status_dasar', $statusDasar);
+        // ── Filter: Status Hidup (default: hidup) ─────────────────────────────
+        $statusHidup = $request->get('status_hidup', 'hidup');
+        if ($statusHidup && $statusHidup !== 'semua') {
+            $query->where('status_hidup', $statusHidup);
         }
 
         // ── Filter: Status (jenis penduduk) ───────────────────────────────────
@@ -101,8 +101,6 @@ class PendudukController extends Controller {
         }
 
         // ── Filter: NIK Sementara ─────────────────────────────────────────────
-        // Kolom is_nik_sementara ditambahkan via migration (jalankan: php artisan migrate).
-        // Fallback: jika kolom belum ada di DB, skip filter agar tidak error 500.
         if ($request->boolean('nik_sementara')) {
             if (\Illuminate\Support\Facades\Schema::hasColumn('penduduk', 'is_nik_sementara')) {
                 $query->where('is_nik_sementara', true);
@@ -122,7 +120,6 @@ class PendudukController extends Controller {
         // ── Pencarian Spesifik: Tanggal Lahir ────────────────────────────────
         if ($request->filled('tanggal_lahir')) {
             $tgl = $request->tanggal_lahir;
-            // Format YYYY-MM-DD → exact match; format MM-DD → match bulan & hari
             if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $tgl)) {
                 $query->whereDate('tanggal_lahir', $tgl);
             } elseif (preg_match('/^(\d{2})-(\d{2})$/', $tgl, $m)) {
@@ -241,7 +238,7 @@ class PendudukController extends Controller {
     public function create(Request $request) {
         $jenis = in_array($request->get('jenis'), ['lahir', 'masuk'])
             ? $request->get('jenis')
-            : 'lahir'; // 'meninggal' dihapus dari jenis_tambah
+            : 'lahir';
 
         $keluarga = Keluarga::aktif()
             ->with('kepalaKeluarga:id,nama')
@@ -252,7 +249,6 @@ class PendudukController extends Controller {
             ->orderBy('dusun')->orderBy('rw')->orderBy('rt')
             ->get();
 
-        // Referensi dari tabel master
         $refAgama       = RefAgama::orderBy('nama')->get();
         $refGolDarah    = RefGolonganDarah::orderBy('nama')->get();
         $refStatusKawin = RefStatusKawin::orderBy('id')->get();
@@ -304,8 +300,8 @@ class PendudukController extends Controller {
             'status_kawin_id'       => 'required|exists:ref_status_kawin,id',
             'warganegara_id'        => 'required|exists:ref_warganegara,id',
             'status'                => 'nullable|in:1,2,3',
-            'status_dasar'          => 'nullable|in:hidup,mati,pindah,hilang',
-            'jenis_tambah'          => 'required|in:lahir,masuk', // 'meninggal' dihapus
+            'status_hidup'          => 'nullable|in:hidup,mati,pindah,hilang', // <-- Diubah
+            'jenis_tambah'          => 'required|in:lahir,masuk',
             'akta_perkawinan'       => 'nullable|string|max:100',
             'tanggal_perkawinan'    => 'nullable|date',
             'akta_perceraian'       => 'nullable|string|max:100',
@@ -329,7 +325,7 @@ class PendudukController extends Controller {
 
         // ── Default values ─────────────────────────────────────────────────────
         $validated['status']       ??= Penduduk::STATUS_TETAP;
-        $validated['status_dasar'] ??= Penduduk::STATUS_DASAR_HIDUP;
+        $validated['status_hidup'] ??= Penduduk::STATUS_DASAR_HIDUP; // Asumsi constant-nya masih STATUS_DASAR_HIDUP
         $validated['tgl_terdaftar'] ??= now()->toDateString();
 
         // ── Jika masuk ke KK baru sebagai KK → set kepala_keluarga_id di KK ──
@@ -438,7 +434,7 @@ class PendudukController extends Controller {
             'status_kawin_id'       => 'required|exists:ref_status_kawin,id',
             'warganegara_id'        => 'required|exists:ref_warganegara,id',
             'status'                => 'nullable|in:1,2,3',
-            'status_dasar'          => 'nullable|in:hidup,mati,pindah,hilang',
+            'status_hidup'          => 'nullable|in:hidup,mati,pindah,hilang', // <-- Diubah
             'jenis_tambah'          => 'required|in:lahir,masuk',
             'akta_perkawinan'       => 'nullable|string|max:100',
             'tanggal_perkawinan'    => 'nullable|date',
@@ -470,7 +466,6 @@ class PendudukController extends Controller {
         $penduduk->update($validated);
 
         // ── Sinkronisasi kepala_keluarga_id di tabel keluarga ─────────────────
-        // Jika SHDK berubah jadi KK di KK baru
         if (
             $penduduk->keluarga_id
             && $penduduk->kk_level == Penduduk::SHDK_KEPALA_KELUARGA
@@ -482,7 +477,6 @@ class PendudukController extends Controller {
             ]);
         }
 
-        // Jika SHDK diubah dari KK → bukan KK, kosongkan kepala_keluarga_id di KK lama
         if (
             $oldKkLevel == Penduduk::SHDK_KEPALA_KELUARGA
             && $penduduk->kk_level != Penduduk::SHDK_KEPALA_KELUARGA
@@ -499,32 +493,29 @@ class PendudukController extends Controller {
 
     // =========================================================================
     // UBAH STATUS DASAR (Pindah / Meninggal / Hilang)
-    // Di OpenSID ini fitur terpisah dari edit biodata
     // =========================================================================
     public function ubahStatusDasar(Request $request, Penduduk $penduduk) {
         $request->validate([
-            'status_dasar'  => 'required|in:mati,pindah,hilang',
+            'status_hidup'  => 'required|in:mati,pindah,hilang', // <-- Diubah
             'tgl_peristiwa' => 'required|date',
             'keterangan'    => 'nullable|string',
         ]);
 
-        // KK tidak bisa langsung diubah status menjadi mati
-        // sesuai aturan OpenSID — harus pindah KK dulu
         if (
             $penduduk->kk_level == Penduduk::SHDK_KEPALA_KELUARGA
-            && $request->status_dasar === 'mati'
+            && $request->status_hidup === 'mati'
         ) {
             return back()->with('error', 'Kepala Keluarga tidak bisa langsung diubah statusnya menjadi meninggal. Tetapkan Kepala Keluarga baru terlebih dahulu.');
         }
 
         $penduduk->update([
-            'status_dasar'  => $request->status_dasar,
+            'status_hidup'  => $request->status_hidup, // <-- Diubah
             'tgl_peristiwa' => $request->tgl_peristiwa,
             'keterangan'    => $request->keterangan,
         ]);
 
         return redirect()->route('admin.penduduk')
-            ->with('success', "Status penduduk {$penduduk->nama} berhasil diubah menjadi {$penduduk->label_status_dasar}.");
+            ->with('success', "Status penduduk {$penduduk->nama} berhasil diubah.");
     }
 
     // =========================================================================
@@ -535,7 +526,6 @@ class PendudukController extends Controller {
     }
 
     public function destroy(Penduduk $penduduk) {
-        // Jika penduduk ini adalah kepala KK, kosongkan kepala_keluarga_id
         if ($penduduk->kk_level == Penduduk::SHDK_KEPALA_KELUARGA && $penduduk->keluarga_id) {
             Keluarga::where('id', $penduduk->keluarga_id)
                 ->where('kepala_keluarga_id', $penduduk->id)
@@ -546,7 +536,7 @@ class PendudukController extends Controller {
             Storage::disk('public')->delete($penduduk->foto);
         }
 
-        $penduduk->delete(); // SoftDelete
+        $penduduk->delete(); 
 
         return redirect()->route('admin.penduduk')
             ->with('success', 'Penduduk berhasil dihapus.');
@@ -684,7 +674,6 @@ class PendudukController extends Controller {
         $rows        = $sheet->toArray(null, true, true, true);
         $highestRow  = $sheet->getHighestRow();
 
-        // Mapping label kolom → field
         $labelToField = array_flip(array_map('strtolower', $this->exportColumns));
         $colMap       = [];
         foreach (($rows[1] ?? []) as $colLetter => $label) {
@@ -692,7 +681,6 @@ class PendudukController extends Controller {
             if ($field) $colMap[$colLetter] = $field;
         }
 
-        // Cache tabel referensi untuk mapping nama → id
         $agamaMap       = RefAgama::pluck('id', 'nama')->mapWithKeys(fn($v, $k) => [strtoupper($k) => $v]);
         $pekerjaanMap   = RefPekerjaan::pluck('id', 'nama')->mapWithKeys(fn($v, $k) => [strtoupper($k) => $v]);
         $pendidikanMap  = RefPendidikan::pluck('id', 'nama')->mapWithKeys(fn($v, $k) => [strtoupper($k) => $v]);
@@ -720,7 +708,6 @@ class PendudukController extends Controller {
                     continue;
                 }
 
-                // Parse tanggal
                 foreach (['tanggal_lahir', 'tgl_peristiwa', 'tgl_terdaftar'] as $f) {
                     if (!empty($data[$f])) {
                         try {
@@ -735,7 +722,7 @@ class PendudukController extends Controller {
                 $data['jenis_kelamin'] = strtoupper($data['jenis_kelamin'] ?? 'L');
                 if (!in_array($data['jenis_kelamin'], ['L', 'P'])) $data['jenis_kelamin'] = 'L';
                 if (!in_array($data['jenis_tambah'] ?? '', ['lahir', 'masuk'])) $data['jenis_tambah'] = 'lahir';
-                if (!in_array($data['status_dasar'] ?? '', ['hidup', 'mati', 'pindah', 'hilang'])) $data['status_dasar'] = 'hidup';
+                if (!in_array($data['status_hidup'] ?? '', ['hidup', 'mati', 'pindah', 'hilang'])) $data['status_hidup'] = 'hidup';
 
                 // Map nama referensi → id
                 if (!empty($data['agama_lama'])) {
@@ -760,7 +747,7 @@ class PendudukController extends Controller {
                 $data = array_intersect_key($data, array_flip((new Penduduk)->getFillable()));
                 $data['tgl_terdaftar'] ??= now()->toDateString();
                 $data['status']        ??= Penduduk::STATUS_TETAP;
-                $data['status_dasar']  ??= Penduduk::STATUS_DASAR_HIDUP;
+                $data['status_hidup']  ??= Penduduk::STATUS_DASAR_HIDUP; // <-- Diubah
 
                 $existing = Penduduk::where('nik', $data['nik'])->first();
                 if ($existing) {
@@ -861,7 +848,6 @@ class PendudukController extends Controller {
 
     // =========================================================================
     // PENCARIAN SPESIFIK
-    // Cari penduduk berdasarkan kombinasi atribut spesifik (bukan keyword bebas)
     // =========================================================================
     public function pencarianSpesifik(Request $request) {
         $dusunList      = Wilayah::orderBy('dusun')->pluck('dusun')->unique()->filter()->values();
@@ -872,18 +858,9 @@ class PendudukController extends Controller {
 
         $penduduk = null;
         if ($request->isMethod('POST') || $request->anyFilled([
-            'nama',
-            'tempat_lahir',
-            'tanggal_lahir_dari',
-            'tanggal_lahir_sampai',
-            'jenis_kelamin',
-            'agama_id',
-            'pekerjaan_id',
-            'pendidikan_id',
-            'status_kawin_id',
-            'dusun',
-            'umur_dari',
-            'umur_sampai',
+            'nama', 'tempat_lahir', 'tanggal_lahir_dari', 'tanggal_lahir_sampai',
+            'jenis_kelamin', 'agama_id', 'pekerjaan_id', 'pendidikan_id',
+            'status_kawin_id', 'dusun', 'umur_dari', 'umur_sampai',
         ])) {
             $query = Penduduk::with(['wilayah', 'keluarga', 'agama', 'pekerjaan']);
 
@@ -912,7 +889,7 @@ class PendudukController extends Controller {
             if ($request->filled('umur_sampai'))
                 $query->whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) <= ?', [$request->umur_sampai]);
 
-            $penduduk = $query->where('status_dasar', 'hidup')
+            $penduduk = $query->where('status_hidup', 'hidup') // <-- Diubah
                 ->orderBy('nama')
                 ->paginate(25)
                 ->appends($request->query());
@@ -933,10 +910,9 @@ class PendudukController extends Controller {
     }
 
     // =========================================================================
-    // PROGRAM BANTUAN — filter penduduk berdasarkan program bantuan sosial
+    // PROGRAM BANTUAN
     // =========================================================================
     public function programBantuan(Request $request) {
-        // Ambil daftar program bantuan dari tabel bantuans jika ada
         $programList = [];
         if (class_exists(\App\Models\Bantuan::class)) {
             $programList = \App\Models\Bantuan::orderBy('nama')->get();
@@ -947,7 +923,7 @@ class PendudukController extends Controller {
             if (class_exists(\App\Models\BantuanPeserta::class)) {
                 $penduduk = Penduduk::with(['wilayah', 'keluarga'])
                     ->whereHas('bantuanPeserta', fn($q) => $q->where('bantuan_id', $request->program_id))
-                    ->where('status_dasar', 'hidup')
+                    ->where('status_hidup', 'hidup') // <-- Diubah
                     ->orderBy('nama')
                     ->paginate(25)
                     ->appends($request->query());
@@ -958,13 +934,12 @@ class PendudukController extends Controller {
     }
 
     // =========================================================================
-    // KUMPULAN NIK — masukkan daftar NIK manual, tampilkan datanya
+    // KUMPULAN NIK
     // =========================================================================
     public function kumpulanNik(Request $request) {
         $penduduk = null;
 
         if ($request->filled('nik_list')) {
-            // Terima NIK dipisahkan newline, koma, atau spasi
             $niks = preg_split('/[\s,;]+/', trim($request->nik_list), -1, PREG_SPLIT_NO_EMPTY);
             $niks = array_filter(array_map('trim', $niks));
 
@@ -981,25 +956,22 @@ class PendudukController extends Controller {
     }
 
     // =========================================================================
-    // LOKASI TEMPAT TINGGAL — tampilkan peta berdasarkan koordinat wilayah
+    // LOKASI TEMPAT TINGGAL
     // =========================================================================
     public function lokasi(Penduduk $penduduk) {
         $penduduk->load(['wilayah', 'keluarga']);
 
-        // Helper: cek apakah koordinat valid untuk Indonesia
         $isValidIndonesia = function (?float $lat, ?float $lng): bool {
             if ($lat === null || $lng === null) return false;
             return $lat >= -11 && $lat <= 6 && $lng >= 95 && $lng <= 141;
         };
 
-        // Prioritas: koordinat penduduk sendiri → koordinat wilayah → null
         $pendudukLat = $penduduk->lat ? (float)$penduduk->lat : null;
         $pendudukLng = $penduduk->lng ? (float)$penduduk->lng : null;
 
         $wilayahLat = $penduduk->wilayah?->lat ? (float)$penduduk->wilayah->lat : null;
         $wilayahLng = $penduduk->wilayah?->lng ? (float)$penduduk->wilayah->lng : null;
 
-        // Hanya pakai koordinat wilayah jika valid
         if (!$isValidIndonesia($wilayahLat, $wilayahLng)) {
             $wilayahLat = null;
             $wilayahLng = null;
@@ -1017,15 +989,15 @@ class PendudukController extends Controller {
             'longitude' => 'nullable|numeric|between:-180,180',
         ]);
         $penduduk->update([
-            'lat' => $request->latitude ?: null,  // ✅ simpan ke kolom lat
-            'lng' => $request->longitude ?: null, // ✅ simpan ke kolom lng
+            'lat' => $request->latitude ?: null,
+            'lng' => $request->longitude ?: null,
         ]);
         return redirect()->route('admin.penduduk.lokasi', $penduduk)
             ->with('success', 'Koordinat lokasi berhasil disimpan.');
     }
 
     // =========================================================================
-    // DOKUMEN PENDUDUK — list & upload dokumen pendukung
+    // DOKUMEN PENDUDUK
     // =========================================================================
     public function dokumen(Penduduk $penduduk) {
         $dokumen = collect();
@@ -1084,8 +1056,8 @@ class PendudukController extends Controller {
                     ->orWhere('nik', 'like', "%{$request->search}%"))
             )
             ->when(
-                $request->filled('status_dasar') && $request->status_dasar !== 'semua',
-                fn($q) => $q->where('status_dasar', $request->status_dasar)
+                $request->filled('status_hidup') && $request->status_hidup !== 'semua', // <-- Diubah
+                fn($q) => $q->where('status_hidup', $request->status_hidup) // <-- Diubah
             )
             ->when(
                 $request->filled('jenis_tambah') && $request->jenis_tambah !== 'semua',

@@ -4,59 +4,31 @@
 
 @section('content')
 
-{{-- ============================================================ --}}
-{{-- HEADER: Title kiri + Breadcrumb + Tombol kanan               --}}
-{{-- ============================================================ --}}
+{{-- HEADER --}}
 <div class="flex items-center justify-between mb-6">
     <div>
         <h2 class="text-lg font-bold text-gray-700 dark:text-slate-200">Tambah Perangkat Desa</h2>
-        <p class="text-sm text-gray-400 dark:text-slate-500 mt-0.5">Isi formulir di bawah untuk menambahkan data perangkat desa</p>
+        <p class="text-sm text-gray-400 dark:text-slate-500 mt-0.5">Cari data dari database penduduk atau input manual</p>
     </div>
     <div class="flex items-center gap-3">
-        <nav class="flex items-center gap-1.5 text-sm">
-            <a href="/admin/dashboard" class="flex items-center gap-1 text-gray-400 dark:text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-                </svg>
-                Beranda
-            </a>
-            <svg class="w-3.5 h-3.5 text-gray-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-            </svg>
-            <a href="{{ route('admin.buku-administrasi.umum.pemerintah.index') }}" class="text-gray-400 dark:text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors font-medium">
-                Pemerintah Desa
-            </a>
-            <svg class="w-3.5 h-3.5 text-gray-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-            </svg>
-            <span class="text-gray-600 dark:text-slate-300 font-medium">Tambah Perangkat</span>
-        </nav>
         <a href="{{ route('admin.buku-administrasi.umum.pemerintah.index') }}"
-            class="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-700 hover:bg-gray-50 dark:hover:bg-slate-600 text-gray-700 dark:text-slate-200 text-xs font-semibold rounded-xl shadow-sm border border-gray-200 dark:border-slate-600 transition-all duration-200 hover:shadow-md">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-            </svg>
+            class="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-700 hover:bg-gray-50 text-gray-700 dark:text-slate-200 text-xs font-semibold rounded-xl shadow-sm border border-gray-200 dark:border-slate-600 transition-all">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
             Kembali
         </a>
     </div>
 </div>
 
-{{-- ============================================================ --}}
-{{-- FORM CARD                                                    --}}
-{{-- ============================================================ --}}
 <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden">
-
     {{-- Card Header --}}
     <div class="bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-5">
         <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
-                </svg>
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
             </div>
             <div>
-                <h2 class="text-white font-semibold text-base">Tambah Perangkat Desa Baru</h2>
-                <p class="text-emerald-100 text-xs mt-0.5">Lengkapi semua data untuk mendaftarkan perangkat</p>
+                <h2 class="text-white font-semibold text-base">Formulir Data Perangkat Desa</h2>
+                <p class="text-emerald-100 text-xs mt-0.5">Gunakan fitur cari untuk mempercepat pengisian data</p>
             </div>
         </div>
     </div>
@@ -64,124 +36,271 @@
     <form action="{{ route('admin.buku-administrasi.umum.pemerintah.store') }}" method="POST" enctype="multipart/form-data">
         @csrf
 
-        {{-- Form Body --}}
-        <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-            
-            {{-- Nama Lengkap --}}
-            <div class="md:col-span-2">
-                <label for="nama" class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Nama Lengkap <span class="text-red-500">*</span></label>
-                <input type="text" name="nama" id="nama" value="{{ old('nama') }}" required placeholder="Masukkan nama lengkap beserta gelar..."
-                    class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors @error('nama') border-red-500 @enderror">
-                @error('nama') <span class="text-xs text-red-500 mt-1">{{ $message }}</span> @enderror
-            </div>
+        {{-- Hidden ID Penduduk --}}
+        <input type="hidden" name="penduduk_id" id="penduduk_id" value="{{ old('penduduk_id') }}">
 
-            {{-- NIK --}}
-            <div>
-                <label for="nik" class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Nomor Induk Kependudukan (NIK)</label>
-                <input type="number" name="nik" id="nik" value="{{ old('nik') }}" placeholder="16 digit NIK..."
-                    class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors @error('nik') border-red-500 @enderror">
-                @error('nik') <span class="text-xs text-red-500 mt-1">{{ $message }}</span> @enderror
-            </div>
+        <div class="p-6 space-y-8">
 
-            {{-- Jabatan --}}
-            <div>
-                <label for="jabatan_id" class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Jabatan <span class="text-red-500">*</span></label>
-                <select name="jabatan_id" id="jabatan_id" required
-                    class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors @error('jabatan_id') border-red-500 @enderror">
-                    <option value="" disabled selected>-- Pilih Jabatan --</option>
-                    {{-- Pastikan Anda mengirimkan $jabatans dari controller --}}
-                    @if(isset($jabatans) && $jabatans->count() > 0)
-                        @foreach($jabatans as $jabatan)
-                            <option value="{{ $jabatan->id }}" {{ old('jabatan_id') == $jabatan->id ? 'selected' : '' }}>
-                                {{ $jabatan->nama }} ({{ ucwords(str_replace('_', ' ', $jabatan->golongan)) }})
-                            </option>
-                        @endforeach
-                    @else
-                        <option value="" disabled>Data jabatan belum tersedia di database</option>
-                    @endif
-                </select>
-                @error('jabatan_id') <span class="text-xs text-red-500 mt-1">{{ $message }}</span> @enderror
-            </div>
+            {{-- TOP ROW: Foto + Cari Penduduk side-by-side --}}
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
 
-            {{-- No SK --}}
-            <div>
-                <label for="no_sk" class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Nomor SK Pengangkatan</label>
-                <input type="text" name="no_sk" id="no_sk" value="{{ old('no_sk') }}" placeholder="Contoh: 141/05/SK/2023"
-                    class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors @error('no_sk') border-red-500 @enderror">
-                @error('no_sk') <span class="text-xs text-red-500 mt-1">{{ $message }}</span> @enderror
-            </div>
-
-            {{-- Status --}}
-            <div>
-                <label for="status" class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Status Perangkat <span class="text-red-500">*</span></label>
-                <select name="status" id="status" required
-                    class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors @error('status') border-red-500 @enderror">
-                    <option value="1" {{ old('status') == '1' ? 'selected' : '' }}>Aktif</option>
-                    <option value="2" {{ old('status') == '2' ? 'selected' : '' }}>Non-Aktif</option>
-                </select>
-                @error('status') <span class="text-xs text-red-500 mt-1">{{ $message }}</span> @enderror
-            </div>
-
-            {{-- Periode Mulai --}}
-            <div>
-                <label for="periode_mulai" class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Tanggal Mulai Menjabat</label>
-                <input type="date" name="periode_mulai" id="periode_mulai" value="{{ old('periode_mulai') }}"
-                    class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors @error('periode_mulai') border-red-500 @enderror">
-                @error('periode_mulai') <span class="text-xs text-red-500 mt-1">{{ $message }}</span> @enderror
-            </div>
-
-            {{-- Periode Selesai --}}
-            <div>
-                <label for="periode_selesai" class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Tanggal Selesai Menjabat (Opsional)</label>
-                <input type="date" name="periode_selesai" id="periode_selesai" value="{{ old('periode_selesai') }}"
-                    class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors @error('periode_selesai') border-red-500 @enderror">
-                @error('periode_selesai') <span class="text-xs text-red-500 mt-1">{{ $message }}</span> @enderror
-            </div>
-
-            {{-- Foto Profile --}}
-            <div class="md:col-span-2">
-                <label for="foto" class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Foto Perangkat (Opsional)</label>
-                <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-slate-600 border-dashed rounded-xl bg-gray-50 dark:bg-slate-700/50 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors cursor-pointer" onclick="document.getElementById('foto').click()">
-                    <div class="space-y-1 text-center">
-                        <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-slate-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
-                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                        </svg>
-                        <div class="flex text-sm text-gray-600 dark:text-slate-300 justify-center">
-                            <span class="relative cursor-pointer bg-transparent rounded-md font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 focus-within:outline-none">
-                                <span>Upload foto</span>
-                                <input id="foto" name="foto" type="file" class="sr-only" accept="image/*">
-                            </span>
-                            <p class="pl-1">atau drag and drop</p>
+                {{-- FOTO PROFIL (kiri / top) --}}
+                <div class="flex flex-col items-center gap-3">
+                    {{-- Preview Area --}}
+                    <div id="foto_preview_wrapper" class="relative w-32 h-32 rounded-2xl bg-gray-100 dark:bg-slate-700 border-2 border-dashed border-gray-300 dark:border-slate-600 overflow-hidden flex items-center justify-center group cursor-pointer transition-all hover:border-emerald-400"
+                        onclick="document.getElementById('foto_input').click()">
+                        <img id="foto_preview_img" src="#" alt="Preview" class="w-full h-full object-cover hidden rounded-2xl" />
+                        <div id="foto_placeholder" class="flex flex-col items-center gap-1 text-gray-400 dark:text-slate-500 pointer-events-none">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
+                            <span class="text-[10px] font-medium">Foto Profil</span>
                         </div>
-                        <p class="text-xs text-gray-500 dark:text-slate-400">PNG, JPG, JPEG maksimal 2MB</p>
+                        {{-- Overlay saat hover --}}
+                        <div class="absolute inset-0 bg-emerald-600/70 opacity-0 group-hover:opacity-100 transition-all rounded-2xl flex items-center justify-center">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <input type="file" name="foto" id="foto_input" accept="image/*" class="hidden">
+                    <div class="text-center">
+                        <p class="text-xs font-medium text-gray-600 dark:text-slate-400">Klik untuk unggah foto</p>
+                        <p class="text-[10px] text-gray-400 dark:text-slate-500 mt-0.5">PNG, JPG • Maks. 2MB</p>
                     </div>
                 </div>
-                @error('foto') <span class="text-xs text-red-500 mt-1">{{ $message }}</span> @enderror
+
+                {{-- FITUR CARI PENDUDUK + KETERANGAN (kanan) --}}
+                <div class="md:col-span-2 flex flex-col gap-4">
+                    {{-- Search --}}
+                    <div class="p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 rounded-2xl">
+                        <label class="block text-sm font-bold text-emerald-700 dark:text-emerald-400 mb-2">Cari Dari Database Penduduk (Opsional)</label>
+                        <div class="relative">
+                            <input type="text" id="search_penduduk" placeholder="Ketik NIK atau Nama Warga..."
+                                class="w-full px-4 py-3 rounded-xl border-2 border-emerald-200 dark:border-emerald-800 bg-white dark:bg-slate-900 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all">
+                            <div id="results" class="absolute z-50 w-full mt-1 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl shadow-xl max-h-60 overflow-y-auto hidden"></div>
+                        </div>
+                        <p class="text-[10px] text-emerald-600 mt-2">Jika data ditemukan, formulir identitas di bawah akan terisi secara otomatis.</p>
+                    </div>
+
+                    {{-- Keterangan --}}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Keterangan</label>
+                        <textarea name="keterangan" rows="3" placeholder="Catatan tambahan (opsional)..." class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none resize-none">{{ old('keterangan') }}</textarea>
+                    </div>
+                </div>
             </div>
-            
+
+            <hr class="border-gray-100 dark:border-slate-700">
+
+            {{-- SEKSI 1: DATA IDENTITAS --}}
+            <div>
+                <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                    <span class="w-1.5 h-4 bg-emerald-500 rounded-full"></span> Informasi Identitas
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                    <div class="md:col-span-2 lg:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Nama Lengkap & Gelar <span class="text-red-500">*</span></label>
+                        <input type="text" name="nama" id="field_nama" value="{{ old('nama') }}" required placeholder="Nama lengkap..."
+                            class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none transition-all">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">NIK <span class="text-red-500">*</span></label>
+                        <input type="number" name="nik" id="field_nik" value="{{ old('nik') }}" required placeholder="16 digit NIK"
+                            class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Jenis Kelamin</label>
+                        <select name="jenis_kelamin" id="field_jk" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+                            <option value="">-- Pilih --</option>
+                            <option value="L" {{ old('jenis_kelamin') == 'L' ? 'selected' : '' }}>Laki-laki</option>
+                            <option value="P" {{ old('jenis_kelamin') == 'P' ? 'selected' : '' }}>Perempuan</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Tempat Lahir</label>
+                        <input type="text" name="tempat_lahir" id="field_tempat_lahir" value="{{ old('tempat_lahir') }}" placeholder="Tempat Lahir"
+                            class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Tanggal Lahir</label>
+                        <input type="date" name="tanggal_lahir" id="field_tanggal_lahir" value="{{ old('tanggal_lahir') }}"
+                            class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Agama</label>
+                        <select name="agama" id="field_agama" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+                            <option value="">-- Pilih --</option>
+                            @foreach(['Islam', 'Kristen', 'Katolik', 'Hindu', 'Budha', 'Khonghucu'] as $agm)
+                                <option value="{{ $agm }}" {{ old('agama') == $agm ? 'selected' : '' }}>{{ $agm }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="border-gray-100 dark:border-slate-700">
+
+            {{-- SEKSI 2: DATA JABATAN --}}
+            <div>
+                <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                    <span class="w-1.5 h-4 bg-blue-500 rounded-full"></span> Jabatan & Masa Bakti
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Jabatan <span class="text-red-500">*</span></label>
+                        <select name="jabatan_id" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+                            <option value="" disabled selected>-- Pilih Jabatan --</option>
+                            @isset($jabatans)
+                                @foreach($jabatans as $jabatan)
+                                    <option value="{{ $jabatan->id }}" {{ old('jabatan_id') == $jabatan->id ? 'selected' : '' }}>
+                                        {{ $jabatan->nama }}
+                                    </option>
+                                @endforeach
+                            @endisset
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">NIAP</label>
+                        <input type="text" name="niap" value="{{ old('niap') }}" placeholder="Nomor Induk Aparatur"
+                            class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">NIP (PNS)</label>
+                        <input type="text" name="nip" value="{{ old('nip') }}" placeholder="Nomor Induk Pegawai"
+                            class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Nomor SK Pengangkatan</label>
+                        <input type="text" name="no_sk" value="{{ old('no_sk') }}" placeholder="Contoh: 141/05/SK/2024"
+                            class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Tanggal SK</label>
+                        <input type="date" name="tanggal_sk" value="{{ old('tanggal_sk') }}"
+                            class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Status</label>
+                        <select name="status" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+                            <option value="1" {{ old('status') == '1' ? 'selected' : '' }}>Aktif</option>
+                            <option value="2" {{ old('status') == '2' ? 'selected' : '' }}>Non-Aktif</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
-        {{-- Action Buttons --}}
+        {{-- ACTION BUTTONS --}}
         <div class="flex items-center justify-end gap-3 px-6 py-4 bg-gray-50 dark:bg-slate-700/50 border-t border-gray-100 dark:border-slate-700">
-            <a href="{{ route('admin.buku-administrasi.umum.pemerintah.index') }}"
-                class="inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-300 text-sm font-semibold rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 hover:border-gray-300 dark:hover:border-slate-500 transition-all duration-150 shadow-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-                Batal
-            </a>
-            <button type="submit"
-                class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-br from-emerald-500 to-teal-600 text-white text-sm font-semibold rounded-xl
-                       hover:from-emerald-600 hover:to-teal-700 hover:shadow-lg hover:shadow-emerald-200 dark:hover:shadow-emerald-900/50 hover:-translate-y-0.5
-                       active:translate-y-0 transition-all duration-150 shadow-md shadow-emerald-100 dark:shadow-none focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-slate-800">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                </svg>
-                Simpan Data
+            <a href="{{ route('admin.buku-administrasi.umum.pemerintah.index') }}" class="text-sm font-semibold text-gray-500 hover:text-gray-700">Batal</a>
+            <button type="submit" class="inline-flex items-center gap-2 px-6 py-2.5 bg-gradient-to-br from-emerald-500 to-teal-600 text-white text-sm font-semibold rounded-xl hover:shadow-lg transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                Simpan Perangkat
             </button>
         </div>
-
     </form>
 </div>
 
+@endsection
+
+@section('scripts')
+<script>
+    // ── Foto Preview ──────────────────────────────────────────────
+    const fotoInput       = document.getElementById('foto_input');
+    const fotoPreviewImg  = document.getElementById('foto_preview_img');
+    const fotoPlaceholder = document.getElementById('foto_placeholder');
+
+    fotoInput.addEventListener('change', function () {
+        const file = this.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            fotoPreviewImg.src = e.target.result;
+            fotoPreviewImg.classList.remove('hidden');
+            fotoPlaceholder.classList.add('hidden');
+        };
+        reader.readAsDataURL(file);
+    });
+
+    // ── Live Search Penduduk ──────────────────────────────────────
+    const searchInput = document.getElementById('search_penduduk');
+    const resultsBox  = document.getElementById('results');
+
+    searchInput.addEventListener('input', function() {
+        let query = this.value;
+        if (query.length < 2) {
+            resultsBox.classList.add('hidden');
+            return;
+        }
+
+        // Gunakan route live search yang sudah kamu punya di LetterController
+        fetch(`{{ route('admin.layanan-surat.cetak.liveSearchNik') }}?keyword=${query}`)
+            .then(response => response.json())
+            .then(data => {
+                resultsBox.innerHTML = '';
+                if (data.length > 0) {
+                    data.forEach(item => {
+                        let div = document.createElement('div');
+                        div.className = 'px-4 py-3 hover:bg-emerald-50 dark:hover:bg-slate-700 cursor-pointer border-b dark:border-slate-700 last:border-0';
+                        div.innerHTML = `
+                            <div class="font-bold text-sm dark:text-white">${item.nama}</div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400">${item.nik}</div>
+                        `;
+                        div.addEventListener('click', () => fillForm(item.nik));
+                        resultsBox.appendChild(div);
+                    });
+                    resultsBox.classList.remove('hidden');
+                } else {
+                    resultsBox.classList.add('hidden');
+                }
+            });
+    });
+
+    function fillForm(nik) {
+        // Gunakan route get data by NIK yang sudah kamu punya
+        fetch(`/admin/layanan-surat/cetak/get-data-by-nik/${nik}`)
+            .then(response => response.json())
+            .then(res => {
+                if (res.success) {
+                    const p = res.penduduk;
+                    document.getElementById('penduduk_id').value = p.id;
+                    document.getElementById('field_nama').value = p.nama;
+                    document.getElementById('field_nik').value = p.nik;
+                    document.getElementById('field_jk').value = p.jenis_kelamin;
+                    document.getElementById('field_tempat_lahir').value = p.tempat_lahir;
+                    document.getElementById('field_tanggal_lahir').value = p.tanggal_lahir_format || p.tanggal_lahir;
+                    document.getElementById('field_agama').value = p.agama_teks || p.agama;
+                    
+                    // Beri efek highlight agar user tahu field berubah
+                    const fields = ['field_nama', 'field_nik', 'field_jk', 'field_tempat_lahir', 'field_tanggal_lahir', 'field_agama'];
+                    fields.forEach(f => {
+                        document.getElementById(f).classList.add('bg-emerald-50', 'border-emerald-500');
+                    });
+
+                    resultsBox.classList.add('hidden');
+                    searchInput.value = p.nama;
+                }
+            });
+    }
+
+    // Tutup box hasil jika klik di luar
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !resultsBox.contains(e.target)) {
+            resultsBox.classList.add('hidden');
+        }
+    });
+</script>
 @endsection
