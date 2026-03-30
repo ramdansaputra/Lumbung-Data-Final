@@ -87,7 +87,41 @@ class InputController extends Controller
             return $item->akunRekening->kode_rekening;
         })->values();
 
-        return view('admin.keuangan.input-template', compact('data_anggaran', 'availableYears', 'tahunDipilih', 'search'));
+        // =========================================================
+        // LOGIKA GROUPING DATA UNTUK VIEW (Pemisahan per Kelompok)
+        // =========================================================
+        $groupedData = [];
+        foreach ($data_anggaran as $item) {
+            $kode = $item->akunRekening->kode_rekening;
+            $parts = explode('.', $kode);
+            $level1 = $parts[0]; // Angka paling depan (4, 5, atau 6)
+
+            if (!isset($groupedData[$level1])) {
+                $groupedData[$level1] = ['induk' => null, 'kelompok' => []];
+            }
+
+            if (count($parts) == 1) {
+                // Ini level 1 (Contoh: 4 - PENDAPATAN)
+                $groupedData[$level1]['induk'] = $item;
+            } else {
+                // Ini level 2 atau lebih (Contoh: 4.1, 4.1.1, dst)
+                $level2 = $parts[0] . '.' . $parts[1]; // Hasilnya misal '4.1'
+                
+                if (!isset($groupedData[$level1]['kelompok'][$level2])) {
+                    $groupedData[$level1]['kelompok'][$level2] = ['header' => null, 'items' => []];
+                }
+
+                if (count($parts) == 2) {
+                    // Ini level 2 persis (Contoh: 4.1)
+                    $groupedData[$level1]['kelompok'][$level2]['header'] = $item;
+                } else {
+                    // Ini level 3, 4, dst (Contoh: 4.1.1, 4.1.2.01) -> Masuk ke isi tabel
+                    $groupedData[$level1]['kelompok'][$level2]['items'][] = $item;
+                }
+            }
+        }
+
+        return view('admin.keuangan.input-template', compact('groupedData', 'availableYears', 'tahunDipilih', 'search', 'data_anggaran'));
     }
 
     public function tambahTemplate(Request $request) 
@@ -118,7 +152,6 @@ class InputController extends Controller
             AnggaranTahunan::insert($dataInsert);
             DB::commit();
             
-            // PERBAIKAN DI SINI: route name disesuaikan dengan prefix admin
             return redirect()->route('admin.keuangan.input.index', ['tahun' => $tahunBaru])
                 ->with('success', "Template Keuangan Tahun {$tahunBaru} berhasil dibuat.");
 
@@ -135,21 +168,82 @@ class InputController extends Controller
             'realisasi' => 'required|numeric|min:0',
         ]);
 
+        DB::beginTransaction();
         try {
-            $anggaranTahunan = AnggaranTahunan::findOrFail($id);
+            $anggaranTahunan = AnggaranTahunan::with('akunRekening')->findOrFail($id);
             
+            // Cegah modifikasi manual pada akun induk
             if (!$anggaranTahunan->akunRekening->is_editable) {
-                 return redirect()->back()->with('error', 'Akun Induk tidak dapat diubah nominalnya.');
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json(['message' => 'Akun Induk tidak dapat diubah nominalnya.'], 403);
+                }
+                return redirect()->back()->with('error', 'Akun Induk tidak dapat diubah nominalnya.');
             }
 
+            // 1. Simpan update untuk akun anak/detail (contoh: 4.1.1)
             $anggaranTahunan->update([
                 'anggaran'  => $request->anggaran,
                 'realisasi' => $request->realisasi,
             ]);
 
+            // 2. LOGIKA BACKEND: Auto-Sum ke Akun Parent (Contoh: 4.1 dan 4)
+            $kode = $anggaranTahunan->akunRekening->kode_rekening;
+            $tahun = $anggaranTahunan->tahun;
+            
+            $segments = explode('.', $kode);
+            $parentKodes = [];
+            $currentKode = '';
+            
+            // Membuat daftar parent. Jika kode = 4.1.1, maka array = ['4', '4.1']
+            for ($i = 0; $i < count($segments) - 1; $i++) {
+                $currentKode .= ($currentKode === '' ? '' : '.') . $segments[$i];
+                $parentKodes[] = $currentKode;
+            }
+
+            foreach ($parentKodes as $pKode) {
+                // Cari record AnggaranTahunan untuk akun induk ini pada tahun yang sama
+                $parentRecord = AnggaranTahunan::where('tahun', $tahun)
+                    ->whereHas('akunRekening', function($q) use ($pKode) {
+                        $q->where('kode_rekening', $pKode);
+                    })->first();
+
+                if ($parentRecord) {
+                    // Hitung jumlah anggaran & realisasi dari semua anak "detail" nya
+                    $sum = AnggaranTahunan::where('tahun', $tahun)
+                        ->whereHas('akunRekening', function($q) use ($pKode) {
+                            $q->where('kode_rekening', 'like', $pKode . '.%')
+                              ->where('is_editable', 1); // Wajib hanya menjumlahkan akun detail
+                        })->selectRaw('SUM(anggaran) as total_anggaran, SUM(realisasi) as total_realisasi')
+                        ->first();
+
+                    // Update parent record dengan total terbaru
+                    $parentRecord->update([
+                        'anggaran'  => $sum->total_anggaran ?? 0,
+                        'realisasi' => $sum->total_realisasi ?? 0,
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+            // Respons jika request dikirim via fetch JS (AJAX)
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Nominal berhasil diperbarui.'
+                ]);
+            }
+
+            // Respons fallback jika request normal
             return redirect()->back()->with('success', 'Nominal anggaran berhasil diperbarui.');
 
         } catch (\Exception $e) {
+            DB::rollBack();
+
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['message' => 'Gagal menyimpan: ' . $e->getMessage()], 500);
+            }
+
             return redirect()->back()->with('error', 'Gagal menyimpan data: ' . $e->getMessage());
         }
     }

@@ -2,774 +2,76 @@
 
 @section('content')
 
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
-    .penduduk-page * {
-        font-family: 'Inter', sans-serif;
-        box-sizing: border-box;
-    }
-
-    /* ─── Page Top Header ─── */
-    .page-top-header {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        margin-bottom: 18px;
-    }
-
-    .page-top-header .page-title {
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: #1a1a2e;
-        margin: 0 0 3px;
-    }
-
-    .page-top-header .page-subtitle {
-        font-size: 0.78rem;
-        color: #9ca3af;
-        margin: 0;
-    }
-
-    .breadcrumb {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 0.78rem;
-        color: #9ca3af;
-    }
-
-    .breadcrumb a {
-        color: #9ca3af;
-        text-decoration: none;
-        display: flex;
-        align-items: center;
-        gap: 4px;
-    }
-
-    .breadcrumb a:hover { color: #6b7280; }
-    .breadcrumb .sep { color: #d1d5db; }
-    .breadcrumb .current { color: #374151; font-weight: 500; }
-
-    /* ─── Main Card ─── */
-    .main-card {
-        background: #fff;
-        border-radius: 12px;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 2px 12px rgba(0,0,0,0.04);
-        padding: 22px 24px;
-    }
-
-    /* ─── Alert ─── */
-    .alert-box {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 11px 14px;
-        border-radius: 8px;
-        font-size: 0.82rem;
-        font-weight: 500;
-        margin-bottom: 16px;
-    }
-
-    .alert-success { background: #f0fdf4; border: 1px solid #86efac; color: #166534; }
-    .alert-error   { background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; }
-
-    /* ─── Action Button Row ─── */
-    .action-row {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 18px;
-        flex-wrap: wrap;
-    }
-
-    .btn-group {
-        display: inline-flex;
-        border-radius: 7px;
-        overflow: hidden;
-    }
-
-    .btn-tambah {
-        display: inline-flex;
-        align-items: center;
-        gap: 7px;
-        background: #10b981;
-        color: #fff;
-        font-size: 0.82rem;
-        font-weight: 600;
-        padding: 9px 16px;
-        border-radius: 0;
-        border: none;
-        border-right: 1px solid rgba(255,255,255,0.2);
-        cursor: pointer;
-        transition: background 0.15s;
-        font-family: 'Inter', sans-serif;
-    }
-
-    .btn-tambah:hover { background: #059669; }
-
-    .btn-import {
-        display: inline-flex;
-        align-items: center;
-        gap: 7px;
-        background: #1f2937;
-        color: #fff;
-        font-size: 0.82rem;
-        font-weight: 600;
-        padding: 9px 16px;
-        border-radius: 0;
-        border: none;
-        border-right: 1px solid rgba(255,255,255,0.15);
-        cursor: pointer;
-        transition: background 0.15s;
-        font-family: 'Inter', sans-serif;
-    }
-
-    .btn-import:hover { background: #111827; }
-
-    .btn-caret {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 32px;
-        border: none;
-        cursor: pointer;
-        font-size: 0.7rem;
-        transition: filter 0.15s;
-    }
-
-    .btn-caret.green { background: #10b981; color: #fff; }
-    .btn-caret.green:hover { background: #059669; }
-    .btn-caret.dark  { background: #1f2937; color: #fff; }
-    .btn-caret.dark:hover  { background: #111827; }
-
-    /* ─── Filter Row ─── */
-    .filter-row {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 16px;
-        flex-wrap: wrap;
-    }
-
-    .filter-select {
-        appearance: none;
-        background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") no-repeat right 10px center;
-        border: 1.5px solid #e5e7eb;
-        border-radius: 7px;
-        padding: 8px 30px 8px 12px;
-        font-size: 0.8rem;
-        color: #6b7280;
-        font-family: 'Inter', sans-serif;
-        cursor: pointer;
-        min-width: 165px;
-        transition: border-color 0.15s;
-    }
-
-    .filter-select:focus {
-        outline: none;
-        border-color: #10b981;
-        box-shadow: 0 0 0 3px rgba(16,185,129,0.1);
-    }
-
-    /* ─── Controls Row ─── */
-    .controls-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 14px;
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-
-    .show-entries {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 0.82rem;
-        color: #6b7280;
-    }
-
-    .entries-select {
-        border: 1.5px solid #e5e7eb;
-        border-radius: 6px;
-        padding: 4px 24px 4px 8px;
-        font-size: 0.82rem;
-        font-family: 'Inter', sans-serif;
-        color: #374151;
-        background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") no-repeat right 6px center;
-        appearance: none;
-        cursor: pointer;
-    }
-
-    .entries-select:focus { outline: none; border-color: #10b981; }
-
-    .search-box {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 0.82rem;
-        color: #6b7280;
-    }
-
-    .search-input {
-        border: 1.5px solid #e5e7eb;
-        border-radius: 7px;
-        padding: 7px 12px;
-        font-size: 0.82rem;
-        font-family: 'Inter', sans-serif;
-        color: #374151;
-        width: 220px;
-        outline: none;
-        transition: border-color 0.15s;
-    }
-
-    .search-input::placeholder { color: #d1d5db; }
-    .search-input:focus {
-        border-color: #10b981;
-        box-shadow: 0 0 0 3px rgba(16,185,129,0.1);
-    }
-
-    /* ─── Table ─── */
-    .data-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 0.82rem;
-    }
-
-    .data-table thead tr {
-        border-bottom: 2px solid #f3f4f6;
-    }
-
-    .data-table thead th {
-        padding: 10px 14px;
-        color: #9ca3af;
-        font-size: 0.72rem;
-        font-weight: 700;
-        letter-spacing: 0.5px;
-        text-transform: uppercase;
-        text-align: left;
-        white-space: nowrap;
-        vertical-align: middle;
-    }
-
-    .data-table thead th.text-right  { text-align: right; }
-    .data-table thead th.text-center { text-align: center; }
-
-    .data-table tbody tr {
-        border-bottom: 1px solid #f9fafb;
-        transition: background 0.12s;
-    }
-
-    .data-table tbody tr:hover { background: #f9fffe; }
-    .data-table tbody tr.row-induk       { background: #f0fdf9; }
-    .data-table tbody tr.row-induk:hover { background: #e9fdf6; }
-
-    .data-table td {
-        padding: 12px 14px;
-        color: #374151;
-        vertical-align: middle;
-    }
-
-    .td-center { text-align: center; }
-    .td-right  { text-align: right; }
-
-    /* Checkbox */
-    input[type="checkbox"].cb {
-        width: 15px; height: 15px;
-        cursor: pointer;
-        accent-color: #10b981;
-    }
-
-    .no-cell { color: #9ca3af; font-size: 0.8rem; }
-
-    /* Kode */
-    .kode-chip {
-        color: #10b981;
-        font-weight: 600;
-        font-size: 0.82rem;
-    }
-
-    .row-induk .kode-chip { color: #059669; }
-
-    /* Uraian */
-    .uraian-cell { font-weight: 400; color: #374151; }
-    .row-induk .uraian-cell { font-weight: 700; color: #064e3b; }
-
-    /* Nominal — rata kanan, konsisten */
-    .nominal-cell {
-        font-size: 0.8rem;
-        color: #374151;
-        font-variant-numeric: tabular-nums;
-        text-align: right;
-        white-space: nowrap;
-    }
-
-    .nominal-cell .rp-label {
-        display: inline-block;
-        color: #9ca3af;
-        font-size: 0.72rem;
-        font-weight: 500;
-        margin-right: 4px;
-    }
-
-    .nominal-cell .rp-value {
-        display: inline-block;
-        min-width: 110px;
-        text-align: right;
-    }
-
-    .nominal-cell.realisasi .rp-value { color: #0369a1; }
-
-    /* ─── Pilih Aksi dropdown group ─── */
-    .aksi-group {
-        display: inline-flex;
-        border-radius: 6px;
-        overflow: visible;
-        position: relative;
-    }
-
-    .btn-pilih-aksi {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        background: #10b981;
-        color: #fff;
-        font-size: 0.75rem;
-        font-weight: 600;
-        padding: 6px 10px;
-        border-radius: 6px 0 0 6px;
-        border: none;
-        cursor: pointer;
-        font-family: 'Inter', sans-serif;
-        transition: background 0.15s;
-        white-space: nowrap;
-    }
-
-    /* Tombol "Pilih Aksi" utama hanya buka dropdown, bukan modal langsung */
-    .btn-pilih-aksi:hover { background: #059669; }
-
-    .btn-pilih-caret {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 28px; height: 100%;
-        background: #059669;
-        color: #fff;
-        font-size: 0.65rem;
-        border-radius: 0 6px 6px 0;
-        border: none;
-        border-left: 1px solid rgba(255,255,255,0.25);
-        cursor: pointer;
-        transition: background 0.15s;
-    }
-
-    .btn-pilih-caret:hover { background: #047857; }
-
-    /* Dropdown */
-    .dropdown-menu {
-        display: none;
-        position: absolute;
-        top: calc(100% + 4px);
-        left: 0;
-        min-width: 160px;
-        background: #fff;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.12);
-        z-index: 999;
-        overflow: hidden;
-    }
-
-    .dropdown-menu.open { display: block; }
-
-    .dropdown-item {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 9px 14px;
-        font-size: 0.8rem;
-        color: #374151;
-        cursor: pointer;
-        transition: background 0.1s;
-        border: none;
-        background: none;
-        width: 100%;
-        text-align: left;
-        font-family: 'Inter', sans-serif;
-    }
-
-    .dropdown-item:hover { background: #f9fafb; }
-    .dropdown-item.danger { color: #ef4444; }
-    .dropdown-item.danger:hover { background: #fef2f2; }
-
-    /* Lock badge */
-    .lock-badge {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 28px; height: 28px;
-        border-radius: 6px;
-        background: #f3f4f6;
-        color: #d1d5db;
-        font-size: 0.65rem;
-    }
-
-    /* ─── Footer pagination ─── */
-    .table-footer {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding-top: 16px;
-        margin-top: 4px;
-        border-top: 1px solid #f3f4f6;
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-
-    .table-info { font-size: 0.8rem; color: #9ca3af; }
-
-    .pagination {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-    }
-
-    .page-btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 34px; height: 34px;
-        padding: 0 10px;
-        border-radius: 7px;
-        border: 1.5px solid #e5e7eb;
-        background: #fff;
-        color: #374151;
-        font-size: 0.78rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.15s;
-        font-family: 'Inter', sans-serif;
-    }
-
-    .page-btn:hover { background: #f9fafb; border-color: #d1d5db; }
-    .page-btn.active { background: #10b981; border-color: #10b981; color: #fff; }
-    .page-btn:disabled { color: #d1d5db; cursor: default; background: #fafafa; }
-
-    /* ─── Empty state ─── */
-    .empty-state {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 50px 20px;
-        color: #9ca3af;
-        gap: 10px;
-    }
-
-    .empty-state i { font-size: 2rem; color: #d1d5db; }
-    .empty-state p { font-size: 0.82rem; margin: 0; }
-
-    /* ─── Modal ─── */
-    .modal-overlay {
-        position: fixed;
-        inset: 0;
-        z-index: 200;
-        background: rgba(17, 24, 39, 0.5);
-        backdrop-filter: blur(3px);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .modal-overlay.hidden { display: none; }
-
-    .modal-box {
-        background: #fff;
-        border-radius: 12px;
-        width: 420px;
-        max-width: 95vw;
-        box-shadow: 0 20px 50px rgba(0,0,0,0.18);
-        overflow: hidden;
-        animation: modalIn 0.2s ease;
-    }
-
-    @keyframes modalIn {
-        from { opacity: 0; transform: scale(0.96) translateY(10px); }
-        to   { opacity: 1; transform: scale(1) translateY(0); }
-    }
-
-    .modal-head {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 16px 20px;
-        border-bottom: 1px solid #f3f4f6;
-    }
-
-    .modal-head-left {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .modal-icon {
-        width: 34px; height: 34px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.8rem;
-    }
-
-    .modal-icon.green  { background: #d1fae5; color: #059669; }
-    .modal-icon.orange { background: #ffedd5; color: #ea580c; }
-    .modal-icon.red    { background: #fee2e2; color: #dc2626; }
-
-    .modal-head h3 {
-        font-size: 0.9rem;
-        font-weight: 700;
-        color: #111827;
-        margin: 0;
-    }
-
-    .modal-head p {
-        font-size: 0.73rem;
-        color: #9ca3af;
-        margin: 2px 0 0;
-    }
-
-    .modal-close-btn {
-        width: 28px; height: 28px;
-        border-radius: 6px;
-        border: 1px solid #e5e7eb;
-        background: #fff;
-        color: #9ca3af;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.75rem;
-        transition: all 0.12s;
-    }
-
-    .modal-close-btn:hover { background: #f9fafb; color: #374151; }
-
-    .modal-body { padding: 18px 20px; }
-
-    .form-group { margin-bottom: 14px; }
-    .form-group:last-child { margin-bottom: 0; }
-
-    .form-label {
-        display: block;
-        font-size: 0.75rem;
-        font-weight: 600;
-        color: #6b7280;
-        text-transform: uppercase;
-        letter-spacing: 0.4px;
-        margin-bottom: 5px;
-    }
-
-    .form-input {
-        width: 100%;
-        border: 1.5px solid #e5e7eb;
-        border-radius: 8px;
-        padding: 9px 12px;
-        font-size: 0.85rem;
-        color: #1f2937;
-        font-family: 'Inter', sans-serif;
-        outline: none;
-        transition: all 0.15s;
-    }
-
-    .form-input:focus {
-        border-color: #10b981;
-        box-shadow: 0 0 0 3px rgba(16,185,129,0.1);
-    }
-
-    .form-input.readonly {
-        background: #f9fafb;
-        color: #6b7280;
-        cursor: default;
-    }
-
-    .input-prefix-wrap {
-        position: relative;
-        display: flex;
-        align-items: center;
-    }
-
-    .input-prefix {
-        position: absolute;
-        left: 12px;
-        font-size: 0.82rem;
-        font-weight: 600;
-        color: #9ca3af;
-        pointer-events: none;
-        user-select: none;
-    }
-
-    .input-prefix-wrap .form-input {
-        padding-left: 38px;
-    }
-
-    .modal-foot {
-        display: flex;
-        justify-content: flex-end;
-        gap: 8px;
-        padding: 14px 20px;
-        border-top: 1px solid #f3f4f6;
-    }
-
-    .btn-modal-cancel {
-        padding: 8px 16px;
-        border: 1.5px solid #e5e7eb;
-        border-radius: 7px;
-        background: #fff;
-        color: #6b7280;
-        font-size: 0.8rem;
-        font-weight: 600;
-        cursor: pointer;
-        font-family: 'Inter', sans-serif;
-        transition: all 0.12s;
-    }
-
-    .btn-modal-cancel:hover { background: #f9fafb; }
-
-    .btn-modal-submit {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 8px 18px;
-        border: none;
-        border-radius: 7px;
-        font-size: 0.8rem;
-        font-weight: 600;
-        cursor: pointer;
-        font-family: 'Inter', sans-serif;
-        transition: all 0.15s;
-    }
-
-    .btn-modal-submit.green  { background: #10b981; color: #fff; }
-    .btn-modal-submit.green:hover  { background: #059669; }
-    .btn-modal-submit.orange { background: #f97316; color: #fff; }
-    .btn-modal-submit.orange:hover { background: #ea580c; }
-    .btn-modal-submit.red    { background: #ef4444; color: #fff; }
-    .btn-modal-submit.red:hover    { background: #dc2626; }
-
-    /* ─── Konfirmasi Hapus ─── */
-    .confirm-body {
-        padding: 20px;
-        text-align: center;
-    }
-
-    .confirm-body .confirm-icon {
-        width: 52px; height: 52px;
-        border-radius: 50%;
-        background: #fee2e2;
-        color: #dc2626;
-        font-size: 1.3rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 12px;
-    }
-
-    .confirm-body h4 {
-        font-size: 0.95rem;
-        font-weight: 700;
-        color: #111827;
-        margin: 0 0 6px;
-    }
-
-    .confirm-body p {
-        font-size: 0.82rem;
-        color: #6b7280;
-        margin: 0;
-        line-height: 1.5;
-    }
-
-    .confirm-body .confirm-name {
-        font-weight: 600;
-        color: #374151;
-    }
-</style>
-
-<div class="penduduk-page">
+<div>
 
     {{-- Page Top Header --}}
-    <div class="page-top-header">
+    <div style="margin-bottom: 20px;">
         <div>
-            <h1 class="page-title">Template Anggaran Keuangan</h1>
-            <p class="page-subtitle">Kelola data anggaran keuangan desa</p>
+            <h1>Template Anggaran Keuangan</h1>
+            <p>Kelola data anggaran keuangan desa</p>
         </div>
-        <nav class="breadcrumb">
-            <a href="#"><i class="fas fa-home"></i> Beranda</a>
-            <span class="sep">›</span>
-            <span class="current">Template Anggaran</span>
+        <nav style="margin-top: 10px; color: #666;">
+            <a href="#" style="text-decoration: none; color: #0056b3;">Beranda</a>
+            <span style="margin: 0 5px;">›</span>
+            <span>Template Anggaran</span>
         </nav>
     </div>
 
     {{-- Alerts --}}
     @if(session('success'))
-        <div class="alert-box alert-success"><i class="fas fa-check-circle"></i> {{ session('success') }}</div>
+        <div style="background: #d4edda; color: #155724; padding: 10px 15px; border-radius: 5px; margin-bottom: 20px;">
+            {{ session('success') }}
+        </div>
     @endif
     @if(session('error'))
-        <div class="alert-box alert-error"><i class="fas fa-exclamation-circle"></i> {{ session('error') }}</div>
+        <div style="background: #f8d7da; color: #721c24; padding: 10px 15px; border-radius: 5px; margin-bottom: 20px;">
+            {{ session('error') }}
+        </div>
     @endif
 
     {{-- Main Card --}}
-    <div class="main-card">
+    <div style="background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
 
         {{-- Action Row --}}
-        <div class="action-row">
-            <div class="btn-group">
-                <button class="btn-tambah" onclick="openModal('modalTambahTemplate')">
-                    <i class="fas fa-plus"></i> Tambah Template
-                </button>
-                <button class="btn-caret green" onclick="openModal('modalTambahTemplate')">
-                    <i class="fas fa-chevron-down"></i>
-                </button>
-            </div>
-
-            <div class="btn-group">
-                <button class="btn-import">
-                    <i class="fas fa-exchange-alt"></i> Impor / Ekspor
-                </button>
-                <button class="btn-caret dark">
-                    <i class="fas fa-chevron-down"></i>
-                </button>
-            </div>
+        <div style="margin-bottom: 20px; display: flex; gap: 10px;">
+            <button type="button" onclick="openModal('modalTambahTemplate')" style="padding: 8px 15px; background: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer;">
+                + Tambah Template
+            </button>
+            <button type="button" style="padding: 8px 15px; background: #28a745; color: #fff; border: none; border-radius: 4px; cursor: pointer;">
+                Impor / Ekspor
+            </button>
         </div>
 
-        {{-- Filter + Controls wrapped in one form --}}
-        <form action="{{ route('admin.keuangan.input.index') }}" method="GET" id="filterForm">
+        {{-- Filter + Controls --}}
+        <form action="{{ route('admin.keuangan.input.index') }}" method="GET" id="filterForm" style="margin-bottom: 30px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
 
             {{-- Filter Row --}}
-            <div class="filter-row">
-                <select name="tahun" class="filter-select" onchange="document.getElementById('filterForm').submit()">
+            <div style="display: flex; gap: 10px;">
+                <select name="tahun" onchange="document.getElementById('filterForm').submit()" style="padding: 6px; border-radius: 4px; border: 1px solid #ccc;">
                     @foreach($availableYears as $y)
                         <option value="{{ $y }}" {{ $tahunDipilih == $y ? 'selected' : '' }}>Tahun {{ $y }}</option>
                     @endforeach
                 </select>
-                <select class="filter-select">
-                    <option>Pilih Status Rekening</option>
-                    <option>Induk</option>
-                    <option>Detail</option>
+
+                <select name="status_rekening" style="padding: 6px; border-radius: 4px; border: 1px solid #ccc;">
+                    <option value="">Pilih Status Rekening</option>
+                    <option value="induk">Induk</option>
+                    <option value="detail">Detail</option>
                 </select>
-                <select class="filter-select">
-                    <option>Pilih Jenis Akun</option>
-                    <option>Pendapatan</option>
-                    <option>Belanja</option>
-                    <option>Pembiayaan</option>
+
+                <select name="jenis_akun" style="padding: 6px; border-radius: 4px; border: 1px solid #ccc;">
+                    <option value="">Pilih Jenis Akun</option>
+                    <option value="pendapatan">Pendapatan</option>
+                    <option value="belanja">Belanja</option>
+                    <option value="pembiayaan">Pembiayaan</option>
                 </select>
             </div>
 
             {{-- Controls Row --}}
-            <div class="controls-row">
-                <div class="show-entries">
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <div>
                     Tampilkan
-                    <select class="entries-select">
+                    <select name="per_page" style="padding: 6px; border-radius: 4px; border: 1px solid #ccc;">
                         <option>10</option>
                         <option>25</option>
                         <option>50</option>
@@ -777,342 +79,442 @@
                     </select>
                     entri
                 </div>
-                <div class="search-box">
+                <div>
                     <label>Cari:</label>
-                    <input type="text" name="search" value="{{ $search }}" class="search-input" placeholder="kata kunci pencarian">
+                    <input type="text" name="search" value="{{ $search }}" placeholder="kata kunci pencarian" style="padding: 6px; border-radius: 4px; border: 1px solid #ccc;">
+                    <button type="submit" style="padding: 6px 12px; background: #6c757d; color: #fff; border: none; border-radius: 4px; cursor: pointer;">Cari</button>
                 </div>
             </div>
 
         </form>
 
-        {{-- Table --}}
-        <div style="overflow-x:auto;">
-            <table class="data-table">
-                <thead>
+        {{-- ========================================================= --}}
+        {{-- DATA ANGGARAN DENGAN PEMISAHAN KELOMPOK (LEVEL 1 & LEVEL 2) --}}
+        {{-- ========================================================= --}}
+        
+        @if(isset($groupedData) && count($groupedData) > 0)
+            @foreach($groupedData as $lvl1Kode => $dataL1)
+                
+                {{-- BLOK UTAMA LEVEL 1 (Contoh: 4, 5, 6) --}}
+                <div style="border: 1px solid #adb5bd; margin-bottom: 40px; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                    
+                    {{-- Header Induk Level 1 --}}
+                    @if($dataL1['induk'])
+                        @php $itemInduk = $dataL1['induk']; @endphp
+                        <div style="background: #343a40; color: #fff; padding: 15px 20px;">
+                            <h2 style="margin: 0; font-size: 18px; display: flex; justify-content: space-between;">
+                                <span>{{ $itemInduk->akunRekening->kode_rekening }} - {{ strtoupper($itemInduk->akunRekening->uraian) }}</span>
+                            </h2>
+                        </div>
+                        
+                        {{-- Row Master Induk (Disembunyikan format tabelnya agar tampil seperti header summary) --}}
+                        <table class="tabel-anggaran" width="100%" cellpadding="12" cellspacing="0" style="background: #e9ecef; border-bottom: 3px solid #ced4da;">
+                            <tbody>
+                                <tr data-id="{{ $itemInduk->id }}" data-kode="{{ $itemInduk->akunRekening->kode_rekening }}" 
+                                    data-anggaran="{{ $itemInduk->anggaran }}" data-realisasi="{{ $itemInduk->realisasi }}" data-editable="0" style="font-weight: bold; font-size: 16px;">
+                                    <td width="60%" style="text-align: right; text-transform: uppercase;">TOTAL KESELURUHAN {{ $itemInduk->akunRekening->uraian }} :</td>
+                                    <td width="20%" style="color: #0056b3;">Rp <span class="anggaran-display">{{ number_format($itemInduk->anggaran, 0, ',', '.') }}</span></td>
+                                    <td width="20%" style="color: #28a745;">Rp <span class="realisasi-display">{{ number_format($itemInduk->realisasi, 0, ',', '.') }}</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    @endif
+
+                    {{-- LOOPING LEVEL 2 (Contoh: 4.1, 4.2, 4.3 dst) --}}
+                    <div style="padding: 20px; background: #fdfdfd;">
+                        @foreach($dataL1['kelompok'] as $lvl2Kode => $dataL2)
+                            
+                            <div style="margin-bottom: 30px; border: 1px solid #dee2e6; border-radius: 6px; overflow: hidden;">
+                                {{-- Tabel Khusus per Kelompok --}}
+                                <table class="tabel-anggaran" border="1" width="100%" cellpadding="10" cellspacing="0" style="border-collapse: collapse; border-color: #dee2e6;">
+                                    <thead style="background: #f8f9fa;">
+                                        <tr>
+                                            <th width="4%" style="text-align: center;"><input type="checkbox" class="checkAllGroup" title="Pilih Semua di kelompok ini"></th>
+                                            <th width="5%" style="text-align: center;">NO</th>
+                                            <th width="10%" style="text-align: center;">AKSI</th>
+                                            <th width="12%">KODE</th>
+                                            <th width="35%">URAIAN</th>
+                                            <th width="17%">ANGGARAN</th>
+                                            <th width="17%">REALISASI</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {{-- Row Header Level 2 (Induk Kelompok) --}}
+                                        @if($dataL2['header'])
+                                            @php $itemHdr = $dataL2['header']; $kodeHdr = $itemHdr->akunRekening->kode_rekening; @endphp
+                                            <tr data-id="{{ $itemHdr->id }}" data-kode="{{ $kodeHdr }}" 
+                                                data-anggaran="{{ $itemHdr->anggaran }}" data-realisasi="{{ $itemHdr->realisasi }}" 
+                                                data-editable="0" style="background: #e3f2fd; font-weight: bold;">
+                                                <td colspan="3" style="text-align: center; color: #666;"><span title="Total Kelompok Level 2">🔒 Auto</span></td>
+                                                <td>{{ $kodeHdr }}</td>
+                                                <td>{{ $itemHdr->akunRekening->uraian }}</td>
+                                                <td>Rp <span class="anggaran-display">{{ number_format($itemHdr->anggaran, 0, ',', '.') }}</span></td>
+                                                <td>Rp <span class="realisasi-display">{{ number_format($itemHdr->realisasi, 0, ',', '.') }}</span></td>
+                                            </tr>
+                                        @endif
+
+                                        {{-- Row Items Level 3 ke atas (Detail) --}}
+                                        @foreach($dataL2['items'] as $index => $item)
+                                            @php
+                                                // Spasi indentasi
+                                                $level = substr_count($item->akunRekening->kode_rekening, '.') - 1; 
+                                                $level = $level < 0 ? 0 : $level;
+                                                $isInduk = !$item->akunRekening->is_editable;
+                                                $kode = $item->akunRekening->kode_rekening;
+                                            @endphp
+                                            <tr data-id="{{ $item->id }}" data-kode="{{ $kode }}" 
+                                                data-anggaran="{{ $item->anggaran }}" data-realisasi="{{ $item->realisasi }}" 
+                                                data-editable="{{ $isInduk ? '0' : '1' }}">
+                                                
+                                                <td style="text-align: center;">
+                                                    @if(!$isInduk) 
+                                                        <input type="checkbox" class="cb-row" value="{{ $item->id }}"> 
+                                                    @endif
+                                                </td>
+                                                <td style="text-align: center;">{{ $index + 1 }}</td>
+                                                <td style="text-align: center;">
+                                                    @if(!$isInduk)
+                                                        <div style="position:relative;display:inline-block;" id="group-{{ $item->id }}">
+                                                            <button type="button" onclick="toggleDropdown('dd-{{ $item->id }}', event)" style="padding: 4px 8px; font-size: 12px; cursor: pointer;">
+                                                                Aksi ▾
+                                                            </button>
+                                                            <div id="dd-{{ $item->id }}" style="display:none;position:absolute;background:#fff;border:1px solid #ccc;z-index:99;min-width:140px;text-align:left;box-shadow: 0 4px 8px rgba(0,0,0,0.1); top: 100%; left: 0;">
+                                                                <button type="button" style="display:block;width:100%;padding:10px;background:none;border:none;border-bottom:1px solid #eee;text-align:left;cursor:pointer;" onclick="openEditModal(
+                                                                    {{ $item->id }}, {{ $item->anggaran }}, {{ $item->realisasi }}, 
+                                                                    '{{ addslashes($item->akunRekening->uraian) }}', '{{ $kode }}'
+                                                                )">✏️ Edit Nominal</button>
+                                                                <button type="button" style="display:block;width:100%;padding:10px;background:none;border:none;text-align:left;cursor:pointer;color:red;" onclick="openHapusModal(
+                                                                    {{ $item->id }}, '{{ addslashes($item->akunRekening->uraian) }}'
+                                                                )">🗑️ Hapus</button>
+                                                            </div>
+                                                        </div>
+                                                    @else
+                                                        <span style="color: #888; font-size: 12px;" title="Akun Sub-Induk dihitung otomatis">🔒 Auto</span>
+                                                    @endif
+                                                </td>
+                                                <td>{{ $kode }}</td>
+                                                <td>
+                                                    {!! str_repeat('&nbsp;&nbsp;&nbsp;&nbsp;', $level) !!}{{ $item->akunRekening->uraian }}
+                                                    @if($isInduk) <small style="color:#888;">(Σ)</small> @endif
+                                                </td>
+                                                <td>Rp <span class="anggaran-display">{{ number_format($item->anggaran, 0, ',', '.') }}</span></td>
+                                                <td>Rp <span class="realisasi-display">{{ number_format($item->realisasi, 0, ',', '.') }}</span></td>
+                                            </tr>
+                                        @endforeach
+
+                                        @if(count($dataL2['items']) == 0)
+                                            <tr><td colspan="7" style="text-align: center; color: #888; padding: 15px;">Belum ada sub-rekening di kelompok ini.</td></tr>
+                                        @endif
+
+                                    </tbody>
+                                </table>
+                            </div>
+
+                        @endforeach
+                    </div>{{-- /.padding --}}
+                </div>{{-- /.blok-utama --}}
+
+            @endforeach
+        @else
+            {{-- Fallback jika tabel kosong sama sekali --}}
+            <table id="tabelAnggaranKosong" border="1" width="100%" cellpadding="10" cellspacing="0" style="border-collapse: collapse; border-color: #dee2e6;">
+                <thead style="background: #f8f9fa;">
                     <tr>
-                        <th class="text-center" style="width:44px;">
-                            <input type="checkbox" class="cb" id="checkAll">
-                        </th>
-                        <th class="text-center" style="width:44px;">NO</th>
-                        <th style="width:155px;">AKSI</th>
-                        <th style="min-width:130px;">KODE REKENING</th>
-                        <th>URAIAN</th>
-                        <th class="text-right" style="min-width:160px;">ANGGARAN</th>
-                        <th class="text-right" style="min-width:160px;">REALISASI</th>
+                        <th>NO</th><th>KODE REKENING</th><th>URAIAN</th><th>ANGGARAN</th><th>REALISASI</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($data_anggaran as $index => $item)
-                        @php
-                            $level   = substr_count($item->akunRekening->kode_rekening, '.');
-                            $isInduk = !$item->akunRekening->is_editable;
-                        @endphp
-                        <tr class="{{ $isInduk ? 'row-induk' : '' }}">
-
-                            {{-- Checkbox --}}
-                            <td class="td-center">
-                                @if(!$isInduk)
-                                    <input type="checkbox" class="cb cb-row" value="{{ $item->id }}">
-                                @endif
-                            </td>
-
-                            {{-- No --}}
-                            <td class="td-center no-cell">{{ $index + 1 }}</td>
-
-                            {{-- Aksi --}}
-                            <td>
-                                @if(!$isInduk)
-                                    {{--
-                                        FIX: Tombol "Pilih Aksi" kini membuka dropdown dulu,
-                                        bukan langsung modal edit. Modal edit hanya terbuka
-                                        lewat item dropdown "Edit Nominal".
-                                    --}}
-                                    <div class="aksi-group" id="group-{{ $item->id }}">
-                                        <button
-                                            type="button"
-                                            class="btn-pilih-aksi"
-                                            onclick="toggleDropdown('dd-{{ $item->id }}', event)">
-                                            <i class="fas fa-cog"></i> Pilih Aksi
-                                        </button>
-                                        <button
-                                            type="button"
-                                            class="btn-pilih-caret"
-                                            onclick="toggleDropdown('dd-{{ $item->id }}', event)">
-                                            <i class="fas fa-chevron-down"></i>
-                                        </button>
-                                        <div class="dropdown-menu" id="dd-{{ $item->id }}">
-                                            <button
-                                                type="button"
-                                                class="dropdown-item"
-                                                onclick="openEditModal(
-                                                    {{ $item->id }},
-                                                    {{ $item->anggaran }},
-                                                    {{ $item->realisasi }},
-                                                    '{{ addslashes($item->akunRekening->uraian) }}'
-                                                ); closeAllDropdowns()">
-                                                <i class="fas fa-pen" style="color:#f97316;width:14px;"></i>
-                                                Edit Nominal
-                                            </button>
-                                            <button
-                                                type="button"
-                                                class="dropdown-item danger"
-                                                onclick="openHapusModal(
-                                                    {{ $item->id }},
-                                                    '{{ addslashes($item->akunRekening->uraian) }}'
-                                                ); closeAllDropdowns()">
-                                                <i class="fas fa-trash" style="width:14px;"></i>
-                                                Hapus
-                                            </button>
-                                        </div>
-                                    </div>
-                                @else
-                                    <span class="lock-badge" title="Akun induk tidak dapat diedit">
-                                        <i class="fas fa-lock"></i>
-                                    </span>
-                                @endif
-                            </td>
-
-                            {{-- Kode Rekening --}}
-                            <td style="padding-left: {{ 14 + ($level * 18) }}px;">
-                                <span class="kode-chip">{{ $item->akunRekening->kode_rekening }}</span>
-                            </td>
-
-                            {{-- Uraian --}}
-                            <td class="uraian-cell" style="padding-left: {{ 14 + ($level * 18) }}px;">
-                                {{ $item->akunRekening->uraian }}
-                            </td>
-
-                            {{-- Anggaran — FIX: label Rp terpisah agar rata kanan konsisten --}}
-                            <td class="nominal-cell">
-                                <span class="rp-label">Rp</span>
-                                <span class="rp-value">{{ number_format($item->anggaran, 0, ',', '.') }}</span>
-                            </td>
-
-                            {{-- Realisasi --}}
-                            <td class="nominal-cell realisasi">
-                                <span class="rp-label">Rp</span>
-                                <span class="rp-value">{{ number_format($item->realisasi, 0, ',', '.') }}</span>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="7">
-                                <div class="empty-state">
-                                    <i class="fas fa-folder-open"></i>
-                                    <p>Data kosong. Klik <strong>Tambah Template</strong> untuk memulai.</p>
-                                </div>
-                            </td>
-                        </tr>
-                    @endforelse
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 30px; color: #666;">
+                            Data kosong untuk tahun {{ $tahunDipilih }}. Klik <strong>Tambah Template</strong> untuk memulai.
+                        </td>
+                    </tr>
                 </tbody>
             </table>
-        </div>
-
-        {{-- Table Footer --}}
-        <div class="table-footer">
-            <p class="table-info">
-                Menampilkan 1–{{ $data_anggaran->count() }} dari {{ $data_anggaran->count() }} entri
-            </p>
-            <div class="pagination">
-                <button class="page-btn" disabled>Sebelumnya</button>
-                <button class="page-btn active">1</button>
-                <button class="page-btn" disabled>Selanjutnya</button>
-            </div>
-        </div>
+        @endif
 
     </div>{{-- /.main-card --}}
-</div>{{-- /.penduduk-page --}}
+</div>
 
+
+{{-- ========================================================= --}}
+{{-- MODALS SECTION (Ditanam Langsung) --}}
+{{-- ========================================================= --}}
 
 {{-- ══ Modal: Tambah Template ══ --}}
-<div id="modalTambahTemplate" class="modal-overlay hidden">
-    <div class="modal-box">
-        <div class="modal-head">
-            <div class="modal-head-left">
-                <div class="modal-icon green"><i class="fas fa-plus"></i></div>
-                <div>
-                    <h3>Tambah Template</h3>
-                    <p>Buat template anggaran tahun baru</p>
-                </div>
-            </div>
-            <button type="button" class="modal-close-btn" onclick="closeModal('modalTambahTemplate')">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
+<div id="modalTambahTemplate" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center;">
+    <div style="background:#fff;padding:25px;border-radius:8px;width:400px;max-width:95vw;box-shadow: 0 5px 15px rgba(0,0,0,0.3);">
+        <h3 style="margin-top:0;">Tambah Template</h3>
+        <p style="color:#666; margin-bottom: 20px;">Buat template anggaran untuk tahun baru</p>
         <form action="{{ route('admin.keuangan.input.tambah-template') }}" method="POST">
             @csrf
-            <div class="modal-body">
-                <div class="form-group">
-                    <label class="form-label">Tahun Anggaran</label>
-                    <input type="number" name="tahun_baru" required value="{{ date('Y') + 1 }}" class="form-input"
-                        min="{{ date('Y') }}" max="{{ date('Y') + 10 }}">
-                </div>
+            <div style="margin-bottom: 20px;">
+                <label style="display:block; margin-bottom: 5px; font-weight:bold;">Tahun Anggaran</label>
+                <input type="number" name="tahun_baru" required value="{{ date('Y') + 1 }}" min="{{ date('Y') }}" max="{{ date('Y') + 10 }}" style="width:100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
             </div>
-            <div class="modal-foot">
-                <button type="button" class="btn-modal-cancel" onclick="closeModal('modalTambahTemplate')">Batal</button>
-                <button type="submit" class="btn-modal-submit green">
-                    <i class="fas fa-save"></i> Simpan
-                </button>
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" onclick="closeModal('modalTambahTemplate')" style="padding: 8px 15px; background: #6c757d; color: #fff; border: none; border-radius: 4px; cursor: pointer;">Batal</button>
+                <button type="submit" style="padding: 8px 15px; background: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer;">Simpan</button>
             </div>
         </form>
     </div>
 </div>
 
 {{-- ══ Modal: Edit Nominal ══ --}}
-<div id="modalEditNominal" class="modal-overlay hidden">
-    <div class="modal-box">
-        <div class="modal-head">
-            <div class="modal-head-left">
-                <div class="modal-icon orange"><i class="fas fa-pen"></i></div>
-                <div>
-                    <h3>Edit Nominal</h3>
-                    <p>Ubah nilai anggaran &amp; realisasi</p>
-                </div>
-            </div>
-            <button type="button" class="modal-close-btn" onclick="closeModal('modalEditNominal')">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
+<div id="modalEditNominal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center;">
+    <div style="background:#fff;padding:25px;border-radius:8px;width:400px;max-width:95vw;box-shadow: 0 5px 15px rgba(0,0,0,0.3);">
+        <h3 style="margin-top:0;">Edit Nominal</h3>
+        <p style="color:#666; margin-bottom: 20px;">Ubah nilai anggaran &amp; realisasi</p>
         <form id="formEditNominal" method="POST">
             @csrf
-            @method('PUT')
-            <div class="modal-body">
-                <div class="form-group">
-                    <label class="form-label">Uraian Rekening</label>
-                    <input type="text" id="edit_uraian" readonly class="form-input readonly">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Anggaran (Rp)</label>
-                    <div class="input-prefix-wrap">
-                        <span class="input-prefix">Rp</span>
-                        <input type="number" name="anggaran" id="edit_anggaran" required
-                            placeholder="0" class="form-input" min="0">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Realisasi (Rp)</label>
-                    <div class="input-prefix-wrap">
-                        <span class="input-prefix">Rp</span>
-                        <input type="number" name="realisasi" id="edit_realisasi" required
-                            placeholder="0" class="form-input" min="0">
-                    </div>
-                </div>
+            <input type="hidden" name="_method" value="PUT">
+            <input type="hidden" id="edit_kode_rekening" value="">
+            
+            <div style="margin-bottom: 15px;">
+                <label style="display:block; margin-bottom: 5px; font-weight:bold;">Uraian Rekening</label>
+                <input type="text" id="edit_uraian" readonly style="width:100%; padding: 8px; background:#e9ecef; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; cursor: not-allowed;">
             </div>
-            <div class="modal-foot">
-                <button type="button" class="btn-modal-cancel" onclick="closeModal('modalEditNominal')">Batal</button>
-                <button type="submit" class="btn-modal-submit orange">
-                    <i class="fas fa-check"></i> Simpan Perubahan
-                </button>
+            
+            <div style="margin-bottom: 15px;">
+                <label style="display:block; margin-bottom: 5px; font-weight:bold;">Anggaran (Rp)</label>
+                <input type="number" name="anggaran" id="edit_anggaran" required min="0" step="1" style="width:100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
+            </div>
+            
+            <div style="margin-bottom: 25px;">
+                <label style="display:block; margin-bottom: 5px; font-weight:bold;">Realisasi (Rp)</label>
+                <input type="number" name="realisasi" id="edit_realisasi" required min="0" step="1" style="width:100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
+            </div>
+            
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" onclick="closeModal('modalEditNominal')" style="padding: 8px 15px; background: #6c757d; color: #fff; border: none; border-radius: 4px; cursor: pointer;">Batal</button>
+                <button type="submit" style="padding: 8px 15px; background: #28a745; color: #fff; border: none; border-radius: 4px; cursor: pointer;">Simpan Perubahan</button>
             </div>
         </form>
     </div>
 </div>
 
 {{-- ══ Modal: Konfirmasi Hapus ══ --}}
-<div id="modalHapus" class="modal-overlay hidden">
-    <div class="modal-box">
-        <div class="modal-head">
-            <div class="modal-head-left">
-                <div class="modal-icon red"><i class="fas fa-trash"></i></div>
-                <div>
-                    <h3>Hapus Data</h3>
-                    <p>Tindakan ini tidak dapat dibatalkan</p>
-                </div>
-            </div>
-            <button type="button" class="modal-close-btn" onclick="closeModal('modalHapus')">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="confirm-body">
-            <div class="confirm-icon">
-                <i class="fas fa-exclamation-triangle"></i>
-            </div>
-            <h4>Yakin ingin menghapus?</h4>
-            <p>Data anggaran untuk rekening<br>
-                <span class="confirm-name" id="hapus_uraian">—</span><br>
-                akan dihapus secara permanen.
-            </p>
-        </div>
+<div id="modalHapus" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center;">
+    <div style="background:#fff;padding:25px;border-radius:8px;width:400px;max-width:95vw;box-shadow: 0 5px 15px rgba(0,0,0,0.3);">
+        <h3 style="margin-top:0; color: #dc3545;">Hapus Data</h3>
+        <p>Tindakan ini tidak dapat dibatalkan.</p>
+        <p style="margin-bottom: 25px;">Data anggaran untuk rekening <strong id="hapus_uraian">—</strong> akan dihapus secara permanen dari tahun ini.</p>
         <form id="formHapus" method="POST">
             @csrf
-            @method('DELETE')
-            <div class="modal-foot">
-                <button type="button" class="btn-modal-cancel" onclick="closeModal('modalHapus')">Batal</button>
-                <button type="submit" class="btn-modal-submit red">
-                    <i class="fas fa-trash"></i> Ya, Hapus
-                </button>
+            <input type="hidden" name="_method" value="DELETE">
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" onclick="closeModal('modalHapus')" style="padding: 8px 15px; background: #6c757d; color: #fff; border: none; border-radius: 4px; cursor: pointer;">Batal</button>
+                <button type="submit" style="padding: 8px 15px; background: #dc3545; color: #fff; border: none; border-radius: 4px; cursor: pointer;">Ya, Hapus</button>
             </div>
         </form>
     </div>
 </div>
 
+{{-- ========================================================= --}}
+{{-- JAVASCRIPT --}}
+{{-- ========================================================= --}}
 <script>
-    /* ════ Modal ════ */
-    function openModal(id)  { document.getElementById(id).classList.remove('hidden'); }
-    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+(function () {
+    'use strict';
 
-    /* Edit Nominal — dipanggil HANYA dari dropdown item */
-    function openEditModal(id, anggaran, realisasi, uraian) {
-        document.getElementById('formEditNominal').action =
-            `/admin/keuangan/input-template/${id}`;
-        document.getElementById('edit_uraian').value    = uraian;
-        document.getElementById('edit_anggaran').value  = anggaran;
-        document.getElementById('edit_realisasi').value = realisasi;
-        openModal('modalEditNominal');
+    /* ════ 1. MODAL & DROPDOWN HANDLER ════ */
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+    window.openModal = openModal; window.closeModal = closeModal;
+
+    // Tutup dropdown jika klik sembarang tempat
+    function closeAllDropdowns() { 
+        document.querySelectorAll('[id^="dd-"]').forEach(d => d.style.display = 'none'); 
     }
-
-    /* Hapus — dipanggil dari dropdown item */
-    function openHapusModal(id, uraian) {
-        document.getElementById('formHapus').action =
-            `/admin/keuangan/input-template/${id}`;
-        document.getElementById('hapus_uraian').textContent = uraian;
-        openModal('modalHapus');
+    
+    function toggleDropdown(id, event) {
+        event.stopPropagation();
+        var dd = document.getElementById(id); 
+        var wasOpen = dd.style.display === 'block';
+        closeAllDropdowns(); 
+        dd.style.display = wasOpen ? 'none' : 'block';
     }
+    
+    document.addEventListener('click', closeAllDropdowns);
+    window.toggleDropdown = toggleDropdown; 
+    window.closeAllDropdowns = closeAllDropdowns;
 
-    /* Tutup modal dengan klik overlay */
-    document.querySelectorAll('.modal-overlay').forEach(function(o) {
-        o.addEventListener('click', function(e) {
-            if (e.target === o) o.classList.add('hidden');
+    // Klik overlay / Escape untuk tutup modal
+    ['modalTambahTemplate', 'modalEditNominal', 'modalHapus'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('click', function (e) {
+            if (e.target === el) closeModal(id);
         });
     });
-
-    /* Tutup modal & dropdown dengan Escape */
-    document.addEventListener('keydown', function(e) {
+    document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') {
-            document.querySelectorAll('.modal-overlay:not(.hidden)').forEach(function(m) {
-                m.classList.add('hidden');
-            });
+            closeModal('modalTambahTemplate');
+            closeModal('modalEditNominal');
+            closeModal('modalHapus');
             closeAllDropdowns();
         }
     });
 
-    /* ════ Dropdown Aksi ════ */
-    function toggleDropdown(id, event) {
-        event.stopPropagation();
-        var dd      = document.getElementById(id);
-        var wasOpen = dd.classList.contains('open');
-        closeAllDropdowns();
-        if (!wasOpen) dd.classList.add('open');
-    }
 
-    function closeAllDropdowns() {
-        document.querySelectorAll('.dropdown-menu.open').forEach(function(d) {
-            d.classList.remove('open');
+    /* ════ 2. LOGIKA AUTO-SUM LINTAS TABEL ════ */
+    function getRowMap() {
+        var map = {};
+        // Selector ini mendeteksi SELURUH tr yang punya data-kode di semua blok tabel
+        document.querySelectorAll('.tabel-anggaran tbody tr[data-kode]').forEach(function (tr) {
+            map[tr.dataset.kode] = {
+                row       : tr,
+                anggaran  : parseFloat(tr.dataset.anggaran)  || 0,
+                realisasi : parseFloat(tr.dataset.realisasi) || 0,
+                editable  : tr.dataset.editable === '1' // Menandai akun daun/detail
+            };
         });
+        return map;
     }
 
-    /* Klik di luar dropdown → tutup */
-    document.addEventListener('click', closeAllDropdowns);
+    function getParentKode(kode) {
+        var lastDot = kode.lastIndexOf('.');
+        return lastDot > -1 ? kode.substring(0, lastDot) : null;
+    }
 
-    /* ════ Check All ════ */
-    var checkAll = document.getElementById('checkAll');
-    if (checkAll) {
-        checkAll.addEventListener('change', function() {
-            document.querySelectorAll('.cb-row').forEach(function(cb) {
-                cb.checked = checkAll.checked;
+    function recalcParents(changedKode, newAnggaran, newRealisasi) {
+        var map = getRowMap();
+        
+        // Update memori untuk baris yang diubah
+        if (map[changedKode]) {
+            map[changedKode].anggaran  = newAnggaran;
+            map[changedKode].realisasi = newRealisasi;
+            updateRowDisplay(map[changedKode].row, newAnggaran, newRealisasi);
+        }
+
+        // Cari silsilah parent (misal: 4.1.1 -> 4.1 -> 4)
+        var ancestors = [];
+        var cursor = getParentKode(changedKode);
+        while (cursor) { ancestors.push(cursor); cursor = getParentKode(cursor); }
+
+        // Hitung ulang setiap parent
+        ancestors.forEach(function (parentKode) {
+            if (!map[parentKode]) return;
+            var sumA = 0, sumR = 0;
+            
+            Object.keys(map).forEach(function (k) {
+                // Hitung jika akun detail (editable) dan merupakan turunan dari parent ini
+                if (k.indexOf(parentKode + '.') === 0 && map[k].editable) {
+                    sumA += map[k].anggaran;
+                    sumR += map[k].realisasi;
+                }
             });
+            
+            map[parentKode].anggaran  = sumA;
+            map[parentKode].realisasi = sumR;
+            updateRowDisplay(map[parentKode].row, sumA, sumR);
         });
     }
+
+    // Eksekusi awal saat halaman diload untuk akurasi data
+    function calculateAllParentsOnLoad() {
+        var map = getRowMap();
+        Object.keys(map).forEach(function(kode) {
+            if (!map[kode].editable) {
+                var sumA = 0, sumR = 0;
+                Object.keys(map).forEach(function(childKode) {
+                    if (childKode.indexOf(kode + '.') === 0 && map[childKode].editable) {
+                        sumA += map[childKode].anggaran; 
+                        sumR += map[childKode].realisasi;
+                    }
+                });
+                updateRowDisplay(map[kode].row, sumA, sumR);
+            }
+        });
+    }
+
+    function updateRowDisplay(tr, anggaran, realisasi) {
+        var a = tr.querySelector('.anggaran-display');
+        var r = tr.querySelector('.realisasi-display');
+        if (a) a.textContent = Math.round(anggaran).toLocaleString('id-ID');
+        if (r) r.textContent = Math.round(realisasi).toLocaleString('id-ID');
+        tr.dataset.anggaran  = anggaran;
+        tr.dataset.realisasi = realisasi;
+    }
+
+
+    /* ════ 3. SUBMIT FORM EDIT DENGAN AJAX ════ */
+    window.openEditModal = function (id, anggaran, realisasi, uraian, kode) {
+        closeAllDropdowns();
+        var form = document.getElementById('formEditNominal');
+        form.action = '{{ url("admin/keuangan/input-template") }}/' + id;
+        document.getElementById('edit_kode_rekening').value = kode;
+        document.getElementById('edit_uraian').value        = uraian;
+        document.getElementById('edit_anggaran').value      = anggaran;
+        document.getElementById('edit_realisasi').value     = realisasi;
+        openModal('modalEditNominal');
+        setTimeout(function() { document.getElementById('edit_anggaran').focus(); }, 100);
+    };
+
+    document.getElementById('formEditNominal').addEventListener('submit', function (e) {
+        e.preventDefault();
+        var form         = this;
+        var kode         = document.getElementById('edit_kode_rekening').value;
+        var newAnggaran  = parseFloat(document.getElementById('edit_anggaran').value)  || 0;
+        var newRealisasi = parseFloat(document.getElementById('edit_realisasi').value) || 0;
+        var submitBtn    = form.querySelector('[type="submit"]');
+
+        submitBtn.disabled = true; 
+        submitBtn.textContent = 'Menyimpan…';
+
+        fetch(form.action, {
+            method : 'POST', 
+            body   : new FormData(form),
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+        })
+        .then(function(res) {
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            // Begitu sukses, langsung update UI tanpa refresh halaman
+            recalcParents(kode, newAnggaran, newRealisasi);
+            closeModal('modalEditNominal');
+            
+            // Tambahkan animasi flash kecil atau abaikan alert agar lebih mulus
+            // alert('Nominal berhasil diperbarui.'); 
+        })
+        .catch(function(err) {
+            alert('Gagal menyimpan via AJAX, mencoba metode standar...'); 
+            form.submit();
+        })
+        .finally(function() {
+            submitBtn.disabled = false; 
+            submitBtn.textContent = 'Simpan Perubahan';
+        });
+    });
+
+
+    /* ════ 4. SUBMIT FORM HAPUS ════ */
+    window.openHapusModal = function (id, uraian) {
+        closeAllDropdowns();
+        document.getElementById('formHapus').action = '{{ url("admin/keuangan/input-template") }}/' + id;
+        document.getElementById('hapus_uraian').textContent = uraian;
+        openModal('modalHapus');
+    };
+
+
+    /* ════ 5. FITUR CHECK ALL (Berjalan per Kelompok/Tabel) ════ */
+    document.querySelectorAll('.checkAllGroup').forEach(function(checkAllBtn) {
+        checkAllBtn.addEventListener('change', function() {
+            // Mencari tabel terdekat dari checkbox "Pilih Semua" ini
+            var table = this.closest('table');
+            if(table) {
+                // Hanya centang baris yang ada di dalam tabel ini
+                table.querySelectorAll('.cb-row').forEach(function(cb) {
+                    cb.checked = checkAllBtn.checked;
+                });
+            }
+        });
+    });
+
+
+    // Inisialisasi awal saat pertama kali buka web
+    calculateAllParentsOnLoad();
+
+})();
 </script>
 
 @endsection
