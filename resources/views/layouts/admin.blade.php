@@ -9,7 +9,7 @@
 
     <script>
         // Cegah flash saat load: baca preferensi sebelum render
-        (function() {
+        (function () {
             const saved = localStorage.getItem('lumbung_theme');
             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             if (saved === 'dark' || (!saved && prefersDark)) {
@@ -645,8 +645,7 @@
         <aside
             class="sidebar bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-700 text-white flex-shrink-0 shadow-2xl flex flex-col"
             :class="(sidebarOpen || sidebarHovered) ? 'w-72' : 'w-[80px] collapsed'"
-            @mouseenter="if (!sidebarOpen) sidebarHovered = true" @mouseleave="sidebarHovered = false"
-            x-data="{
+            @mouseenter="if (!sidebarOpen) sidebarHovered = true" @mouseleave="sidebarHovered = false" x-data="{
                 infoDesa: {{ request()->is('admin/identitas-desa*') || request()->is('admin/info-desa/wilayah*') || request()->is('admin/pemerintah-desa*') || request()->is('admin/lembaga*') || request()->is('admin/status-desa*') || request()->is('admin/layanan-pelanggan*') || request()->is('admin/kerjasama*') ? 'true' : 'false' }},
                 kependudukan: {{ request()->is('admin/penduduk*') || request()->is('admin/keluarga*') || request()->is('admin/rumah-tangga*') || request()->is('admin/kelompok*') || request()->is('admin/suplemen*') || request()->is('admin/calon-pemilih*') ? 'true' : 'false' }},
                 statistik: {{ request()->is('admin/statistik*') ? 'true' : 'false' }},
@@ -687,16 +686,25 @@
                     <!-- Identitas Desa -->
                     <div class="flex items-center gap-3 mb-4">
                         <div class="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 bg-white/10 p-1">
-                            <img src="{{ asset('images/lumbung-data-logo.png') }}" alt="Lumbung Data"
-                                class="w-full h-full object-contain mix-blend-screen">
+                            @if($desa && !empty($desa->logo_desa) && file_exists(storage_path('app/public/logo-desa/' . $desa->logo_desa)))
+                                <img src="{{ asset('storage/logo-desa/' . $desa->logo_desa) }}"
+                                    alt="{{ $desa->nama_desa ?? 'Logo Desa' }}"
+                                    class="w-full h-full object-contain mix-blend-screen">
+                            @else
+                                <img src="{{ asset('images/lumbung-data-logo.png') }}" alt="Lumbung Data"
+                                    class="w-full h-full object-contain mix-blend-screen">
+                            @endif
                         </div>
                         <div class="logo-text sidebar-identity-text">
                             <p class="text-sm font-bold whitespace-nowrap leading-tight">
-                                {{ $desa->nama_desa ?? 'Nama Desa' }}</p>
+                                {{ $desa->nama_desa ?? 'Nama Desa' }}
+                            </p>
                             <p class="text-xs text-white/70 whitespace-nowrap">Kec.
-                                {{ $desa->kecamatan ?? 'Kecamatan' }}</p>
+                                {{ $desa->kecamatan ?? 'Kecamatan' }}
+                            </p>
                             <p class="text-xs text-white/60 whitespace-nowrap">Kab.
-                                {{ $desa->kabupaten ?? 'Kabupaten' }}</p>
+                                {{ $desa->kabupaten ?? 'Kabupaten' }}
+                            </p>
                         </div>
                     </div>
 
@@ -772,8 +780,7 @@
                                     d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
-                        <div class="submenu mt-1 ml-4 space-y-1"
-                            :class="{
+                        <div class="submenu mt-1 ml-4 space-y-1" :class="{
                                 'open': infoDesa || (isSearching &&
                                     groupVisible(menuGroups.find(gi=>gi.key==='infoDesa')))
                             }">
@@ -841,8 +848,7 @@
                                     d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
-                        <div class="submenu mt-1 ml-4 space-y-1"
-                            :class="{
+                        <div class="submenu mt-1 ml-4 space-y-1" :class="{
                                 'open': kependudukan || (isSearching &&
                                     groupVisible(menuGroups.find(gi=>gi.key==='kependudukan')))
                             }">
@@ -904,8 +910,7 @@
                                     d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
-                        <div class="submenu mt-1 ml-4 space-y-1"
-                            :class="{
+                        <div class="submenu mt-1 ml-4 space-y-1" :class="{
                                 'open': statistik || (isSearching &&
                                     groupVisible(menuGroups.find(gi=>gi.key==='statistik')))
                             }">
@@ -955,8 +960,7 @@
                                     d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
-                        <div class="submenu mt-1 ml-4 space-y-1"
-                            :class="{
+                        <div class="submenu mt-1 ml-4 space-y-1" :class="{
                                 'open': kesehatan || (isSearching &&
                                     groupVisible(menuGroups.find(gi=>gi.key==='kesehatan')))
                             }">
@@ -1006,8 +1010,7 @@
                                     d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
-                        <div class="submenu mt-1 ml-4 space-y-1"
-                            :class="{
+                        <div class="submenu mt-1 ml-4 space-y-1" :class="{
                                 'open': kehadiran || (isSearching &&
                                     groupVisible(menuGroups.find(gi=>gi.key==='kehadiran')))
                             }">
@@ -1063,8 +1066,7 @@
                                     d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
-                        <div class="submenu mt-1 ml-4 space-y-1"
-                            :class="{
+                        <div class="submenu mt-1 ml-4 space-y-1" :class="{
                                 'open': layananSurat || (isSearching &&
                                     groupVisible(menuGroups.find(gi=>gi.key==='layananSurat')))
                             }">
@@ -1120,8 +1122,7 @@
                                     d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
-                        <div class="submenu mt-1 ml-4 space-y-1"
-                            :class="{
+                        <div class="submenu mt-1 ml-4 space-y-1" :class="{
                                 'open': sekretariat || (isSearching &&
                                     groupVisible(menuGroups.find(gi=>gi.key==='sekretariat')))
                             }">
@@ -1168,8 +1169,7 @@
                                     d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
-                        <div class="submenu mt-1 ml-4 space-y-1"
-                            :class="{
+                        <div class="submenu mt-1 ml-4 space-y-1" :class="{
                                 'open': bukuAdministrasi || (isSearching &&
                                     groupVisible(menuGroups.find(gi=>gi.key==='bukuAdministrasi')))
                             }">
@@ -1219,8 +1219,7 @@
                                     d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
-                        <div class="submenu mt-1 ml-4 space-y-1"
-                            :class="{
+                        <div class="submenu mt-1 ml-4 space-y-1" :class="{
                                 'open': keuangan || (isSearching &&
                                     groupVisible(menuGroups.find(gi=>gi.key==='keuangan')))
                             }">
@@ -1297,8 +1296,7 @@
                                 </svg>
                             </div>
                         </button>
-                        <div class="submenu mt-1 ml-4 space-y-1"
-                            :class="{
+                        <div class="submenu mt-1 ml-4 space-y-1" :class="{
                                 'open': artikelMenu || (isSearching &&
                                     groupVisible(menuGroups.find(gi=>gi.key==='artikelMenu')))
                             }">
@@ -1341,8 +1339,7 @@
                                     d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
-                        <div class="submenu mt-1 ml-4 space-y-1"
-                            :class="{
+                        <div class="submenu mt-1 ml-4 space-y-1" :class="{
                                 'open': pertanahan || (isSearching &&
                                     groupVisible(menuGroups.find(gi=>gi.key==='pertanahan')))
                             }">
@@ -1356,8 +1353,7 @@
                     </div>
 
                     <!-- Pembangunan -->
-                    <a href="/admin/pembangunan" data-tooltip="Pembangunan"
-                        x-show="flatVisible({label: 'Pembangunan'})"
+                    <a href="/admin/pembangunan" data-tooltip="Pembangunan" x-show="flatVisible({label: 'Pembangunan'})"
                         class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white/90 hover:bg-white/10 {{ request()->is('admin/pembangunan*') ? 'bg-white/15 shadow-sm' : '' }}">
                         <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -1395,8 +1391,7 @@
                                     d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
-                        <div class="submenu mt-1 ml-4 space-y-1"
-                            :class="{
+                        <div class="submenu mt-1 ml-4 space-y-1" :class="{
                                 'open': opendk || (isSearching && groupVisible(menuGroups.find(gi=>gi.key==='opendk')))
                             }">
                             <a href="/admin/opendk/placeholder"
@@ -1440,8 +1435,7 @@
                                 </svg>
                             </div>
                         </button>
-                        <div class="submenu mt-1 ml-4 space-y-1"
-                            :class="{
+                        <div class="submenu mt-1 ml-4 space-y-1" :class="{
                                 'open': hubungWarga || (isSearching &&
                                     groupVisible(menuGroups.find(gi=>gi.key==='hubungWarga')))
                             }">
@@ -1489,8 +1483,7 @@
                                     d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
-                        <div class="submenu mt-1 ml-4 space-y-1"
-                            :class="{
+                        <div class="submenu mt-1 ml-4 space-y-1" :class="{
                                 'open': ppid || (isSearching && groupVisible(menuGroups.find(gi=>gi.key==='ppid')))
                             }">
 
@@ -1568,8 +1561,7 @@
                                     d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
-                        <div class="submenu mt-1 ml-4 space-y-1"
-                            :class="{
+                        <div class="submenu mt-1 ml-4 space-y-1" :class="{
                                 'open': sistem || (isSearching && groupVisible(menuGroups.find(gi=>gi.key==='sistem')))
                             }">
                             <a href="{{ route('admin.pengguna.index') }}"
@@ -1613,8 +1605,7 @@
                         @csrf
                         <button type="submit" data-tooltip="Logout"
                             class="logout-btn w-full flex items-center justify-center gap-2 px-4 py-3 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition-all duration-200 backdrop-blur-sm border border-white/20">
-                            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
+                            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                             </svg>
@@ -1711,8 +1702,8 @@
                         <button @click="toggleOpen()"
                             class="relative p-2 rounded-lg transition-all text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700"
                             :class="open ? 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300' : ''">
-                            <svg class="w-5 h-5" :class="{ 'bell-ring': bellRinging }" fill="none"
-                                stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-5 h-5" :class="{ 'bell-ring': bellRinging }" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                             </svg>
@@ -1742,8 +1733,8 @@
                                     <div class="p-8 text-center">
                                         <svg class="animate-spin h-8 w-8 text-emerald-500 mx-auto"
                                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                            <circle class="opacity-25" cx="12" cy="12" r="10"
-                                                stroke="currentColor" stroke-width="4"></circle>
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                                stroke-width="4"></circle>
                                             <path class="opacity-75" fill="currentColor"
                                                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
                                             </path>
@@ -1788,9 +1779,8 @@
                                                         stroke-width="2"
                                                         d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                                                 </svg>
-                                                <svg x-show="item.type === 'permohonan'"
-                                                    class="w-5 h-5 text-orange-600" fill="none"
-                                                    stroke="currentColor" viewBox="0 0 24 24">
+                                                <svg x-show="item.type === 'permohonan'" class="w-5 h-5 text-orange-600"
+                                                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                         stroke-width="2"
                                                         d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -1889,7 +1879,8 @@
                             </div>
                             <div class="text-left hidden sm:block">
                                 <p class="text-sm font-semibold text-gray-800 dark:text-slate-100 leading-tight">
-                                    {{ Auth::user()->name ?? 'Admin' }}</p>
+                                    {{ Auth::user()->name ?? 'Admin' }}
+                                </p>
                             </div>
                             <svg class="w-4 h-4 text-gray-400 dark:text-slate-500 transition-transform duration-200"
                                 :class="{ 'rotate-180': profileOpen }" fill="none" stroke="currentColor"
@@ -1904,8 +1895,7 @@
                             x-transition:enter-end="opacity-100 scale-100 translate-y-0"
                             x-transition:leave="transition ease-in duration-150"
                             x-transition:leave-start="opacity-100 scale-100 translate-y-0"
-                            x-transition:leave-end="opacity-0 scale-95 -translate-y-2"
-                            @click.away="profileOpen = false"
+                            x-transition:leave-end="opacity-0 scale-95 -translate-y-2" @click.away="profileOpen = false"
                             class="absolute right-0 mt-2 w-64 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-slate-700 overflow-hidden z-[200]"
                             style="top: calc(100% + 6px); display:none">
 
@@ -1950,8 +1940,7 @@
                                             class="w-8 h-8 rounded-lg bg-red-100 dark:bg-red-900/30 group-hover:bg-red-200 dark:group-hover:bg-red-900/50 flex items-center justify-center transition-colors flex-shrink-0">
                                             <svg class="w-4 h-4 text-red-600 dark:text-red-400" fill="none"
                                                 stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    stroke-width="2"
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                                             </svg>
                                         </div>
@@ -1986,10 +1975,9 @@
 
                     {{-- Modal Pengaturan Beranda --}}
                     <template x-teleport="body">
-                        <div x-show="pengaturanOpen"
-                            class="fixed inset-0 z-[9999] flex items-center justify-center p-4" x-cloak>
-                            <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"
-                                @click="pengaturanOpen = false">
+                        <div x-show="pengaturanOpen" class="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+                            x-cloak>
+                            <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="pengaturanOpen = false">
                             </div>
                             <div x-show="pengaturanOpen" x-transition
                                 class="bg-white dark:bg-slate-800 rounded-lg shadow-2xl w-full max-w-md overflow-hidden relative">
@@ -2084,17 +2072,16 @@
         @keydown.escape.window="open = false">
 
         {{-- Overlay --}}
-        <div x-show="open" x-transition:enter="transition ease-out duration-300"
-            x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-            x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
-            x-transition:leave-end="opacity-0" @click="open = false"
+        <div x-show="open" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200"
+            x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" @click="open = false"
             class="fixed inset-0 bg-black/30 backdrop-blur-sm z-[900]" style="display:none"></div>
 
         {{-- Panel --}}
         <div x-show="open" x-transition:enter="transition ease-out duration-300"
             x-transition:enter-start="opacity-0 translate-x-full" x-transition:enter-end="opacity-100 translate-x-0"
-            x-transition:leave="transition ease-in duration-200"
-            x-transition:leave-start="opacity-100 translate-x-0" x-transition:leave-end="opacity-0 translate-x-full"
+            x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 translate-x-0"
+            x-transition:leave-end="opacity-0 translate-x-full"
             class="fixed top-0 right-0 h-full w-80 bg-white dark:bg-slate-800 shadow-2xl z-[901] flex flex-col overflow-hidden"
             style="display:none">
 
@@ -2103,8 +2090,7 @@
                 <div class="flex items-center justify-between mb-3">
                     <div class="flex items-center gap-2">
                         <div class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
-                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
@@ -2113,8 +2099,7 @@
                     </div>
                     <button @click="open = false"
                         class="w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors">
-                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M6 18L18 6M6 6l12 12" />
                         </svg>
@@ -2148,8 +2133,8 @@
                         <div class="flex items-center gap-3">
                             <div
                                 class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
-                                <svg class="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none"
-                                    stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
@@ -2158,10 +2143,8 @@
                                 Data</span>
                         </div>
                         <svg class="w-4 h-4 text-gray-400 dark:text-slate-500 transition-transform duration-200"
-                            :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M19 9l-7 7-7-7" />
+                            :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                         </svg>
                     </button>
                     <div x-show="open" class="px-5 pb-4">
@@ -2201,10 +2184,8 @@
                             <span class="text-sm font-semibold text-gray-700 dark:text-slate-200">Catatan Rilis</span>
                         </div>
                         <svg class="w-4 h-4 text-gray-400 dark:text-slate-500 transition-transform duration-200"
-                            :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M19 9l-7 7-7-7" />
+                            :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                         </svg>
                     </button>
                     <div x-show="open" class="px-5 pb-4">
@@ -2241,10 +2222,8 @@
                                 Penggunaan</span>
                         </div>
                         <svg class="w-4 h-4 text-gray-400 dark:text-slate-500 transition-transform duration-200"
-                            :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M19 9l-7 7-7-7" />
+                            :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                         </svg>
                     </button>
                     <div x-show="open" class="px-5 pb-4 space-y-2">
@@ -2274,8 +2253,8 @@
                         <div class="flex items-center gap-3">
                             <div
                                 class="w-8 h-8 rounded-lg bg-red-100 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0">
-                                <svg class="w-4 h-4 text-red-600 dark:text-red-400" fill="none"
-                                    stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-4 h-4 text-red-600 dark:text-red-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                                 </svg>
@@ -2284,10 +2263,8 @@
                                 Ketentuan</span>
                         </div>
                         <svg class="w-4 h-4 text-gray-400 dark:text-slate-500 transition-transform duration-200"
-                            :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M19 9l-7 7-7-7" />
+                            :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                         </svg>
                     </button>
                     <div x-show="open" class="px-5 pb-4">
@@ -2306,8 +2283,8 @@
                         <div class="flex items-center gap-3">
                             <div
                                 class="w-8 h-8 rounded-lg bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center flex-shrink-0">
-                                <svg class="w-4 h-4 text-teal-600 dark:text-teal-400" fill="none"
-                                    stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-4 h-4 text-teal-600 dark:text-teal-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                 </svg>
@@ -2316,10 +2293,8 @@
                                 Informasi</span>
                         </div>
                         <svg class="w-4 h-4 text-gray-400 dark:text-slate-500 transition-transform duration-200"
-                            :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M19 9l-7 7-7-7" />
+                            :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                         </svg>
                     </button>
                     <div x-show="open" class="px-5 pb-4 space-y-2 text-xs text-gray-600 dark:text-slate-400">
@@ -2363,17 +2338,17 @@
             <button @click="toggleChat()"
                 class="w-14 h-14 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full shadow-lg shadow-emerald-500/30 flex items-center justify-center text-white hover:shadow-xl hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-emerald-500/30 relative">
 
-                <svg x-show="!chatOpen" x-transition.opacity class="w-6 h-6 absolute" fill="none"
-                    stroke="currentColor" viewBox="0 0 24 24">
+                <svg x-show="!chatOpen" x-transition.opacity class="w-6 h-6 absolute" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                         d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z">
                     </path>
                 </svg>
 
-                <svg x-show="chatOpen" x-transition.opacity class="w-6 h-6 absolute" fill="none"
-                    stroke="currentColor" viewBox="0 0 24 24" style="display: none;">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                        d="M6 18L18 6M6 6l12 12"></path>
+                <svg x-show="chatOpen" x-transition.opacity class="w-6 h-6 absolute" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24" style="display: none;">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12">
+                    </path>
                 </svg>
             </button>
 
@@ -2435,14 +2410,13 @@
                 <div
                     class="p-3 bg-white dark:bg-slate-800 border-t border-gray-100 dark:border-slate-700 flex-shrink-0">
                     <form @submit.prevent="sendMessage" class="relative flex items-center">
-                        <input type="text" x-model="newMessage" placeholder="Ketik pesan..."
-                            :disabled="isSending"
+                        <input type="text" x-model="newMessage" placeholder="Ketik pesan..." :disabled="isSending"
                             class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-slate-200 text-[13px] rounded-full pl-4 pr-12 py-2.5 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors disabled:opacity-50">
 
                         <button type="submit" :disabled="isSending || newMessage.trim() === ''"
                             class="absolute right-1.5 p-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full transition-colors flex items-center justify-center disabled:bg-gray-400">
-                            <svg class="w-4 h-4 translate-x-[1px] translate-y-[-1px]" fill="none"
-                                stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-4 h-4 translate-x-[1px] translate-y-[-1px]" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                                     d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
                             </svg>
@@ -2486,7 +2460,7 @@
                         if (!this._audio) return;
                         const tmp = this._audio.cloneNode();
                         tmp.volume = 0;
-                        tmp.play().then(() => tmp.pause()).catch(() => {});
+                        tmp.play().then(() => tmp.pause()).catch(() => { });
                         document.removeEventListener('click', unlockAudio);
                         document.removeEventListener('keydown', unlockAudio);
                     };
@@ -2533,7 +2507,7 @@
                         this._audio.preload = 'auto';
                         this._audio.volume = 0.6;
                         this._audio.load();
-                    } catch (e) {}
+                    } catch (e) { }
                 },
 
                 _playSound() {
@@ -2565,7 +2539,7 @@
                     if (this._audioPlaying) return;
                     this._audioPlaying = true;
                     try {
-                        const ctx = new(window.AudioContext || window.webkitAudioContext)();
+                        const ctx = new (window.AudioContext || window.webkitAudioContext)();
                         const osc = ctx.createOscillator();
                         const gain = ctx.createGain();
 
@@ -2610,336 +2584,336 @@
                 },
 
                 menuGroups: [{
-                        key: 'infoDesa',
-                        label: 'Info Desa',
-                        items: [{
-                                label: 'Identitas Desa',
-                                url: '/admin/identitas-desa'
-                            },
-                            {
-                                label: 'Wilayah Administratif',
-                                url: '/admin/info-desa/wilayah-administratif'
-                            },
-                            {
-                                label: 'Pemerintah Desa',
-                                url: '/admin/pemerintah-desa'
-                            },
-                            {
-                                label: 'Lembaga Desa',
-                                url: '/admin/lembaga'
-                            },
-                            {
-                                label: 'Status Desa',
-                                url: '/admin/info-desa/status-desa'
-                            },
-                            {
-                                label: 'Layanan Pelanggan',
-                                url: '/admin/layanan-pelanggan'
-                            },
-                            {
-                                label: 'Pendaftaran Kerjasama',
-                                url: '/admin/kerjasama'
-                            },
-                        ]
+                    key: 'infoDesa',
+                    label: 'Info Desa',
+                    items: [{
+                        label: 'Identitas Desa',
+                        url: '/admin/identitas-desa'
                     },
                     {
-                        key: 'kependudukan',
-                        label: 'Kependudukan',
-                        items: [{
-                                label: 'Penduduk',
-                                url: '/admin/penduduk'
-                            },
-                            {
-                                label: 'Keluarga',
-                                url: '/admin/keluarga'
-                            },
-                            {
-                                label: 'Rumah Tangga',
-                                url: '/admin/rumah-tangga'
-                            },
-                            {
-                                label: 'Kelompok',
-                                url: '/admin/kelompok'
-                            },
-                            {
-                                label: 'Data Suplemen',
-                                url: '/admin/suplemen'
-                            },
-                            {
-                                label: 'Calon Pemilih',
-                                url: '/admin/calon-pemilih'
-                            },
-                        ]
+                        label: 'Wilayah Administratif',
+                        url: '/admin/info-desa/wilayah-administratif'
                     },
                     {
-                        key: 'statistik',
-                        label: 'Statistik',
-                        items: [{
-                                label: 'Statistik Kependudukan',
-                                url: '/admin/statistik/kependudukan'
-                            },
-                            {
-                                label: 'Laporan Bulanan',
-                                url: '/admin/statistik/laporan-bulanan'
-                            },
-                            {
-                                label: 'Laporan Kelompok Rentan',
-                                url: '/admin/statistik/kelompok-rentan'
-                            },
-                            {
-                                label: 'Laporan Penduduk',
-                                url: '/admin/statistik/penduduk'
-                            },
-                        ]
+                        label: 'Pemerintah Desa',
+                        url: '/admin/pemerintah-desa'
                     },
                     {
-                        key: 'kesehatan',
-                        label: 'Kesehatan',
-                        items: [{
-                                label: 'Pendataan',
-                                url: '/admin/kesehatan/pendataan/posyandu'
-                            },
-                            {
-                                label: 'Pemantauan',
-                                url: '/admin/kesehatan/pemantauan'
-                            },
-                            {
-                                label: 'Vaksin',
-                                url: '/admin/kesehatan/vaksin'
-                            },
-                            {
-                                label: 'Stunting',
-                                url: '/admin/kesehatan/stunting/posyandu'
-                            },
-                        ]
+                        label: 'Lembaga Desa',
+                        url: '/admin/lembaga'
                     },
                     {
-                        key: 'kehadiran',
-                        label: 'Kehadiran',
-                        items: [{
-                                label: 'Jam Kerja',
-                                url: '/admin/kehadiran/jam-kerja'
-                            },
-                            {
-                                label: 'Hari Libur',
-                                url: '/admin/kehadiran/hari-libur'
-                            },
-                            {
-                                label: 'Rekapitulasi',
-                                url: '/admin/kehadiran/rekapitulasi'
-                            },
-                            {
-                                label: 'Pengaduan Kehadiran',
-                                url: '/admin/kehadiran/pengaduan-kehadiran'
-                            },
-                            {
-                                label: 'Input Kehadiran',
-                                url: '/admin/kehadiran/input'
-                            },
-                        ]
+                        label: 'Status Desa',
+                        url: '/admin/info-desa/status-desa'
                     },
                     {
-                        key: 'layananSurat',
-                        label: 'Layanan Surat',
-                        items: [{
-                                label: 'Pengaturan Surat',
-                                url: '/admin/layanan-surat/pengaturan'
-                            },
-                            {
-                                label: 'Cetak Surat',
-                                url: '/admin/layanan-surat/cetak'
-                            },
-                            {
-                                label: 'Permohonan Surat',
-                                url: '/admin/layanan-surat/permohonan'
-                            },
-                            {
-                                label: 'Arsip Layanan',
-                                url: '/admin/layanan-surat/arsip'
-                            },
-                            {
-                                label: 'Daftar Persyaratan',
-                                url: '/admin/layanan-surat/daftar-persyaratan'
-                            },
-                        ]
+                        label: 'Layanan Pelanggan',
+                        url: '/admin/layanan-pelanggan'
                     },
                     {
-                        key: 'sekretariat',
-                        label: 'Sekretariat',
-                        items: [{
-                                label: 'Informasi Publik',
-                                url: '/admin/sekretariat/informasi-publik'
-                            },
-                            {
-                                label: 'Inventaris',
-                                url: '/admin/sekretariat/inventaris'
-                            },
-                            {
-                                label: 'Klasifikasi Surat',
-                                url: '/admin/sekretariat/klasifikasi-surat'
-                            },
-                        ]
+                        label: 'Pendaftaran Kerjasama',
+                        url: '/admin/kerjasama'
+                    },
+                    ]
+                },
+                {
+                    key: 'kependudukan',
+                    label: 'Kependudukan',
+                    items: [{
+                        label: 'Penduduk',
+                        url: '/admin/penduduk'
                     },
                     {
-                        key: 'bukuAdministrasi',
-                        label: 'Buku Administrasi Desa',
-                        items: [{
-                                label: 'Administrasi Umum',
-                                url: '/admin/buku-administrasi/umum'
-                            },
-                            {
-                                label: 'Administrasi Penduduk',
-                                url: '/admin/buku-administrasi/penduduk'
-                            },
-                            {
-                                label: 'Administrasi Pembangunan',
-                                url: '/admin/buku-administrasi/pembangunan'
-                            },
-                            {
-                                label: 'Arsip Desa',
-                                url: '/admin/buku-administrasi/arsip'
-                            },
-                        ]
+                        label: 'Keluarga',
+                        url: '/admin/keluarga'
                     },
                     {
-                        key: 'keuangan',
-                        label: 'Keuangan',
-                        items: [{
-                                label: 'Laporan',
-                                url: '/admin/keuangan/laporan-keuangan'
-                            },
-                            {
-                                label: 'Input Data',
-                                url: '/admin/keuangan/input-template'
-                            },
-                            {
-                                label: 'Laporan APBDes',
-                                url: '/admin/keuangan/laporan-apbdes'
-                            },
-                        ]
+                        label: 'Rumah Tangga',
+                        url: '/admin/rumah-tangga'
                     },
                     {
-                        key: 'artikelMenu',
-                        label: 'Manajemen Artikel',
-                        items: [{
-                                label: 'Daftar Artikel',
-                                url: '/admin/artikel'
-                            },
-                            {
-                                label: 'Komentar Artikel',
-                                url: '/admin/komentar'
-                            },
-                        ]
+                        label: 'Kelompok',
+                        url: '/admin/kelompok'
                     },
                     {
-                        key: 'pertanahan',
-                        label: 'Pertanahan',
-                        items: [{
-                            label: 'C Desa',
-                            url: '/admin/pertanahan/c-desa'
-                        }, ]
+                        label: 'Data Suplemen',
+                        url: '/admin/suplemen'
                     },
                     {
-                        key: 'opendk',
-                        label: 'OpenDK',
-                        items: [{
-                            label: 'Placeholder',
-                            url: '/admin/opendk/placeholder'
-                        }, ]
+                        label: 'Calon Pemilih',
+                        url: '/admin/calon-pemilih'
+                    },
+                    ]
+                },
+                {
+                    key: 'statistik',
+                    label: 'Statistik',
+                    items: [{
+                        label: 'Statistik Kependudukan',
+                        url: '/admin/statistik/kependudukan'
                     },
                     {
-                        key: 'hubungWarga',
-                        label: 'Hubung Warga',
-                        items: [{
-                                label: 'Kotak Masuk',
-                                url: '/admin/hubung-warga/inbox'
-                            },
-                            {
-                                label: 'Pesan Terkirim',
-                                url: '/admin/hubung-warga/sent'
-                            },
-                        ]
+                        label: 'Laporan Bulanan',
+                        url: '/admin/statistik/laporan-bulanan'
                     },
                     {
-                        key: 'ppid',
-                        label: 'PPID',
-                        items: [{
-                                label: 'Daftar Dokumen',
-                                url: '/admin/ppid'
-                            },
-                            {
-                                label: 'Permohonan Informasi',
-                                url: '/admin/ppid/permohonan-informasi'
-                            },
-                            {
-                                label: 'Permohonan Keberatan',
-                                url: '#'
-                            },
-                            {
-                                label: 'Jenis Dokumen',
-                                url: '/admin/ppid/jenis'
-                            },
-                            {
-                                label: 'Pengaturan PPID',
-                                url: '#'
-                            },
-                            {
-                                label: 'Menu PPID',
-                                url: '#'
-                            },
-                        ]
+                        label: 'Laporan Kelompok Rentan',
+                        url: '/admin/statistik/kelompok-rentan'
                     },
                     {
-                        key: 'sistem',
-                        label: 'Sistem',
-                        items: [{
-                                label: 'Pengguna',
-                                url: '/admin/pengguna'
-                            },
-                            {
-                                label: 'Hak Akses',
-                                url: '/admin/role'
-                            },
-                            {
-                                label: 'Pengaturan Desa',
-                                url: '/admin/pengaturan'
-                            },
-                            {
-                                label: 'Backup & Restore',
-                                url: '/admin/backup'
-                            },
-                            {
-                                label: 'Log Aktivitas',
-                                url: '/admin/log'
-                            },
-                        ]
+                        label: 'Laporan Penduduk',
+                        url: '/admin/statistik/penduduk'
                     },
+                    ]
+                },
+                {
+                    key: 'kesehatan',
+                    label: 'Kesehatan',
+                    items: [{
+                        label: 'Pendataan',
+                        url: '/admin/kesehatan/pendataan/posyandu'
+                    },
+                    {
+                        label: 'Pemantauan',
+                        url: '/admin/kesehatan/pemantauan'
+                    },
+                    {
+                        label: 'Vaksin',
+                        url: '/admin/kesehatan/vaksin'
+                    },
+                    {
+                        label: 'Stunting',
+                        url: '/admin/kesehatan/stunting/posyandu'
+                    },
+                    ]
+                },
+                {
+                    key: 'kehadiran',
+                    label: 'Kehadiran',
+                    items: [{
+                        label: 'Jam Kerja',
+                        url: '/admin/kehadiran/jam-kerja'
+                    },
+                    {
+                        label: 'Hari Libur',
+                        url: '/admin/kehadiran/hari-libur'
+                    },
+                    {
+                        label: 'Rekapitulasi',
+                        url: '/admin/kehadiran/rekapitulasi'
+                    },
+                    {
+                        label: 'Pengaduan Kehadiran',
+                        url: '/admin/kehadiran/pengaduan-kehadiran'
+                    },
+                    {
+                        label: 'Input Kehadiran',
+                        url: '/admin/kehadiran/input'
+                    },
+                    ]
+                },
+                {
+                    key: 'layananSurat',
+                    label: 'Layanan Surat',
+                    items: [{
+                        label: 'Pengaturan Surat',
+                        url: '/admin/layanan-surat/pengaturan'
+                    },
+                    {
+                        label: 'Cetak Surat',
+                        url: '/admin/layanan-surat/cetak'
+                    },
+                    {
+                        label: 'Permohonan Surat',
+                        url: '/admin/layanan-surat/permohonan'
+                    },
+                    {
+                        label: 'Arsip Layanan',
+                        url: '/admin/layanan-surat/arsip'
+                    },
+                    {
+                        label: 'Daftar Persyaratan',
+                        url: '/admin/layanan-surat/daftar-persyaratan'
+                    },
+                    ]
+                },
+                {
+                    key: 'sekretariat',
+                    label: 'Sekretariat',
+                    items: [{
+                        label: 'Informasi Publik',
+                        url: '/admin/sekretariat/informasi-publik'
+                    },
+                    {
+                        label: 'Inventaris',
+                        url: '/admin/sekretariat/inventaris'
+                    },
+                    {
+                        label: 'Klasifikasi Surat',
+                        url: '/admin/sekretariat/klasifikasi-surat'
+                    },
+                    ]
+                },
+                {
+                    key: 'bukuAdministrasi',
+                    label: 'Buku Administrasi Desa',
+                    items: [{
+                        label: 'Administrasi Umum',
+                        url: '/admin/buku-administrasi/umum'
+                    },
+                    {
+                        label: 'Administrasi Penduduk',
+                        url: '/admin/buku-administrasi/penduduk'
+                    },
+                    {
+                        label: 'Administrasi Pembangunan',
+                        url: '/admin/buku-administrasi/pembangunan'
+                    },
+                    {
+                        label: 'Arsip Desa',
+                        url: '/admin/buku-administrasi/arsip'
+                    },
+                    ]
+                },
+                {
+                    key: 'keuangan',
+                    label: 'Keuangan',
+                    items: [{
+                        label: 'Laporan',
+                        url: '/admin/keuangan/laporan-keuangan'
+                    },
+                    {
+                        label: 'Input Data',
+                        url: '/admin/keuangan/input-template'
+                    },
+                    {
+                        label: 'Laporan APBDes',
+                        url: '/admin/keuangan/laporan-apbdes'
+                    },
+                    ]
+                },
+                {
+                    key: 'artikelMenu',
+                    label: 'Manajemen Artikel',
+                    items: [{
+                        label: 'Daftar Artikel',
+                        url: '/admin/artikel'
+                    },
+                    {
+                        label: 'Komentar Artikel',
+                        url: '/admin/komentar'
+                    },
+                    ]
+                },
+                {
+                    key: 'pertanahan',
+                    label: 'Pertanahan',
+                    items: [{
+                        label: 'C Desa',
+                        url: '/admin/pertanahan/c-desa'
+                    },]
+                },
+                {
+                    key: 'opendk',
+                    label: 'OpenDK',
+                    items: [{
+                        label: 'Placeholder',
+                        url: '/admin/opendk/placeholder'
+                    },]
+                },
+                {
+                    key: 'hubungWarga',
+                    label: 'Hubung Warga',
+                    items: [{
+                        label: 'Kotak Masuk',
+                        url: '/admin/hubung-warga/inbox'
+                    },
+                    {
+                        label: 'Pesan Terkirim',
+                        url: '/admin/hubung-warga/sent'
+                    },
+                    ]
+                },
+                {
+                    key: 'ppid',
+                    label: 'PPID',
+                    items: [{
+                        label: 'Daftar Dokumen',
+                        url: '/admin/ppid'
+                    },
+                    {
+                        label: 'Permohonan Informasi',
+                        url: '/admin/ppid/permohonan-informasi'
+                    },
+                    {
+                        label: 'Permohonan Keberatan',
+                        url: '#'
+                    },
+                    {
+                        label: 'Jenis Dokumen',
+                        url: '/admin/ppid/jenis'
+                    },
+                    {
+                        label: 'Pengaturan PPID',
+                        url: '#'
+                    },
+                    {
+                        label: 'Menu PPID',
+                        url: '#'
+                    },
+                    ]
+                },
+                {
+                    key: 'sistem',
+                    label: 'Sistem',
+                    items: [{
+                        label: 'Pengguna',
+                        url: '/admin/pengguna'
+                    },
+                    {
+                        label: 'Hak Akses',
+                        url: '/admin/role'
+                    },
+                    {
+                        label: 'Pengaturan Desa',
+                        url: '/admin/pengaturan'
+                    },
+                    {
+                        label: 'Backup & Restore',
+                        url: '/admin/backup'
+                    },
+                    {
+                        label: 'Log Aktivitas',
+                        url: '/admin/log'
+                    },
+                    ]
+                },
                 ],
 
                 flatMatches: [{
-                        label: 'Beranda',
-                        url: '/admin/dashboard'
-                    },
-                    {
-                        label: 'Analisis',
-                        url: '/admin/analisis'
-                    },
-                    {
-                        label: 'Bantuan',
-                        url: '/admin/bantuan'
-                    },
-                    {
-                        label: 'Pembangunan',
-                        url: '/admin/pembangunan'
-                    },
-                    {
-                        label: 'Lapak',
-                        url: '/admin/lapak'
-                    },
-                    {
-                        label: 'Pengaduan',
-                        url: '/admin/pengaduan'
-                    },
+                    label: 'Beranda',
+                    url: '/admin/dashboard'
+                },
+                {
+                    label: 'Analisis',
+                    url: '/admin/analisis'
+                },
+                {
+                    label: 'Bantuan',
+                    url: '/admin/bantuan'
+                },
+                {
+                    label: 'Pembangunan',
+                    url: '/admin/pembangunan'
+                },
+                {
+                    label: 'Lapak',
+                    url: '/admin/lapak'
+                },
+                {
+                    label: 'Pengaduan',
+                    url: '/admin/pengaduan'
+                },
                 ],
 
                 // ----------------------------------------------------------
@@ -3208,7 +3182,7 @@
                             // Hitung ulang unread yang tersisa (komentar + permohonan masih ada)
                             this.totalUnread = this.items.filter(i => !i.is_read).length;
                         }
-                    } catch (e) {}
+                    } catch (e) { }
                 },
 
                 async markOneRead(id, type) {
@@ -3251,7 +3225,7 @@
                                 this.totalUnread = Math.max(0, this.totalUnread - 1);
                             }
                         }
-                    } catch (e) {}
+                    } catch (e) { }
                 }
             };
         }

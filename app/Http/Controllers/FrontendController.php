@@ -22,6 +22,8 @@ use App\Models\Pengaduan;
 use App\Models\KomentarArtikel;
 use App\Models\Lapak;
 use App\Models\Pembangunan;
+use App\Models\AkunRekening;
+use App\Models\AnggaranTahunan;
 
 class FrontendController extends Controller {
     /*
@@ -674,83 +676,97 @@ class FrontendController extends Controller {
     |--------------------------------------------------------------------------
     */
 
-    public function apbd(Request $request) {
-        // 1. Ambil Tahun Aktif dari Database atau Request
-        $tahunAktif = DB::table('tahun_anggaran')
-            ->where('status', 'aktif')
-            ->orderBy('tahun', 'desc')
-            ->first();
+    public function apbd(Request $request)
+{
+    // 1. Ambil semua tahun dari tabel tahun_anggaran
+    $daftarTahun = AnggaranTahunan::select('tahun')
+    ->distinct()
+    ->orderBy('tahun', 'desc')
+    ->pluck('tahun');
 
-        // Jika user memilih tahun di dropdown, gunakan itu. Jika tidak, gunakan tahun aktif.
-        $tahun = $request->get('tahun', $tahunAktif ? $tahunAktif->tahun : date('Y'));
+    // 2. Tentukan tahun aktif (status = aktif), fallback ke tahun terbaru di tabel
+    $tahunAktif = DB::table('tahun_anggaran')
+        ->where('status', 'aktif')
+        ->orderBy('tahun', 'desc')
+        ->value('tahun');
 
-        // Ambil ID Tahun tersebut untuk memfilter data APBDes
-        $tahunId = DB::table('tahun_anggaran')->where('tahun', $tahun)->value('id');
+    // Fallback: gunakan tahun terbaru di tabel jika tidak ada yang aktif
+    $defaultTahun = $tahunAktif ?? $daftarTahun->first();
 
-        // 2. Data Ringkasan Utama (Top Cards)
-        // Pastikan filter tahun_id digunakan agar data akurat sesuai tahun yang dipilih
-        $totalPendapatan = Apbdes::where('tahun_id', $tahunId)->where('kategori', 'pendapatan')->sum('anggaran') ?? 0;
-        $totalBelanja = Apbdes::where('tahun_id', $tahunId)->where('kategori', 'belanja')->sum('anggaran') ?? 0;
-
-        // 3. Hitung Realisasi Belanja (Penyebab Error Sebelumnya)
-        // Kita join dengan tabel realisasi_anggaran
-        $realisasiBelanja = DB::table('realisasi_anggaran')
-            ->join('apbdes', 'realisasi_anggaran.apbdes_id', '=', 'apbdes.id')
-            ->where('apbdes.tahun_id', $tahunId)
-            ->where('apbdes.kategori', 'belanja')
-            ->sum('realisasi_anggaran.jumlah') ?? 0;
-
-        // 4. Hitung Sisa dan Progress (Untuk Bar Indikator di Blade)
-        $sisaAnggaran = $totalBelanja - $realisasiBelanja;
-        $progressPersen = $totalBelanja > 0 ? round(($realisasiBelanja / $totalBelanja) * 100, 1) : 0;
-
-        // 5. Rincian Sumber Pendapatan (Untuk Section Kiri)
-        $sumberPendapatan = DB::table('apbdes')
-            ->join('sumber_dana', 'apbdes.sumber_dana_id', '=', 'sumber_dana.id')
-            ->where('apbdes.tahun_id', $tahunId)
-            ->where('apbdes.kategori', 'pendapatan')
-            ->select('sumber_dana.nama_sumber', DB::raw('SUM(apbdes.anggaran) as total'))
-            ->groupBy('sumber_dana.nama_sumber')
-            ->orderBy('total', 'desc')
-            ->get()
-            ->map(function ($item) use ($totalPendapatan) {
-                // Tambahkan key 'persen' agar Blade bisa merender bar progress
-                $item->persen = $totalPendapatan > 0 ? round(($item->total / $totalPendapatan) * 100, 1) : 0;
-                return $item;
-            });
-
-        // 6. Rincian Alokasi Belanja per Bidang (Untuk Section Kanan)
-        $alokasiBelanja = DB::table('apbdes')
-            ->join('kegiatan_anggaran', 'apbdes.kegiatan_id', '=', 'kegiatan_anggaran.id')
-            ->join('bidang_anggaran', 'kegiatan_anggaran.bidang_id', '=', 'bidang_anggaran.id')
-            ->where('apbdes.tahun_id', $tahunId)
-            ->where('apbdes.kategori', 'belanja')
-            ->select('bidang_anggaran.nama_bidang', DB::raw('SUM(apbdes.anggaran) as total'))
-            ->groupBy('bidang_anggaran.nama_bidang')
-            ->orderBy('total', 'desc')
-            ->get()
-            ->map(function ($item) use ($totalBelanja) {
-                // Tambahkan key 'persen' untuk ditampilkan di badge kartu belanja
-                $item->persen = $totalBelanja > 0 ? round(($item->total / $totalBelanja) * 100, 1) : 0;
-                return $item;
-            });
-
-        // 7. Ambil Daftar Tahun untuk Dropdown Filter
-        $daftarTahun = DB::table('tahun_anggaran')->orderBy('tahun', 'desc')->pluck('tahun');
-
-        // 8. Return dengan data lengkap tanpa duplikasi
-        return view('frontend.pages.apbd.index', compact(
-            'tahun',
-            'totalPendapatan',
-            'totalBelanja',
-            'realisasiBelanja',
-            'sisaAnggaran',
-            'progressPersen',
-            'sumberPendapatan',
-            'alokasiBelanja',
-            'daftarTahun'
-        ));
+    // Tahun yang dipilih user, harus ada di daftar — jika tidak valid, pakai default
+    $tahun = $request->get('tahun', $defaultTahun);
+    if (!$daftarTahun->contains($tahun)) {
+        $tahun = $defaultTahun;
     }
+
+    // 3. Total Pendapatan (kode rekening '4...')
+    $totalPendapatan = AnggaranTahunan::where('tahun', $tahun)
+        ->whereHas('akunRekening', function ($q) {
+            $q->where('kode_rekening', 'like', '4%');
+        })
+        ->sum('anggaran') ?? 0;
+
+    // 4. Total & Realisasi Belanja (kode rekening '5...')
+    $queryBelanja = AnggaranTahunan::where('tahun', $tahun)
+        ->whereHas('akunRekening', function ($q) {
+            $q->where('kode_rekening', 'like', '5%');
+        });
+
+    $totalBelanja    = (clone $queryBelanja)->sum('anggaran') ?? 0;
+    $realisasiBelanja = (clone $queryBelanja)->sum('realisasi') ?? 0;
+
+    // 5. Hitung Sisa & Progress
+    $sisaAnggaran  = $totalBelanja - $realisasiBelanja;
+    $progressPersen = $totalBelanja > 0
+        ? round(($realisasiBelanja / $totalBelanja) * 100, 1)
+        : 0;
+
+    // 6. Rincian Sumber Pendapatan
+    $sumberPendapatan = AnggaranTahunan::with('akunRekening')
+        ->where('tahun', $tahun)
+        ->whereHas('akunRekening', function ($q) {
+            $q->where('kode_rekening', 'like', '4%');
+        })
+        ->get()
+        ->map(function ($item) use ($totalPendapatan) {
+            $item->total  = $item->anggaran;
+            $item->persen = $totalPendapatan > 0
+                ? round(($item->anggaran / $totalPendapatan) * 100, 1)
+                : 0;
+            return $item;
+        })
+        ->sortByDesc('total');
+
+    // 7. Rincian Alokasi Belanja
+    $alokasiBelanja = AnggaranTahunan::with('akunRekening')
+        ->where('tahun', $tahun)
+        ->whereHas('akunRekening', function ($q) {
+            $q->where('kode_rekening', 'like', '5%');
+        })
+        ->get()
+        ->map(function ($item) use ($totalBelanja) {
+            $item->total      = $item->anggaran;
+            $item->nama_bidang = $item->akunRekening->uraian;
+            $item->persen     = $totalBelanja > 0
+                ? round(($item->anggaran / $totalBelanja) * 100, 1)
+                : 0;
+            return $item;
+        })
+        ->sortByDesc('total');
+
+    // 8. Return ke View
+    return view('frontend.pages.apbd.index', compact(
+        'tahun',
+        'totalPendapatan',
+        'totalBelanja',
+        'realisasiBelanja',
+        'sisaAnggaran',
+        'progressPersen',
+        'sumberPendapatan',
+        'alokasiBelanja',
+        'daftarTahun'
+    ));
+}
 
     /*
     |--------------------------------------------------------------------------
