@@ -279,19 +279,47 @@ class KeluargaController extends Controller {
     }
 
     // =========================================================================
-    // EDIT & UPDATE — Data KK (bukan anggota)
+    // EDIT & UPDATE — Data KK + Kepala Keluarga
     // =========================================================================
 
     public function edit(Keluarga $keluarga) {
-        $keluarga->load('anggota:id,nik,nama,kk_level');
+        $keluarga->load('kepalaKeluarga', 'anggota:id,nik,nama,kk_level');
 
-        $wilayah = Wilayah::orderBy('dusun')->orderBy('rw')->orderBy('rt')->get();
+        $wilayah         = Wilayah::orderBy('dusun')->orderBy('rw')->orderBy('rt')->get();
+        $refAgama        = RefAgama::orderBy('nama')->get();
+        $refPendidikan   = RefPendidikan::orderBy('id')->get();
+        $refPekerjaan    = RefPekerjaan::orderBy('nama')->get();
+        $refStatusKawin  = RefStatusKawin::orderBy('id')->get();
+        $refWarganegara  = RefWarganegara::orderBy('nama')->get();
+        $refGolDarah     = RefGolonganDarah::orderBy('nama')->get();
+        $refShdk         = RefShdk::orderBy('id')->get();
+        $refCacat        = RefCacat::orderBy('nama')->get();
+        $refSakitMenahun = RefSakitMenahun::orderBy('nama')->get();
+        $refCaraKb       = RefCaraKb::orderBy('nama')->get();
+        $refAsuransi     = RefAsuransi::orderBy('nama')->get();
+        $refBahasa       = RefBahasa::orderBy('nama')->get();
 
-        return view('admin.keluarga-edit', compact('keluarga', 'wilayah'));
+        return view('admin.keluarga-edit', compact(
+            'keluarga',
+            'wilayah',
+            'refAgama',
+            'refPendidikan',
+            'refPekerjaan',
+            'refStatusKawin',
+            'refWarganegara',
+            'refGolDarah',
+            'refShdk',
+            'refCacat',
+            'refSakitMenahun',
+            'refCaraKb',
+            'refAsuransi',
+            'refBahasa',
+        ));
     }
 
     public function update(Request $request, Keluarga $keluarga) {
         $request->validate([
+            // Data KK
             'no_kk'               => 'required|string|max:16|unique:keluarga,no_kk,' . $keluarga->id,
             'alamat'              => 'nullable|string',
             'wilayah_id'          => 'required|exists:wilayah,id',
@@ -299,37 +327,27 @@ class KeluargaController extends Controller {
             'tgl_cetak_kk'        => 'nullable|date',
             'klasifikasi_ekonomi' => 'nullable|in:miskin,rentan,mampu',
             'jenis_bantuan_aktif' => 'nullable|string|max:255',
-            'kepala_keluarga_id'  => 'required|exists:penduduk,id',
+            // Data Kepala Keluarga (Penduduk)
+            'nik'                 => 'required|string|size:16|unique:penduduk,nik,' . ($keluarga->kepala_keluarga_id ?? 'NULL'),
+            'nama'                => 'required|string|max:255',
+            'jenis_kelamin'       => 'required|in:L,P',
+            'tempat_lahir'        => 'required|string|max:255',
+            'tanggal_lahir'       => 'required|date',
+            'agama_id'            => 'required|integer|exists:ref_agama,id',
+            'nama_ibu'            => 'required|string|max:255',
+            'warganegara_id'      => 'required|integer|exists:ref_warganegara,id',
+            'status_kawin_id'     => 'required|integer|exists:ref_status_kawin,id',
+            'email'               => 'nullable|email|max:255',
+            // Opsional
+            'kk_level'            => 'nullable|integer|min:1|max:10',
+            'status'              => 'nullable|in:1,2,3',
+            'ktp_el'              => 'nullable|in:0,1',
+            'status_rekam'        => 'nullable|in:1,2,3,4',
+            'foto'                => 'nullable|image|max:2048',
         ]);
 
         DB::transaction(function () use ($request, $keluarga) {
-            $kepalaBaruId = (int) $request->kepala_keluarga_id;
-            $kepalaLamaId = (int) $keluarga->kepala_keluarga_id;
-
-            if ($kepalaLamaId !== $kepalaBaruId) {
-                // Kepala lama: jangan paksa assign SHDK — biarkan tetap seperti semula
-                // hanya update nik_kepala dan kepala_keluarga_id di KK
-
-                // Kepala baru: harus anggota KK ini atau penduduk lepas
-                $kepala = Penduduk::where('id', $kepalaBaruId)
-                    ->where(
-                        fn($q) => $q
-                            ->where('keluarga_id', $keluarga->id)
-                            ->orWhereNull('keluarga_id')
-                    )
-                    ->where('status_dasar', Penduduk::STATUS_DASAR_HIDUP)
-                    ->firstOrFail();
-
-                $kepala->update([
-                    'keluarga_id' => $keluarga->id,
-                    'kk_level'    => Penduduk::SHDK_KEPALA_KELUARGA,
-                    'wilayah_id'  => $request->wilayah_id,
-                ]);
-
-                $keluarga->kepala_keluarga_id = $kepala->id;
-                $keluarga->nik_kepala         = $kepala->nik;
-            }
-
+            // ── 1. Update data KK ────────────────────────────────────────────
             $keluarga->update([
                 'no_kk'               => $request->no_kk,
                 'alamat'              => $request->alamat,
@@ -338,13 +356,81 @@ class KeluargaController extends Controller {
                 'tgl_cetak_kk'        => $request->tgl_cetak_kk,
                 'klasifikasi_ekonomi' => $request->klasifikasi_ekonomi,
                 'jenis_bantuan_aktif' => $request->jenis_bantuan_aktif,
-                'kepala_keluarga_id'  => $keluarga->kepala_keluarga_id,
-                'nik_kepala'          => $keluarga->nik_kepala,
             ]);
+
+            // ── 2. Update data Penduduk kepala ────────────────────────────────
+            $kepala = $keluarga->kepalaKeluarga;
+            if ($kepala) {
+                // Handle upload foto
+                $fotoPath = $kepala->foto;
+                if ($request->hasFile('foto')) {
+                    if ($fotoPath) {
+                        \Storage::disk('public')->delete($fotoPath);
+                    }
+                    $fotoPath = $request->file('foto')->store('penduduk/foto', 'public');
+                }
+
+                $kepala->update([
+                    'nik'                 => $request->nik,
+                    'nama'                => $request->nama,
+                    'jenis_kelamin'       => $request->jenis_kelamin,
+                    'tempat_lahir'        => $request->tempat_lahir,
+                    'tanggal_lahir'       => $request->tanggal_lahir,
+                    'waktu_lahir'         => $request->waktu_lahir,
+                    'agama_id'            => $request->agama_id,
+                    'warganegara_id'      => $request->warganegara_id,
+                    'status_kawin_id'     => $request->status_kawin_id,
+                    'nama_ibu'            => $request->nama_ibu,
+                    'nama_ayah'           => $request->nama_ayah,
+                    'nik_ibu'             => $request->nik_ibu,
+                    'nik_ayah'            => $request->nik_ayah,
+                    'kk_level'            => $request->kk_level ?? $kepala->kk_level,
+                    'status'              => $request->status ?? $kepala->status,
+                    'ktp_el'              => $request->ktp_el,
+                    'status_rekam'        => $request->status_rekam,
+                    'tag_id_card'         => $request->tag_id_card,
+                    'no_kk_sebelumnya'    => $request->no_kk_sebelumnya,
+                    'akta_lahir'          => $request->akta_lahir,
+                    'tempat_dilahirkan'   => $request->tempat_dilahirkan,
+                    'jenis_kelahiran'     => $request->jenis_kelahiran,
+                    'kelahiran_anak_ke'   => $request->kelahiran_anak_ke,
+                    'penolong_kelahiran'  => $request->penolong_kelahiran,
+                    'berat_lahir'         => $request->berat_lahir,
+                    'panjang_lahir'       => $request->panjang_lahir,
+                    'pendidikan_kk_id'    => $request->pendidikan_kk_id,
+                    'pendidikan_sedang_id' => $request->pendidikan_sedang_id,
+                    'pekerjaan_id'        => $request->pekerjaan_id,
+                    'pekerja_migran'      => $request->pekerja_migran ?? 0,
+                    'dokumen_pasport'     => $request->dokumen_pasport,
+                    'tanggal_akhir_paspor' => $request->tanggal_akhir_paspor,
+                    'akta_perkawinan'     => $request->akta_perkawinan,
+                    'tanggal_perkawinan'  => $request->tanggal_perkawinan,
+                    'akta_perceraian'     => $request->akta_perceraian,
+                    'tanggal_perceraian'  => $request->tanggal_perceraian,
+                    'golongan_darah_id'   => $request->golongan_darah_id,
+                    'cacat_id'            => $request->cacat_id,
+                    'sakit_menahun_id'    => $request->sakit_menahun_id,
+                    'cara_kb_id'          => $request->cara_kb_id,
+                    'asuransi_id'         => $request->asuransi_id,
+                    'no_asuransi'         => $request->no_asuransi,
+                    'bahasa_id'           => $request->bahasa_id,
+                    'keterangan'          => $request->keterangan,
+                    'alamat_sebelumnya'   => $request->alamat_sebelumnya,
+                    'no_telp'             => $request->no_telp,
+                    'email'               => $request->email,
+                    'wilayah_id'          => $request->wilayah_id,
+                    'foto'                => $fotoPath,
+                ]);
+
+                // Sync nik_kepala di KK jika NIK berubah
+                if ($keluarga->nik_kepala !== $request->nik) {
+                    $keluarga->update(['nik_kepala' => $request->nik]);
+                }
+            }
         });
 
         return redirect()->route('admin.keluarga-show', $keluarga)
-            ->with('success', 'Data KK berhasil diperbarui.');
+            ->with('success', 'Data KK dan kepala keluarga berhasil diperbarui.');
     }
 
     // =========================================================================
@@ -795,3 +881,4 @@ class KeluargaController extends Controller {
             ->orderBy('no_kk');
     }
 }
+

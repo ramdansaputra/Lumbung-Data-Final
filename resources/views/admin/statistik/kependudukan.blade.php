@@ -4,413 +4,469 @@
 
 @section('content')
 
-<!-- ================= RINGKASAN UTAMA ================= -->
-<div class="grid grid-cols-1 md:grid-cols-6 gap-4 mb-8">
-
-    <div class="bg-white p-5 rounded-xl shadow hover:shadow-lg transition-shadow">
-        <p class="text-xs text-slate-500">Total Penduduk</p>
-        <h3 class="text-2xl font-bold mt-1">{{ number_format($data['total_penduduk']) }}</h3>
+{{-- ===== PAGE HEADER ===== --}}
+<div class="flex items-center justify-between mb-6">
+    <div>
+        <h2 class="text-lg font-bold text-gray-700 dark:text-slate-200">Statistik Kependudukan</h2>
+        <p class="text-sm text-gray-400 dark:text-slate-500 mt-0.5">Informasi distribusi dan sebaran data penduduk desa</p>
     </div>
-
-    <div class="bg-white p-5 rounded-xl shadow hover:shadow-lg transition-shadow">
-        <p class="text-xs text-slate-500">Kepala Keluarga</p>
-        <h3 class="text-2xl font-bold mt-1">{{ number_format($data['kepala_keluarga']) }}</h3>
-    </div>
-
-    <div class="bg-white p-5 rounded-xl shadow hover:shadow-lg transition-shadow">
-        <p class="text-xs text-slate-500">RT / RW</p>
-        <h3 class="text-2xl font-bold mt-1">{{ $data['rt'] }} / {{ $data['rw'] }}</h3>
-    </div>
-
-    <div class="bg-white p-5 rounded-xl shadow hover:shadow-lg transition-shadow text-blue-600">
-        <p class="text-xs font-medium">Laki-laki</p>
-        <h3 class="text-2xl font-bold mt-1">{{ number_format($data['laki_laki']) }}</h3>
-    </div>
-
-    <div class="bg-white p-5 rounded-xl shadow hover:shadow-lg transition-shadow text-pink-600">
-        <p class="text-xs font-medium">Perempuan</p>
-        <h3 class="text-2xl font-bold mt-1">{{ number_format($data['perempuan']) }}</h3>
-    </div>
-
-    <div class="bg-white p-5 rounded-xl shadow hover:shadow-lg transition-shadow text-green-600">
-        <p class="text-xs font-medium">Rasio Gender</p>
-        <h3 class="text-2xl font-bold mt-1">
-            {{ $data['perempuan'] > 0 ? round(($data['laki_laki'] / $data['perempuan']) * 100, 1) : 0 }}%
-        </h3>
-    </div>
-
+    <nav class="flex items-center gap-1.5 text-sm">
+        <a href="{{ route('admin.dashboard') }}"
+            class="flex items-center gap-1 text-gray-400 dark:text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+            Beranda
+        </a>
+        <svg class="w-3.5 h-3.5 text-gray-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+        <span class="text-gray-400 dark:text-slate-400">Kependudukan</span>
+        <svg class="w-3.5 h-3.5 text-gray-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+        <span class="text-gray-600 dark:text-slate-300 font-medium">Statistik Kependudukan</span>
+    </nav>
 </div>
 
-<!-- ================= DISTRIBUSI USIA & GENDER ================= -->
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-    
-    <!-- DISTRIBUSI USIA -->
-    <div class="bg-white rounded-xl shadow p-6">
-        <h4 class="font-semibold mb-4 text-lg">Distribusi Usia</h4>
-        <div class="relative h-80">
-            <canvas id="usiaChart"></canvas>
+{{-- ===== LAYOUT ===== --}}
+<div class="flex gap-5">
+
+    {{-- SIDEBAR --}}
+    <div class="w-56 flex-shrink-0">
+        <div class="bg-white rounded-xl shadow overflow-hidden">
+            <div class="bg-emerald-600 text-white text-sm font-semibold px-4 py-3">Statistik Penduduk</div>
+            @php
+            $menus = [
+                ['key'=>'usia',          'label'=>'Distribusi Usia'],
+                ['key'=>'pendidikan',    'label'=>'Pendidikan Dalam KK'],
+                ['key'=>'pekerjaan',     'label'=>'Pekerjaan'],
+                ['key'=>'status_kawin',  'label'=>'Status Perkawinan'],
+                ['key'=>'agama',         'label'=>'Agama'],
+                ['key'=>'jenis_kelamin', 'label'=>'Jenis Kelamin'],
+                ['key'=>'golongan_darah','label'=>'Golongan Darah'],
+                ['key'=>'wilayah',       'label'=>'Sebaran Wilayah'],
+            ];
+            @endphp
+            @foreach($menus as $menu)
+            <a href="{{ request()->fullUrlWithQuery(['kategori'=>$menu['key']]) }}"
+               class="block px-4 py-2.5 text-sm border-b border-slate-100 transition-colors
+                      {{ $data['kategori']===$menu['key']
+                         ? 'bg-emerald-50 text-emerald-700 font-semibold border-l-4 border-l-emerald-500'
+                         : 'text-slate-700 hover:bg-slate-50' }}">
+                {{ $menu['label'] }}
+            </a>
+            @endforeach
         </div>
     </div>
 
-    <!-- GENDER DISTRIBUTION -->
-    <div class="bg-white rounded-xl shadow p-6">
-        <h4 class="font-semibold mb-4 text-lg">Distribusi Jenis Kelamin</h4>
-        <div class="relative h-80">
-            <canvas id="genderChart"></canvas>
+    {{-- KONTEN --}}
+    <div class="flex-1 min-w-0">
+
+        @php
+        $judulMap = [
+            'usia'          => 'Distribusi Usia',
+            'pendidikan'    => 'Pendidikan Dalam KK',
+            'pekerjaan'     => 'Mata Pencaharian / Pekerjaan',
+            'status_kawin'  => 'Status Perkawinan',
+            'agama'         => 'Agama',
+            'jenis_kelamin' => 'Jenis Kelamin',
+            'golongan_darah'=> 'Golongan Darah',
+            'wilayah'       => 'Sebaran Penduduk per Dusun',
+        ];
+        $judulAktif     = $judulMap[$data['kategori']] ?? 'Statistik';
+        $rows           = $data[$data['kategori']] ?? [];
+        $totalRow       = array_sum(array_column($rows, 'total'));
+        $totalLaki      = array_sum(array_column($rows, 'laki'));
+        $totalPerempuan = array_sum(array_column($rows, 'perempuan'));
+        $belumMengisi   = max(0, $data['total_penduduk'] - $totalRow);
+        @endphp
+
+        {{-- TOOLBAR --}}
+        <div class="bg-white rounded-xl shadow p-4 mb-4 flex flex-wrap items-center gap-2">
+
+            <button onclick="openModal('modalCetak')"
+                    class="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition font-medium">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                </svg>
+                Cetak Data
+            </button>
+
+            <button onclick="openModal('modalUnduh')"
+                    class="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white transition font-medium">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
+                Unduh Data
+            </button>
+
+            <button onclick="showChart('bar')"
+                    class="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white transition font-medium">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+                Grafik Data
+            </button>
+
+            <button onclick="showChart('pie')"
+                    class="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 text-white transition font-medium">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/>
+                </svg>
+                Pie Data
+            </button>
+
+            <div class="ml-auto">
+                <form method="GET" class="flex items-center gap-2">
+                    <input type="hidden" name="kategori" value="{{ $data['kategori'] }}">
+                    <select name="dusun" onchange="this.form.submit()"
+                            class="text-sm border border-slate-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        <option value="">— Pilih Dusun —</option>
+                        @foreach($data['dusunList'] as $d)
+                        <option value="{{ $d }}" {{ $data['dusunFilter']===$d ? 'selected' : '' }}>{{ strtoupper($d) }}</option>
+                        @endforeach
+                    </select>
+                </form>
+            </div>
+        </div>
+
+        {{-- CHART AREA (muncul di atas tabel) --}}
+        <div id="chartArea" class="hidden bg-white rounded-xl shadow p-6 mb-4">
+            <div class="flex items-center justify-between mb-4">
+                <h4 class="font-bold text-slate-700">
+                    Jumlah dan Persentase Penduduk Berdasarkan {{ $judulAktif }}
+                    @if($data['dusunFilter'])
+                        <span class="text-sm font-normal text-emerald-600">— Dusun {{ strtoupper($data['dusunFilter']) }}</span>
+                    @endif
+                </h4>
+                <button onclick="hideChart()" class="text-slate-400 hover:text-slate-600 p-1 rounded hover:bg-slate-100 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="h-80"><canvas id="mainChart"></canvas></div>
+        </div>
+
+        {{-- TABEL --}}
+        <div class="bg-white rounded-xl shadow overflow-hidden" id="tabelUtama">
+            <div class="px-6 py-4 border-b border-emerald-100 bg-emerald-50">
+                <h3 class="font-bold text-emerald-900">
+                    Jumlah dan Persentase Penduduk Berdasarkan {{ $judulAktif }}
+                    @if($data['dusunFilter'])
+                        <span class="ml-2 text-sm font-normal text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full">Dusun {{ strtoupper($data['dusunFilter']) }}</span>
+                    @endif
+                </h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm" id="tabelData">
+                    <thead>
+                        <tr class="bg-emerald-700 text-white">
+                            <th class="px-3 py-3 text-center w-10" rowspan="2">NO</th>
+                            <th class="px-4 py-3 text-left" rowspan="2">JENIS KELOMPOK</th>
+                            <th class="px-2 py-2 text-center border-l border-emerald-600" colspan="2">JUMLAH</th>
+                            <th class="px-2 py-2 text-center border-l border-emerald-600" colspan="2">LAKI-LAKI</th>
+                            <th class="px-2 py-2 text-center border-l border-emerald-600" colspan="2">PEREMPUAN</th>
+                        </tr>
+                        <tr class="bg-emerald-600 text-white text-xs">
+                            <th class="px-3 py-2 text-right border-l border-emerald-500">TOTAL</th>
+                            <th class="px-3 py-2 text-right">PERSEN</th>
+                            <th class="px-3 py-2 text-right border-l border-emerald-500">TOTAL</th>
+                            <th class="px-3 py-2 text-right">PERSEN</th>
+                            <th class="px-3 py-2 text-right border-l border-emerald-500">TOTAL</th>
+                            <th class="px-3 py-2 text-right">PERSEN</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($rows as $i => $row)
+                        <tr class="{{ $i%2===0 ? 'bg-white' : 'bg-emerald-50/40' }} hover:bg-emerald-50 transition-colors border-b border-emerald-100">
+                            <td class="px-3 py-2.5 text-center text-slate-500">{{ $i+1 }}</td>
+                            <td class="px-4 py-2.5 font-medium text-slate-800">{{ $row['label'] }}</td>
+                            <td class="px-3 py-2.5 text-right font-bold text-emerald-700 border-l border-emerald-100">{{ number_format($row['total']) }}</td>
+                            <td class="px-3 py-2.5 text-right text-slate-500">{{ number_format($row['persen'],2) }}%</td>
+                            <td class="px-3 py-2.5 text-right font-semibold text-blue-600 border-l border-emerald-100">{{ number_format($row['laki']) }}</td>
+                            <td class="px-3 py-2.5 text-right text-slate-500">{{ number_format($row['persen_laki'],2) }}%</td>
+                            <td class="px-3 py-2.5 text-right font-semibold text-pink-600 border-l border-emerald-100">{{ number_format($row['perempuan']) }}</td>
+                            <td class="px-3 py-2.5 text-right text-slate-500">{{ number_format($row['persen_perempuan'],2) }}%</td>
+                        </tr>
+                        @empty
+                        <tr><td colspan="8" class="px-4 py-8 text-center text-slate-400">Belum ada data</td></tr>
+                        @endforelse
+                    </tbody>
+                    @if(count($rows) > 0)
+                    <tfoot>
+                        <tr class="bg-emerald-100 text-emerald-900 font-semibold border-t-2 border-emerald-300">
+                            <td colspan="2" class="px-4 py-2.5">JUMLAH</td>
+                            <td class="px-3 py-2.5 text-right font-bold text-emerald-700">{{ number_format($totalRow) }}</td>
+                            <td class="px-3 py-2.5 text-right">100,00%</td>
+                            <td class="px-3 py-2.5 text-right text-blue-600 border-l border-emerald-200">{{ number_format($totalLaki) }}</td>
+                            <td class="px-3 py-2.5 text-right">{{ $totalRow>0?number_format($totalLaki/$totalRow*100,2):'0,00' }}%</td>
+                            <td class="px-3 py-2.5 text-right text-pink-600 border-l border-emerald-200">{{ number_format($totalPerempuan) }}</td>
+                            <td class="px-3 py-2.5 text-right">{{ $totalRow>0?number_format($totalPerempuan/$totalRow*100,2):'0,00' }}%</td>
+                        </tr>
+                        <tr class="bg-emerald-50 text-emerald-700 italic border-b border-emerald-200">
+                            <td colspan="2" class="px-4 py-2">BELUM MENGISI</td>
+                            <td class="px-3 py-2 text-right">{{ number_format($belumMengisi) }}</td>
+                            <td class="px-3 py-2 text-right">{{ $data['total_penduduk']>0&&$belumMengisi>0?number_format($belumMengisi/$data['total_penduduk']*100,2):'0,00' }}%</td>
+                            <td class="px-3 py-2 text-right border-l border-emerald-200">0</td>
+                            <td class="px-3 py-2 text-right">0,00%</td>
+                            <td class="px-3 py-2 text-right border-l border-emerald-200">0</td>
+                            <td class="px-3 py-2 text-right">0,00%</td>
+                        </tr>
+                        <tr class="bg-emerald-800 text-white font-bold">
+                            <td colspan="2" class="px-4 py-3">TOTAL</td>
+                            <td class="px-3 py-3 text-right text-emerald-200">{{ number_format($data['total_penduduk']) }}</td>
+                            <td class="px-3 py-3 text-right text-emerald-100">100,00%</td>
+                            <td class="px-3 py-3 text-right text-blue-300 border-l border-emerald-700">{{ number_format($totalLaki) }}</td>
+                            <td class="px-3 py-3 text-right text-emerald-100">{{ $data['total_penduduk']>0?number_format($totalLaki/$data['total_penduduk']*100,2):'0,00' }}%</td>
+                            <td class="px-3 py-3 text-right text-pink-300 border-l border-emerald-700">{{ number_format($totalPerempuan) }}</td>
+                            <td class="px-3 py-3 text-right text-emerald-100">{{ $data['total_penduduk']>0?number_format($totalPerempuan/$data['total_penduduk']*100,2):'0,00' }}%</td>
+                        </tr>
+                    </tfoot>
+                    @endif
+                </table>
+            </div>
         </div>
     </div>
-
 </div>
 
-<!-- ================= PENDIDIKAN & PEKERJAAN ================= -->
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-
-    <!-- PENDIDIKAN -->
-    <div class="bg-white rounded-xl shadow p-6">
-        <h4 class="font-semibold mb-4 text-lg">Tingkat Pendidikan</h4>
-        <div class="relative h-80">
-            <canvas id="pendidikanChart"></canvas>
+{{-- ===== MODAL CETAK ===== --}}
+<div id="modalCetak" class="hidden fixed inset-0 z-50 flex items-center justify-center">
+    <div class="absolute inset-0 bg-black/50" onclick="closeModal('modalCetak')"></div>
+    <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 z-10">
+        <div class="flex items-center justify-between px-6 py-4 border-b">
+            <h3 class="font-bold text-slate-800 text-lg">Cetak Data</h3>
+            <button onclick="closeModal('modalCetak')" class="text-slate-400 hover:text-slate-600">✕</button>
+        </div>
+        <div class="px-6 py-5 space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Laporan Ditandatangani</label>
+                <select id="cetakPenandatangan"
+                        class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    @forelse($data['perangkatList'] as $p)
+                    <option value="{{ $p->nama }}">{{ $p->nama }}{{ !empty($p->jabatan) ? ' ('.$p->jabatan.')' : '' }}</option>
+                    @empty
+                    <option value="">— Tidak ada data perangkat —</option>
+                    @endforelse
+                </select>
+            </div>
+            <div>
+                {{-- [PERUBAHAN] Tambah tanda wajib (*) dan id error --}}
+                <label class="block text-sm font-medium text-slate-700 mb-1">
+                    Laporan No. <span class="text-red-500">*</span>
+                </label>
+                <input type="text" id="cetakNomor" placeholder="Wajib diisi"
+                       class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                       oninput="clearError('cetakNomorError', this)">
+                <p id="cetakNomorError" class="hidden mt-1 text-xs text-red-500 font-medium">
+                    ⚠ Laporan No. wajib diisi sebelum mencetak.
+                </p>
+            </div>
+        </div>
+        <div class="flex justify-between px-6 py-4 border-t bg-slate-50 rounded-b-xl">
+            <button onclick="closeModal('modalCetak')"
+                    class="flex items-center gap-1.5 px-5 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white text-sm font-medium transition">✕ Batal</button>
+            <button onclick="doCetak()"
+                    class="flex items-center gap-1.5 px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition">🖨 Cetak</button>
         </div>
     </div>
+</div>
 
-    <!-- PEKERJAAN -->
-    <div class="bg-white rounded-xl shadow p-6">
-        <h4 class="font-semibold mb-4 text-lg">Mata Pencaharian</h4>
-        <div class="relative h-80">
-            <canvas id="pekerjaanChart"></canvas>
+{{-- ===== MODAL UNDUH ===== --}}
+<div id="modalUnduh" class="hidden fixed inset-0 z-50 flex items-center justify-center">
+    <div class="absolute inset-0 bg-black/50" onclick="closeModal('modalUnduh')"></div>
+    <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 z-10">
+        <div class="flex items-center justify-between px-6 py-4 border-b">
+            <h3 class="font-bold text-slate-800 text-lg">Unduh Data</h3>
+            <button onclick="closeModal('modalUnduh')" class="text-slate-400 hover:text-slate-600">✕</button>
+        </div>
+        <div class="px-6 py-5 space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Laporan Ditandatangani</label>
+                <select id="unduhPenandatangan"
+                        class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-white focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                    @forelse($data['perangkatList'] as $p)
+                    <option value="{{ $p->nama }}">{{ $p->nama }}{{ !empty($p->jabatan) ? ' ('.$p->jabatan.')' : '' }}</option>
+                    @empty
+                    <option value="">— Tidak ada data perangkat —</option>
+                    @endforelse
+                </select>
+            </div>
+            <div>
+                {{-- [PERUBAHAN] Tambah tanda wajib (*) dan id error --}}
+                <label class="block text-sm font-medium text-slate-700 mb-1">
+                    Laporan No. <span class="text-red-500">*</span>
+                </label>
+                <input type="text" id="unduhNomor" placeholder="Wajib diisi"
+                       class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                       oninput="clearError('unduhNomorError', this)">
+                <p id="unduhNomorError" class="hidden mt-1 text-xs text-red-500 font-medium">
+                    ⚠ Laporan No. wajib diisi sebelum mengunduh.
+                </p>
+            </div>
+        </div>
+        <div class="flex justify-between px-6 py-4 border-t bg-slate-50 rounded-b-xl">
+            <button onclick="closeModal('modalUnduh')"
+                    class="flex items-center gap-1.5 px-5 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white text-sm font-medium transition">✕ Batal</button>
+            <button onclick="doUnduh()"
+                    class="flex items-center gap-1.5 px-5 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium transition">⬇ Unduh</button>
         </div>
     </div>
-
 </div>
-
-<!-- ================= AGAMA ================= -->
-<div class="bg-white rounded-xl shadow p-6 mb-8">
-    <h4 class="font-semibold mb-4 text-lg">Distribusi Agama</h4>
-    <div class="relative h-80">
-        <canvas id="agamaChart"></canvas>
-    </div>
-</div>
-
-<!-- ================= GOLONGAN DARAH & WILAYAH ================= -->
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-
-    <!-- GOLONGAN DARAH -->
-    <div class="bg-white rounded-xl shadow p-6">
-        <h4 class="font-semibold mb-4 text-lg">Distribusi Golongan Darah</h4>
-        <div class="relative h-80">
-            <canvas id="golonganDarahChart"></canvas>
-        </div>
-    </div>
-
-    <!-- WILAYAH/DUSUN -->
-    <div class="bg-white rounded-xl shadow p-6">
-        <h4 class="font-semibold mb-4 text-lg">Sebaran Penduduk per Kelompok/Dusun</h4>
-        <div class="relative h-80">
-            <canvas id="wilayahChart"></canvas>
-        </div>
-    </div>
-
-</div>
-
-<!-- ================= TABEL DETIL ================= -->
-@if(count($data['pendidikan']) > 0)
-<div class="bg-white rounded-xl shadow p-6 mb-8">
-    <h4 class="font-semibold mb-4">Detail Pendidikan</h4>
-    <div class="overflow-x-auto">
-        <table class="w-full text-sm">
-            <thead class="bg-slate-50 border-b">
-                <tr>
-                    <th class="text-left px-4 py-2">Tingkat Pendidikan</th>
-                    <th class="text-right px-4 py-2">Jumlah</th>
-                    <th class="text-right px-4 py-2">Persentase</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($data['pendidikan'] as $item)
-                <tr class="border-b hover:bg-slate-50">
-                    <td class="px-4 py-2">{{ $item['label'] }}</td>
-                    <td class="text-right px-4 py-2 font-semibold">{{ number_format($item['jumlah']) }}</td>
-                    <td class="text-right px-4 py-2">{{ round(($item['jumlah'] / $data['total_penduduk']) * 100, 1) }}%</td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
-    </div>
-</div>
-@endif
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
 <script>
-    // Color palettes
-    const colorPalette = [
-        '#3B82F6', '#EC4899', '#8B5CF6', '#F59E0B', '#10B981',
-        '#F97316', '#EF4444', '#06B6D4', '#6366F1', '#84CC16'
-    ];
+const chartLabels    = @json(array_column($rows, 'label'));
+const chartLaki      = @json(array_column($rows, 'laki'));
+const chartPerempuan = @json(array_column($rows, 'perempuan'));
+const chartTotal     = @json(array_column($rows, 'total'));
+const rowsData       = @json($rows);
+const judulAktif     = @json($judulAktif);
 
-    // ===== DISTRIBUSI USIA CHART =====
-    const usiaCtx = document.getElementById('usiaChart');
-    if (usiaCtx) {
-        new Chart(usiaCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Balita (0-4)', 'Remaja (5-18)', 'Dewasa (19-59)', 'Lansia (60+)'],
-                datasets: [{
-                    data: [{{ $data['usia']['balita'] }}, {{ $data['usia']['remaja'] }}, {{ $data['usia']['dewasa'] }}, {{ $data['usia']['lansia'] }}],
-                    backgroundColor: ['#FCA5A5', '#FED7AA', '#86EFAC', '#93C5FD'],
-                    borderColor: '#ffffff',
-                    borderWidth: 2,
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            font: { size: 12 },
-                            padding: 15,
-                            usePointStyle: true,
-                        }
-                    }
-                }
-            }
-        });
+let chartInstance = null;
+
+function openModal(id)  { document.getElementById(id).classList.remove('hidden'); }
+function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+// [PERUBAHAN] Bersihkan pesan error saat user mulai mengetik
+function clearError(errorId, inputEl) {
+    const errEl = document.getElementById(errorId);
+    if (errEl && inputEl.value.trim() !== '') {
+        errEl.classList.add('hidden');
+        inputEl.classList.remove('border-red-500', 'focus:ring-red-500');
     }
+}
 
-    // ===== GENDER CHART =====
-    const genderCtx = document.getElementById('genderChart');
-    if (genderCtx) {
-        new Chart(genderCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Laki-laki', 'Perempuan'],
-                datasets: [{
-                    data: [{{ $data['laki_laki'] }}, {{ $data['perempuan'] }}],
-                    backgroundColor: ['#3B82F6', '#EC4899'],
-                    borderColor: '#ffffff',
-                    borderWidth: 2,
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            font: { size: 12 },
-                            padding: 15,
-                            usePointStyle: true,
-                        }
-                    }
-                }
-            }
-        });
+// [PERUBAHAN] Tampilkan error dan highlight input
+function showError(errorId, inputId) {
+    const errEl   = document.getElementById(errorId);
+    const inputEl = document.getElementById(inputId);
+    if (errEl)   errEl.classList.remove('hidden');
+    if (inputEl) {
+        inputEl.classList.add('border-red-500');
+        inputEl.focus();
     }
+}
 
-    // ===== PENDIDIKAN CHART =====
-    const pendidikanCtx = document.getElementById('pendidikanChart');
-    if (pendidikanCtx) {
-        const pendidikanLabels = @json(array_column($data['pendidikan'], 'label'));
-        const pendidikanData = @json(array_column($data['pendidikan'], 'jumlah'));
-        
-        new Chart(pendidikanCtx, {
+function showChart(type) {
+    const area = document.getElementById('chartArea');
+    area.classList.remove('hidden');
+    if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+    const ctx = document.getElementById('mainChart');
+    const colors = ['#3B82F6','#EC4899','#8B5CF6','#F59E0B','#10B981','#F97316','#EF4444','#06B6D4','#6366F1','#84CC16'];
+
+    if (type === 'bar') {
+        chartInstance = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: pendidikanLabels,
-                datasets: [{
-                    label: 'Jumlah Penduduk',
-                    data: pendidikanData,
-                    backgroundColor: '#3B82F6',
-                    borderColor: '#1E40AF',
-                    borderWidth: 1,
-                    borderRadius: 5,
-                }]
+                labels: chartLabels,
+                datasets: [
+                    { label: 'Laki-laki', data: chartLaki,      backgroundColor: '#3B82F6', borderRadius: 4 },
+                    { label: 'Perempuan', data: chartPerempuan,  backgroundColor: '#EC4899', borderRadius: 4 },
+                ]
             },
             options: {
-                indexAxis: 'y',
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                },
-                scales: {
-                    x: {
-                        beginAtZero: true,
-                        ticks: {
-                            font: { size: 11 }
-                        }
-                    },
-                    y: {
-                        ticks: {
-                            font: { size: 11 }
-                        }
-                    }
-                }
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 16 } } },
+                scales: { x: { ticks: { font: { size: 11 } } }, y: { beginAtZero: true } }
             }
         });
-    }
-
-    // ===== PEKERJAAN CHART =====
-    const pekerjaanCtx = document.getElementById('pekerjaanChart');
-    if (pekerjaanCtx) {
-        const pekerjaanLabels = @json(array_column($data['pekerjaan'], 'label'));
-        const pekerjaanData = @json(array_column($data['pekerjaan'], 'jumlah'));
-        
-        new Chart(pekerjaanCtx, {
-            type: 'bar',
-            data: {
-                labels: pekerjaanLabels,
-                datasets: [{
-                    label: 'Jumlah Penduduk',
-                    data: pekerjaanData,
-                    backgroundColor: '#8B5CF6',
-                    borderColor: '#6D28D9',
-                    borderWidth: 1,
-                    borderRadius: 5,
-                }]
-            },
-            options: {
-                indexAxis: 'y',
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                },
-                scales: {
-                    x: {
-                        beginAtZero: true,
-                        ticks: {
-                            font: { size: 11 }
-                        }
-                    },
-                    y: {
-                        ticks: {
-                            font: { size: 11 }
-                        }
-                    }
-                }
-            }
-        });
-    }
-
-    // ===== AGAMA CHART =====
-    const agamaCtx = document.getElementById('agamaChart');
-    if (agamaCtx) {
-        const agamaLabels = @json(array_column($data['agama'], 'label'));
-        const agamaData = @json(array_column($data['agama'], 'jumlah'));
-        
-        new Chart(agamaCtx, {
+    } else {
+        chartInstance = new Chart(ctx, {
             type: 'pie',
             data: {
-                labels: agamaLabels,
-                datasets: [{
-                    data: agamaData,
-                    backgroundColor: colorPalette.slice(0, agamaLabels.length),
-                    borderColor: '#ffffff',
-                    borderWidth: 2,
-                }]
+                labels: chartLabels,
+                datasets: [{ data: chartTotal, backgroundColor: colors.slice(0, chartLabels.length), borderColor: '#fff', borderWidth: 2 }]
             },
             options: {
-                responsive: true,
-                maintainAspectRatio: false,
+                responsive: true, maintainAspectRatio: false,
                 plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            font: { size: 12 },
-                            padding: 15,
-                            usePointStyle: true,
+                    legend: { position: 'right', labels: { usePointStyle: true, padding: 12, font: { size: 11 } } },
+                    tooltip: {
+                        callbacks: {
+                            label: function(ctx) {
+                                const total = ctx.dataset.data.reduce((a,b)=>a+b,0);
+                                const pct   = total > 0 ? ((ctx.raw/total)*100).toFixed(2) : 0;
+                                return ` ${ctx.label}: ${ctx.raw} (${pct}%)`;
+                            }
                         }
                     }
                 }
             }
         });
+    }
+}
+
+function hideChart() {
+    document.getElementById('chartArea').classList.add('hidden');
+    if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+}
+
+function doCetak() {
+    // [PERUBAHAN] Validasi Laporan No. wajib diisi
+    const nomor = document.getElementById('cetakNomor').value.trim();
+    if (!nomor) {
+        showError('cetakNomorError', 'cetakNomor');
+        return;
     }
 
-    // ===== GOLONGAN DARAH CHART =====
-    const golonganDarahCtx = document.getElementById('golonganDarahChart');
-    if (golonganDarahCtx) {
-        const golonganDarahLabels = @json(array_column($data['golongan_darah'], 'label'));
-        const golonganDarahData = @json(array_column($data['golongan_darah'], 'jumlah'));
-        
-        new Chart(golonganDarahCtx, {
-            type: 'doughnut',
-            data: {
-                labels: golonganDarahLabels,
-                datasets: [{
-                    data: golonganDarahData,
-                    backgroundColor: ['#FCA5A5', '#FED7AA', '#FBBF24', '#A78BFA'],
-                    borderColor: '#ffffff',
-                    borderWidth: 2,
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            font: { size: 12 },
-                            padding: 15,
-                            usePointStyle: true,
-                        }
-                    }
-                }
-            }
-        });
+    const penandatangan = document.getElementById('cetakPenandatangan').value;
+    let info = document.getElementById('printInfo');
+    if (!info) {
+        info = document.createElement('div');
+        info.id = 'printInfo';
+        info.className = 'print-only mb-3 text-sm';
+        document.getElementById('tabelUtama').prepend(info);
+    }
+    info.innerHTML = `<p><strong>No. Laporan:</strong> ${nomor}</p><p><strong>Ditandatangani:</strong> ${penandatangan}</p>`;
+    closeModal('modalCetak');
+    setTimeout(() => window.print(), 200);
+}
+
+function doUnduh() {
+    // [PERUBAHAN] Validasi Laporan No. wajib diisi
+    const nomor = document.getElementById('unduhNomor').value.trim();
+    if (!nomor) {
+        showError('unduhNomorError', 'unduhNomor');
+        return;
     }
 
-    // ===== WILAYAH/DUSUN CHART =====
-    const wilayahCtx = document.getElementById('wilayahChart');
-    if (wilayahCtx) {
-        const wilayahLabels = @json(array_column($data['wilayah'], 'label'));
-        const wilayahData = @json(array_column($data['wilayah'], 'jumlah'));
-        
-        new Chart(wilayahCtx, {
-            type: 'bar',
-            data: {
-                labels: wilayahLabels,
-                datasets: [{
-                    label: 'Jumlah Penduduk',
-                    data: wilayahData,
-                    backgroundColor: '#10B981',
-                    borderColor: '#059669',
-                    borderWidth: 1,
-                    borderRadius: 5,
-                }]
-            },
-            options: {
-                indexAxis: 'y',
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                },
-                scales: {
-                    x: {
-                        beginAtZero: true,
-                        ticks: {
-                            font: { size: 11 }
-                        }
-                    },
-                    y: {
-                        ticks: {
-                            font: { size: 11 }
-                        }
-                    }
-                }
-            }
-        });
-    }
+    const header = ['No','Kelompok','Total','Persen (%)','Laki-laki','Persen L (%)','Perempuan','Persen P (%)'];
+    const lines  = [
+        '"Statistik '+judulAktif+'"',
+        '"No. Laporan: '+nomor+'"',
+        header.join(',')
+    ];
+    rowsData.forEach((r,i) => {
+        lines.push([i+1, '"'+r.label+'"', r.total, r.persen, r.laki, r.persen_laki, r.perempuan, r.persen_perempuan].join(','));
+    });
+    lines.push(['','JUMLAH',{{ $totalRow }},'100.00',{{ $totalLaki }},'',{{ $totalPerempuan }},''].join(','));
+    const blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8;'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'statistik_{{ $data["kategori"] }}.csv';
+    a.click();
+    closeModal('modalUnduh');
+}
 </script>
+
+<style>
+.print-only { display: none; }
+@media print {
+    nav, aside, header, #modalCetak, #modalUnduh, button, form, #chartArea { display: none !important; }
+    .print-only { display: block !important; }
+    body { background: white !important; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #cbd5e1 !important; padding: 4px 8px; font-size: 11px; }
+}
+</style>
 
 @endsection

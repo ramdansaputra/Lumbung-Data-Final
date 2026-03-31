@@ -8,7 +8,6 @@ use App\Http\Controllers\Admin\ChatController;
 // InfoDesa
 use App\Http\Controllers\Admin\InfoDesa\IdentitasDesaController;
 use App\Http\Controllers\Admin\InfoDesa\WilayahController;
-use App\Http\Controllers\Admin\InfoDesa\PemerintahDesaController;
 use App\Http\Controllers\Admin\InfoDesa\StatusDesaController;
 use App\Http\Controllers\Admin\InfoDesa\LayananPelangganController;
 use App\Http\Controllers\Admin\InfoDesa\KerjasamaController;
@@ -245,20 +244,29 @@ Route::prefix('warga')->name('warga.')->middleware(['auth', 'role:warga'])->grou
     })->name('notifikasi.list');
 
     Route::post('/notifikasi/baca-satu', function (\Illuminate\Http\Request $request) {
-        $user   = Auth::user();
-        $parts  = explode('-', $request->input('id', ''), 2);
+        $parts  = explode('-', $request->input('id'), 2);
         $prefix = $parts[0] ?? '';
         $rawId  = $parts[1] ?? null;
 
-        if (!$rawId || !is_numeric($rawId)) {
-            return response()->json(['status' => 'error'], 422);
+        if ($prefix === 'pesan' && $rawId) {
+            \App\Models\Pesan::where('id', (int)$rawId)
+                ->where('penerima_id', Auth::id())
+                ->update(['sudah_dibaca' => true]);
+        } elseif (in_array($prefix, ['komentar', 'permohonan']) && $rawId) {
+            DB::table('notifikasi_dibaca')->updateOrInsert(
+                [
+                    'user_id'    => Auth::id(),
+                    'notif_type' => $prefix,
+                    'notif_id'   => (int) $rawId,
+                ],
+                [
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]
+            );
         }
-        if ($prefix === 'pesan') {
-            \App\Models\Pesan::where('id', (int) $rawId)->where('penerima_id', $user->id)->update(['sudah_dibaca' => true]);
-        } elseif ($prefix === 'surat' && $user->penduduk_id) {
-            \App\Models\SuratPermohonan::where('id', (int) $rawId)->where('penduduk_id', $user->penduduk_id)->update(['notif_dibaca' => true]);
-        }
-        return response()->json(['status' => 'ok']);
+
+        return response()->json(['ok' => true]);
     })->name('notifikasi.baca-satu');
 
     Route::get('/notifikasi', function () {
@@ -373,38 +381,51 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
     |--------------------------------------------------------------------------
     */
     Route::get('/notifikasi/list', function () {
+        $userId = Auth::id();
+
+        // Ambil ID yang sudah dibaca dari DB
+        $readKomentar   = DB::table('notifikasi_dibaca')
+            ->where('user_id', $userId)->where('notif_type', 'komentar')
+            ->pluck('notif_id')->toArray();
+
+        $readPermohonan = DB::table('notifikasi_dibaca')
+            ->where('user_id', $userId)->where('notif_type', 'permohonan')
+            ->pluck('notif_id')->toArray();
+
         $items = [];
+
         if (class_exists(\App\Models\KomentarArtikel::class)) {
             $komentarList = \App\Models\KomentarArtikel::where('status', 'pending')
                 ->orderByDesc('created_at')->limit(5)->get();
             foreach ($komentarList as $k) {
                 $items[] = [
-                    'id' => 'komentar-' . $k->id,
-                    'type' => 'komentar',
-                    'title' => 'Komentar Menunggu',
+                    'id'      => 'komentar-' . $k->id,
+                    'type'    => 'komentar',
+                    'title'   => 'Komentar Menunggu',
                     'message' => \Illuminate\Support\Str::limit($k->isi ?? 'Komentar baru menunggu persetujuan', 60),
-                    'url' => route('admin.komentar.index'),
-                    'is_read' => false,
-                    'time' => $k->created_at->diffForHumans(),
+                    'url'     => route('admin.komentar.index'),
+                    'is_read' => in_array($k->id, $readKomentar), // ← dari DB
+                    'time'    => $k->created_at->diffForHumans(),
                 ];
             }
         }
+
         if (class_exists(\App\Models\Pesan::class)) {
-            $pesanList = \App\Models\Pesan::where('penerima_id', Auth::id())
-                ->where('sudah_dibaca', false)
+            $pesanList = \App\Models\Pesan::where('penerima_id', $userId)
                 ->orderByDesc('created_at')->limit(5)->get();
             foreach ($pesanList as $p) {
                 $items[] = [
-                    'id' => 'pesan-' . $p->id,
-                    'type' => 'pesan',
-                    'title' => 'Pesan Masuk',
-                    'message' => \Illuminate\Support\Str::limit($p->isi ?? $p->subjek ?? 'Pesan baru dari warga', 60),
-                    'url' => route('admin.hubung-warga.inbox'),
-                    'is_read' => false,
-                    'time' => $p->created_at->diffForHumans(),
+                    'id'      => 'pesan-' . $p->id,
+                    'type'    => 'pesan',
+                    'title'   => 'Pesan Masuk',
+                    'message' => \Illuminate\Support\Str::limit($p->isi ?? $p->subjek ?? 'Pesan baru', 60),
+                    'url'     => route('admin.hubung-warga.inbox'),
+                    'is_read' => (bool) $p->sudah_dibaca, // ← dari kolom DB
+                    'time'    => $p->created_at->diffForHumans(),
                 ];
             }
         }
+
         if (class_exists(\App\Models\SuratPermohonan::class)) {
             $permohonanList = \App\Models\SuratPermohonan::whereIn('status', [
                 'sedang diperiksa',
@@ -414,23 +435,95 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
             ])->orderByDesc('created_at')->limit(5)->get();
             foreach ($permohonanList as $s) {
                 $items[] = [
-                    'id' => 'permohonan-' . $s->id,
-                    'type' => 'permohonan',
-                    'title' => 'Permohonan Surat',
+                    'id'      => 'permohonan-' . $s->id,
+                    'type'    => 'permohonan',
+                    'title'   => 'Permohonan Surat',
                     'message' => 'Permohonan ' . ($s->jenisSurat->nama_surat ?? 'surat') . ' menunggu persetujuan',
-                    'url' => '/admin/layanan-surat/permohonan/' . $s->id,
-                    'is_read' => false,
-                    'time' => $s->created_at->diffForHumans(),
+                    'url'     => '/admin/layanan-surat/permohonan/' . $s->id,
+                    'is_read' => in_array($s->id, $readPermohonan), // ← dari DB
+                    'time'    => $s->created_at->diffForHumans(),
                 ];
             }
         }
+
         usort($items, fn($a, $b) => strcmp($b['time'], $a['time']));
-        $totalUnread = count($items);
-        return response()->json(['items' => array_slice($items, 0, 10), 'total_unread' => $totalUnread]);
+        $totalUnread = count(array_filter($items, fn($i) => !$i['is_read']));
+
+        return response()->json([
+            'items'        => array_slice($items, 0, 10),
+            'total_unread' => $totalUnread,
+        ]);
     })->name('notifikasi.list');
 
     Route::get('/notifikasi/semua', function () {
+        $userId = Auth::id();
+
+        $readKomentar   = DB::table('notifikasi_dibaca')
+            ->where('user_id', $userId)->where('notif_type', 'komentar')
+            ->pluck('notif_id')->toArray();
+
+        $readPermohonan = DB::table('notifikasi_dibaca')
+            ->where('user_id', $userId)->where('notif_type', 'permohonan')
+            ->pluck('notif_id')->toArray();
+
         $items = [];
+
+        if (class_exists(\App\Models\KomentarArtikel::class)) {
+            foreach (
+                \App\Models\KomentarArtikel::where('status', 'pending')
+                    ->orderByDesc('created_at')->get() as $k
+            ) {
+                $items[] = [
+                    'id'      => 'komentar-' . $k->id,
+                    'type'    => 'komentar',
+                    'title'   => 'Komentar Menunggu',
+                    'message' => \Illuminate\Support\Str::limit($k->isi ?? 'Komentar baru', 60),
+                    'url'     => route('admin.komentar.index'),
+                    'is_read' => in_array($k->id, $readKomentar),
+                    'time'    => $k->created_at->diffForHumans(),
+                ];
+            }
+        }
+
+        if (class_exists(\App\Models\Pesan::class)) {
+            foreach (
+                \App\Models\Pesan::where('penerima_id', $userId)
+                    ->orderByDesc('created_at')->get() as $p
+            ) {
+                $items[] = [
+                    'id'      => 'pesan-' . $p->id,
+                    'type'    => 'pesan',
+                    'title'   => 'Pesan Masuk',
+                    'message' => \Illuminate\Support\Str::limit($p->isi ?? $p->subjek ?? 'Pesan baru', 60),
+                    'url'     => route('admin.hubung-warga.inbox'),
+                    'is_read' => (bool) $p->sudah_dibaca,
+                    'time'    => $p->created_at->diffForHumans(),
+                ];
+            }
+        }
+
+        if (class_exists(\App\Models\SuratPermohonan::class)) {
+            foreach (
+                \App\Models\SuratPermohonan::whereIn('status', [
+                    'sedang diperiksa',
+                    'menunggu',
+                    'menunggu tandatangan',
+                    'belum lengkap'
+                ])->orderByDesc('created_at')->get() as $s
+            ) {
+                $items[] = [
+                    'id'      => 'permohonan-' . $s->id,
+                    'type'    => 'permohonan',
+                    'title'   => 'Permohonan Surat',
+                    'message' => 'Permohonan ' . ($s->jenisSurat->nama_surat ?? 'surat') . ' menunggu',
+                    'url'     => '/admin/layanan-surat/permohonan/' . $s->id,
+                    'is_read' => in_array($s->id, $readPermohonan),
+                    'time'    => $s->created_at->diffForHumans(),
+                ];
+            }
+        }
+
+        usort($items, fn($a, $b) => strcmp($b['time'], $a['time']));
         return response()->json(['items' => $items]);
     })->name('notifikasi.semua');
 
@@ -443,31 +536,25 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
         return response()->json(['ok' => true]);
     })->name('notifikasi.tandai-semua');
 
+    // ✅ YANG BENAR — simpan ke DB
     Route::post('/notifikasi/baca-satu', function (\Illuminate\Http\Request $request) {
-        $parts = explode('-', $request->input('id'), 2);
+        $parts  = explode('-', $request->input('id'), 2);
         $prefix = $parts[0] ?? '';
-        $rawId = $parts[1] ?? null;
+        $rawId  = $parts[1] ?? null;
 
         if ($prefix === 'pesan' && $rawId) {
             \App\Models\Pesan::where('id', (int)$rawId)
                 ->where('penerima_id', Auth::id())
                 ->update(['sudah_dibaca' => true]);
-        } elseif ($prefix === 'komentar' && $rawId) {
-            $dismissed = session()->get('notif_read_komentar', []);
-            if (!in_array($rawId, $dismissed)) {
-                $dismissed[] = (int) $rawId;
-                session()->put('notif_read_komentar', $dismissed);
-            }
-        } elseif ($prefix === 'permohonan' && $rawId) {
-            $dismissed = session()->get('notif_read_permohonan', []);
-            if (!in_array($rawId, $dismissed)) {
-                $dismissed[] = (int) $rawId;
-                session()->put('notif_read_permohonan', $dismissed);
-            }
+        } elseif (in_array($prefix, ['komentar', 'permohonan']) && $rawId) {
+            DB::table('notifikasi_dibaca')->updateOrInsert(
+                ['user_id' => Auth::id(), 'notif_type' => $prefix, 'notif_id' => (int)$rawId],
+                ['created_at' => now(), 'updated_at' => now()]
+            );
         }
+
         return response()->json(['ok' => true]);
     })->name('notifikasi.baca-satu');
-
     Route::delete('/notifikasi/hapus-satu', function (\Illuminate\Http\Request $request) {
         $id = $request->input('id');
         $parts = explode('-', $id, 2);
@@ -1373,16 +1460,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
     | PEMERINTAH DESA
     |--------------------------------------------------------------------------
     */
-    Route::prefix('pemerintah-desa')->name('pemerintah-desa.')->group(function () {
-        Route::get('/', [PemerintahDesaController::class, 'index'])->name('index');
-        Route::get('/create', [PemerintahDesaController::class, 'create'])->name('create');
-        Route::post('/', [PemerintahDesaController::class, 'store'])->name('store');
-        Route::get('/{pemerintahDesa}', [PemerintahDesaController::class, 'show'])->name('show');
-        Route::get('/{pemerintahDesa}/edit', [PemerintahDesaController::class, 'edit'])->name('edit');
-        Route::put('/{pemerintahDesa}', [PemerintahDesaController::class, 'update'])->name('update');
-        Route::delete('/{pemerintahDesa}', [PemerintahDesaController::class, 'destroy'])->name('destroy');
-        Route::patch('/{pemerintahDesa}/toggle-status', [PemerintahDesaController::class, 'toggleStatus'])->name('toggle-status');
-    });
+    Route::get('/pemerintah-desa', function () {
+        return redirect()->route('admin.buku-administrasi.umum.pemerintah.index');
+    })->name('pemerintah-desa.index');
 
     /*
     |--------------------------------------------------------------------------

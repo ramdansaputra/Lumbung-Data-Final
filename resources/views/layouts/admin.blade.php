@@ -3018,20 +3018,16 @@
                 _pollInterval: null,
 
                 init() {
-                    // BUG #2 FIX: Clear interval on destroy and handle visibility change
                     this.fetchBadges();
 
-                    // Poll badges every 30 seconds
                     this._pollInterval = setInterval(() => {
                         this.fetchBadges();
                     }, 30000);
 
-                    // ← TAMBAHKAN INI: update badge langsung saat notifPage kirim event
                     window.addEventListener('notif-count-changed', (e) => {
                         this.totalUnread = e.detail?.total ?? 0;
                     });
 
-                    // Pause polling when tab is hidden, resume when visible
                     document.addEventListener('visibilitychange', () => {
                         if (document.hidden) {
                             if (this._pollInterval) {
@@ -3050,31 +3046,14 @@
                 },
 
                 destroy() {
-                    // BUG #2 FIX: Clean up interval on destroy
                     if (this._pollInterval) {
                         clearInterval(this._pollInterval);
                         this._pollInterval = null;
                     }
                 },
 
-                // Helper: get dismissed IDs from sessionStorage
-                _getDismissedIds() {
-                    try {
-                        const stored = sessionStorage.getItem('_dismissedNotif');
-                        return stored ? JSON.parse(stored) : [];
-                    } catch (e) {
-                        return [];
-                    }
-                },
-
-                // Helper: save dismissed IDs to sessionStorage
-                _saveDismissedIds(ids) {
-                    sessionStorage.setItem('_dismissedNotif', JSON.stringify(ids));
-                },
-
                 async fetchBadges() {
                     try {
-                        // BUG #3 FIX: Read prev from sessionStorage BEFORE fetch
                         const prev = parseInt(sessionStorage.getItem('_lastNotifTotal') || '0', 10);
 
                         const res = await fetch('/admin/notifikasi/badges', {
@@ -3086,41 +3065,22 @@
                         if (!res.ok) return;
                         const data = await res.json();
 
-                        // BUG #2 FIX: Get dismissed IDs and subtract from totals
-                        const dismissedIds = this._getDismissedIds();
-                        const dismissedSet = new Set(dismissedIds);
+                        const total = (data.pending_komentar || 0) +
+                            (data.unread_pesan || 0) +
+                            (data.pending_permohonan || 0);
 
-                        // Get counts from backend
-                        const pendingKomentar = (data.pending_komentar || 0);
-                        const unreadPesan = (data.unread_pesan || 0);
-                        const pendingPermohonan = (data.pending_permohonan || 0);
-
-                        // Count dismissed items by type
-                        const dismissedKomentar = dismissedIds.filter(id => id.startsWith('komentar-')).length;
-                        const dismissedPermohonan = dismissedIds.filter(id => id.startsWith('permohonan-')).length;
-
-                        // Calculate totals excluding dismissed items
-                        const total = Math.max(0, pendingKomentar - dismissedKomentar) +
-                            unreadPesan +
-                            Math.max(0, pendingPermohonan - dismissedPermohonan);
-
-                        // Update this.totalUnread AFTER fetch
                         this.totalUnread = total;
-
-                        // BUG #3 FIX: Save new total to sessionStorage AFTER setting this.totalUnread
                         sessionStorage.setItem('_lastNotifTotal', total.toString());
 
-                        // Dispatch event with {total, prev}
                         window.dispatchEvent(new CustomEvent('notif-count-changed', {
                             detail: {
                                 total,
                                 prev
                             }
                         }));
-                    } catch (e) {
-                        // Silent fail on connection issues
-                    }
+                    } catch (e) {}
                 },
+
                 async fetchList() {
                     this.loading = true;
                     try {
@@ -3131,18 +3091,7 @@
                         });
                         if (!res.ok) throw new Error('HTTP ' + res.status);
                         const data = await res.json();
-
-                        // BUG #2 FIX: Filter out dismissed items for komentar & permohonan
-                        const dismissedIds = this._getDismissedIds();
-                        const dismissedSet = new Set(dismissedIds);
-
-                        this.items = (data.items || []).filter(item => {
-                            // Keep all pesan (handled by DB)
-                            if (item.type === 'pesan') return true;
-                            // Filter out dismissed komentar/permohonan
-                            return !dismissedSet.has(item.id);
-                        });
-
+                        this.items = data.items || [];
                     } catch (e) {
                         this.items = [];
                     } finally {
@@ -3155,7 +3104,6 @@
                     if (this.open) this.fetchList();
                 },
 
-                // BUG FIX #3: navigateToUrl sebagai method terpisah
                 navigateToUrl(url) {
                     if (url) window.location.href = url;
                 },
@@ -3171,41 +3119,17 @@
                             }
                         });
                         if (res.ok) {
-                            // Update hanya item type 'pesan' jadi is_read = true
-                            // Komentar & permohonan tidak bisa "dibaca" — tetap muncul sampai diproses
-                            this.items = this.items.map(item =>
-                                item.type === 'pesan' ? {
-                                    ...item,
-                                    is_read: true
-                                } : item
-                            );
-                            // Hitung ulang unread yang tersisa (komentar + permohonan masih ada)
-                            this.totalUnread = this.items.filter(i => !i.is_read).length;
+                            this.items = this.items.map(item => ({
+                                ...item,
+                                is_read: true
+                            }));
+                            this.totalUnread = 0;
                         }
                     } catch (e) { }
                 },
 
                 async markOneRead(id, type) {
                     try {
-                        // BUG #2 FIX: For komentar & permohonan, use sessionStorage instead of DB
-                        if (type === 'komentar' || type === 'permohonan') {
-                            // Save to dismissed list in sessionStorage
-                            const dismissedIds = this._getDismissedIds();
-                            if (!dismissedIds.includes(id)) {
-                                dismissedIds.push(id);
-                                this._saveDismissedIds(dismissedIds);
-                            }
-                            // Update UI
-                            const item = this.items.find(i => i.id === id);
-                            if (item) {
-                                item.is_read = true;
-                            }
-                            // Recalculate total
-                            this.totalUnread = Math.max(0, this.totalUnread - 1);
-                            return;
-                        }
-
-                        // For pesan, use DB (existing behavior)
                         const res = await fetch('{{ route('admin.notifikasi.baca-satu') }}', {
                             method: 'POST',
                             headers: {
@@ -3220,10 +3144,8 @@
                         });
                         if (res.ok) {
                             const item = this.items.find(i => i.id === id);
-                            if (item) {
-                                item.is_read = true;
-                                this.totalUnread = Math.max(0, this.totalUnread - 1);
-                            }
+                            if (item) item.is_read = true;
+                            this.totalUnread = Math.max(0, this.totalUnread - 1);
                         }
                     } catch (e) { }
                 }

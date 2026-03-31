@@ -275,6 +275,7 @@
                     await this.fetchData();
                 },
 
+                // ── FIX 1 & 2: fetchData tanpa filter sessionStorage ──────────
                 async fetchData() {
                     this.loading = true;
                     try {
@@ -282,15 +283,7 @@
                             headers: { 'X-Requested-With': 'XMLHttpRequest' }
                         });
                         const data = await res.json();
-
-                        // Filter item yang sudah di-dismiss dari sessionStorage
-                        const dismissed = JSON.parse(sessionStorage.getItem('_dismissedNotif') || '[]');
-                        const dismissedSet = new Set(dismissed);
-
-                        this.items = (data.items || []).filter(item => {
-                            if (item.type === 'pesan') return true;
-                            return !dismissedSet.has(item.id);
-                        });
+                        this.items = data.items || [];
                     } catch (e) {
                         console.error('Gagal memuat notifikasi:', e);
                         this.items = [];
@@ -342,7 +335,7 @@
                 prevPage() { if (this.currentPage > 1) this.currentPage--; },
                 nextPage() { if (this.currentPage < this.totalPages) this.currentPage++; },
 
-                // ── Tandai satu item dibaca ───────────────────────────────────
+                // ── FIX 2: markRead tanpa sessionStorage ─────────────────────
                 async markRead(id, type) {
                     try {
                         const res = await fetch('{{ route('admin.notifikasi.baca-satu') }}', {
@@ -357,14 +350,6 @@
                         if (res.ok) {
                             const item = this.items.find(i => i.id === id);
                             if (item) item.is_read = true;
-
-                            if (type === 'komentar' || type === 'permohonan') {
-                                const dismissed = JSON.parse(sessionStorage.getItem('_dismissedNotif') || '[]');
-                                if (!dismissed.includes(id)) {
-                                    dismissed.push(id);
-                                    sessionStorage.setItem('_dismissedNotif', JSON.stringify(dismissed));
-                                }
-                            }
                             this._updateBadge();
                         }
                     } catch (e) {
@@ -372,7 +357,7 @@
                     }
                 },
 
-                // ── Tandai SEMUA dibaca ──────────────────────────────────────
+                // ── FIX 2: markAllRead tanpa sessionStorage ──────────────────
                 async markAllRead() {
                     try {
                         const res = await fetch('{{ route('admin.notifikasi.tandai-semua') }}', {
@@ -384,18 +369,21 @@
                             }
                         });
                         if (res.ok) {
-                            // Tandai semua item sebagai sudah dibaca di UI
+                            // Tandai komentar & permohonan ke DB satu per satu
+                            await Promise.all(
+                                this.items
+                                    .filter(i => !i.is_read)
+                                    .map(i => fetch('{{ route('admin.notifikasi.baca-satu') }}', {
+                                        method: 'POST',
+                                        headers: {
+                                            'X-Requested-With': 'XMLHttpRequest',
+                                            'Content-Type': 'application/json',
+                                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                        },
+                                        body: JSON.stringify({ id: i.id, type: i.type })
+                                    }))
+                            );
                             this.items = this.items.map(item => ({ ...item, is_read: true }));
-
-                            // Sync komentar & permohonan ke sessionStorage dismissed
-                            const dismissed = JSON.parse(sessionStorage.getItem('_dismissedNotif') || '[]');
-                            this.items.forEach(item => {
-                                if ((item.type === 'komentar' || item.type === 'permohonan') && !dismissed.includes(item.id)) {
-                                    dismissed.push(item.id);
-                                }
-                            });
-                            sessionStorage.setItem('_dismissedNotif', JSON.stringify(dismissed));
-
                             this._updateBadge();
                         }
                     } catch (e) {
@@ -408,7 +396,7 @@
                     modalHapus.bukaJs(title, () => this.deleteItem(id, type));
                 },
 
-                // ── Hapus satu item (dipanggil setelah modal konfirmasi) ──────
+                // ── FIX 2: deleteItem tanpa sessionStorage ───────────────────
                 async deleteItem(id, type) {
                     try {
                         const res = await fetch('{{ route('admin.notifikasi.hapus-satu') }}', {
@@ -422,14 +410,6 @@
                         });
                         if (res.ok) {
                             this.items = this.items.filter(i => i.id !== id);
-
-                            if (type === 'komentar' || type === 'permohonan') {
-                                const dismissed = JSON.parse(sessionStorage.getItem('_dismissedNotif') || '[]');
-                                if (!dismissed.includes(id)) {
-                                    dismissed.push(id);
-                                    sessionStorage.setItem('_dismissedNotif', JSON.stringify(dismissed));
-                                }
-                            }
                             this._updateBadge();
                         }
                     } catch (e) {
@@ -444,7 +424,7 @@
                     modalHapus.bukaJs(`${count} notifikasi yang dipilih`, () => this._doDeleteSelected());
                 },
 
-                // ── Hapus banyak (dipanggil setelah modal konfirmasi) ────────
+                // ── FIX 2: _doDeleteSelected tanpa sessionStorage ────────────
                 async _doDeleteSelected() {
                     const successfulIds = [];
 
@@ -463,7 +443,7 @@
                                     body: JSON.stringify({ id, type: item.type })
                                 });
                                 if (res.ok) {
-                                    successfulIds.push({ id, type: item.type });
+                                    successfulIds.push(id);
                                     this.items = this.items.filter(i => i.id !== id);
                                 }
                             } catch (e) {
@@ -472,20 +452,11 @@
                         })
                     );
 
-                    // Sync ke sessionStorage
-                    const dismissed = JSON.parse(sessionStorage.getItem('_dismissedNotif') || '[]');
-                    successfulIds.forEach(({ id, type }) => {
-                        if ((type === 'komentar' || type === 'permohonan') && !dismissed.includes(id)) {
-                            dismissed.push(id);
-                        }
-                    });
-                    sessionStorage.setItem('_dismissedNotif', JSON.stringify(dismissed));
-
                     if (successfulIds.length > 0) this._updateBadge();
                     this.selectedItems = [];
                 },
 
-                // ── Update badge topbar via event ────────────────────────────
+                // ── _updateBadge: tetap pakai sessionStorage untuk badge count ─
                 _updateBadge() {
                     const unreadCount = this.items.filter(i => !i.is_read).length;
                     const prev = parseInt(sessionStorage.getItem('_lastNotifTotal') || '0', 10);
