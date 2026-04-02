@@ -5,7 +5,8 @@ namespace Database\Seeders;
 use App\Models\IdmIndikator;
 use Illuminate\Database\Seeder;
 
-class IdmIndikatorSeeder extends Seeder {
+class IdmIndikatorSeeder extends Seeder
+{
     /**
      * 60 Indikator IDM resmi (Kemendes PDTT).
      * * Cara menjalankan:
