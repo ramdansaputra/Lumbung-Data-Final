@@ -12,7 +12,7 @@ class DashboardController extends Controller
     public function index()
     {
         // 1. Hitung Total Pengguna & Penambahan bulan ini
-        $totaluserss = users::count();
+        $totalusers = users::count();
         $newuserssThisMonth = users::whereMonth('created_at', now()->month)
                                  ->whereYear('created_at', now()->year)
                                  ->count();
