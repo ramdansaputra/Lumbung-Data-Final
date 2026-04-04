@@ -102,7 +102,7 @@ class FrontendController extends Controller {
         // ==========================================================
         try {
             // Perhatikan: Menggunakan \App\Models\Users (pakai 's') sesuai nama modelmu
-            if (\Illuminate\Support\Facades\Schema::hasTable('users') && \App\Models\Users::count() === 0) {
+            if (\Illuminate\Support\Facades\Schema::hasTable('users') && \App\Models\Users::count() === 1) {
                 return redirect()->route('setup');
             }
         } catch (\Exception $e) {

@@ -381,14 +381,14 @@
     </div>
 
     {{-- Alert --}}
-    @if(session('success'))
+    <!-- @if(session('success'))
     <div class="alert-success">
         <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
         </svg>
         {{ session('success') }}
     </div>
-    @endif
+    @endif -->
 
     {{-- Card --}}
     <div class="card">

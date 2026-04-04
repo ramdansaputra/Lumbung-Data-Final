@@ -359,7 +359,9 @@ body { font-family: 'Sora', sans-serif; background-color: var(--bg-page); color:
                 @foreach($suratFields as $var)
                     @php $isFull = in_array(strtolower($var), ['judul_surat','perihal']); @endphp
                     <div class="field-group {{ $isFull ? 'full-width' : '' }}">
-                        <label>{{ $lbl($var) }} <span class="var-badge">[{{ $var }}]</span></label>
+                        <label>
+                            <!-- {{ $lbl($var) }} <span class="var-badge">[{{ $var }}]</span> -->
+                        </label>
                         
                         {{-- JIKA VARIABELNYA PENANDATANGAN ATAU NAMA PAMONG, JADIKAN DROPDOWN --}}
                         @if(in_array(strtolower($var), ['penandatangan', 'nama_pamong']))
@@ -404,7 +406,7 @@ body { font-family: 'Sora', sans-serif; background-color: var(--bg-page); color:
                 @foreach($wargaFields as $var)
                     @php $isFull = in_array(strtolower($var), ['nama','nama_lengkap','alamat']); @endphp
                     <div class="field-group {{ $isFull ? 'full-width' : '' }}">
-                        <label>{{ $lbl($var) }} <span class="var-badge">[{{ $var }}]</span></label>
+                        <label>{{ $lbl($var) }}</label>
                         <input
                             type="{{ getFieldType($var) }}"
                             id="field_{{ strtolower($var) }}"
@@ -429,7 +431,7 @@ body { font-family: 'Sora', sans-serif; background-color: var(--bg-page); color:
                 @foreach($keluargaFields as $var)
                     @php $isFull = in_array(strtolower($var), ['alamat_kk','alamat_keluarga','kepala_kk','kepala_keluarga']); @endphp
                     <div class="field-group {{ $isFull ? 'full-width' : '' }}">
-                        <label>{{ $lbl($var) }} <span class="var-badge">[{{ $var }}]</span></label>
+                        <label>{{ $lbl($var) }}</label>
                         <input
                             type="text"
                             id="field_{{ strtolower($var) }}"
@@ -452,7 +454,7 @@ body { font-family: 'Sora', sans-serif; background-color: var(--bg-page); color:
             <div class="section-body">
                 @foreach($otherFields as $var)
                     <div class="field-group full-width">
-                        <label>{{ $lbl($var) }} <span class="var-badge">[{{ $var }}]</span></label>
+                        <label>{{ $lbl($var) }}</label>
                         <input
                             type="{{ getFieldType($var) }}"
                             id="field_{{ strtolower($var) }}"

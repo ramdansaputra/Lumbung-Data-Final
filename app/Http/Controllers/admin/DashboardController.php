@@ -7,7 +7,7 @@ use App\Models\Penduduk;
 use App\Models\Keluarga;
 use App\Models\RumahTangga;
 use App\Models\Surat;
-use App\Models\User;
+use App\Models\Users;
 use App\Models\Wilayah;
 use App\Models\Kelompok;
 use App\Models\Program;
@@ -54,7 +54,7 @@ class DashboardController extends Controller {
         } catch (\Exception $e) {
         }
         try {
-            $totalUsers       = User::count();
+            $totalUsers       = Users::count();
         } catch (\Exception $e) {
         }
         try {

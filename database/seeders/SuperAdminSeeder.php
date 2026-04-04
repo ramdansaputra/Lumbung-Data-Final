@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use App\Models\User;
+use App\Models\Users;
 use Illuminate\Support\Facades\Hash;
 
 class SuperAdminSeeder extends Seeder
@@ -15,10 +15,10 @@ class SuperAdminSeeder extends Seeder
     public function run(): void
     {
         // Mengecek apakah superadmin sudah ada agar tidak duplikat saat dijalankan ulang
-        $cekAdmin = User::where('role', 'superadmin')->first();
+        $cekAdmin = Users::where('role', 'superadmin')->first();
 
         if (!$cekAdmin) {
-            User::create([
+            Users::create([
                 'name' => 'Super Admin',
                 'username' => 'superadmin',
                 'email' => 'superadmin@admin.com',

@@ -120,6 +120,7 @@ use App\Http\Controllers\Admin\KehadiranTahunanController;
 use App\Http\Controllers\Admin\Pertanahan\CDesaController;
 use App\Http\Controllers\Admin\HubungWargaController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\FrontendController;
 use App\Http\Controllers\SetupController;
 use App\Http\Controllers\Auth\AktivasiWargaController;
@@ -191,6 +192,16 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 Route::get('login/google', [LoginController::class, 'redirectToGoogle'])->name('login.google');
 Route::get('login/google/callback', [LoginController::class, 'handleGoogleCallback']);
+
+// Route Form Lupa Password (yang sebelumnya)
+Route::get('/lupa-password', [AuthController::class, 'showLupaPassword'])->name('password.request'); // Ganti name jadi password.request (standar Laravel)
+Route::post('/lupa-password', [AuthController::class, 'sendResetLinkEmail'])->name('password.email');
+
+// --- TAMBAHKAN ROUTE INI ---
+// Route Form Reset Password (saat link diklik)
+Route::get('/reset-password/{token}', [AuthController::class, 'showResetPassword'])->name('password.reset');
+// Route Proses Simpan Password Baru
+Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
 
 Route::get('/setup', [SetupController::class, 'showSetup'])->name('setup')->middleware('check.setup');
 Route::post('/setup', [SetupController::class, 'register'])->name('setup.register');

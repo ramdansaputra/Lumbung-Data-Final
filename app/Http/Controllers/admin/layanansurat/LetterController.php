@@ -65,6 +65,17 @@ class LetterController extends Controller
         $templateId = $request->query('id');
         $selectedTemplate = SuratTemplate::with('klasifikasi')->findOrFail($templateId);
         
+        // Pengecekan 1: Klasifikasi Surat
+        if (is_null($selectedTemplate->klasifikasi_surat_id)) {
+            return redirect()->back()->with('error', "Gagal! Template surat '{$selectedTemplate->nama_surat}' belum memiliki Kode/Klasifikasi. Silakan atur klasifikasinya terlebih dahulu di menu Pengaturan Surat.");
+        }
+
+        // --- TAMBAHKAN PENGECEKAN 2: Perangkat Desa ---
+        if (PerangkatDesa::aktif()->count() === 0) {
+            return redirect()->back()->with('error', "Gagal! Data Aparatur/Perangkat Desa masih kosong. Surat membutuhkan penandatangan. Silakan isi data di menu Pemerintah Desa terlebih dahulu.");
+        }
+        // ----------------------------------------------
+
         $variables = [];
         if ($selectedTemplate->konten_template) {
             preg_match_all('/\[([a-zA-Z0-9_]+)\]/i', $selectedTemplate->konten_template, $matches);
@@ -80,6 +91,17 @@ class LetterController extends Controller
     public function preview(Request $request)
     {
         $template = SuratTemplate::with('klasifikasi')->findOrFail($request->template_id);
+
+        // Pengecekan 1: Klasifikasi Surat
+        if (is_null($template->klasifikasi_surat_id)) {
+            return redirect()->back()->with('error', "Gagal! Template surat '{$template->nama_surat}' belum memiliki Kode/Klasifikasi. Silakan atur klasifikasinya terlebih dahulu.");
+        }
+
+        // --- TAMBAHKAN PENGECEKAN 2: Perangkat Desa ---
+        if (PerangkatDesa::aktif()->count() === 0) {
+            return redirect()->back()->with('error', "Gagal! Data Aparatur/Perangkat Desa masih kosong. Silakan isi data di menu Pemerintah Desa terlebih dahulu.");
+        }
+        // ----------------------------------------------
 
         if (!$request->filled('format_nomor')) {
             $autoNomor = $this->generateAutoNomorSuratPreview($template);

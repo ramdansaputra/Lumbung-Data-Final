@@ -17,7 +17,7 @@ class CheckSetup
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (Users::count() > 0) {
+        if (Users::count() > 1) {
             if (Auth::check()) {
                 return redirect()->route('admin.dashboard');
             } else {

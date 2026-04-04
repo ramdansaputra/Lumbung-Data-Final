@@ -266,9 +266,9 @@
                                focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none transition-all
                                {{ $errors->has('jenis_kelamin') ? 'border-red-400 bg-red-50 dark:bg-red-900/10' : 'border-gray-300 dark:border-slate-600' }}">
                                 <option value="">Pilih Jenis Kelamin</option>
-                                <option value="L" {{ old('jenis_kelamin') == 'L' ? 'selected' : '' }}>Laki-laki
+                                <option value="L" {{ old('jenis_kelamin') == 'Laki-Laki' ? 'selected' : '' }}>Laki-laki
                                 </option>
-                                <option value="P" {{ old('jenis_kelamin') == 'P' ? 'selected' : '' }}>Perempuan
+                                <option value="P" {{ old('jenis_kelamin') == 'Perempuan' ? 'selected' : '' }}>Perempuan
                                 </option>
                             </select>
                             @error('jenis_kelamin')

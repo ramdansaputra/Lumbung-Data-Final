@@ -149,7 +149,7 @@
     </div>
 
     {{-- ── FLASH MESSAGES ── --}}
-    @if (session('success'))
+    <!-- @if (session('success'))
         <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 6000)"
             x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 -translate-y-2"
             x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-200"
@@ -171,9 +171,9 @@
                 @endif
             </div>
         </div>
-    @endif
+    @endif -->
 
-    @if (session('error'))
+    <!-- @if (session('error'))
         <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 6000)"
             x-transition:leave="transition ease-in duration-200" x-transition:leave-end="opacity-0"
             class="flex items-center gap-3 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl mb-5">
@@ -184,7 +184,7 @@
             </svg>
             <p class="text-sm font-medium text-red-700 dark:text-red-300">{{ session('error') }}</p>
         </div>
-    @endif
+    @endif -->
 
     {{-- ── CARD UTAMA ── --}}
     <div class="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700">

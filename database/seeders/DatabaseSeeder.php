@@ -13,6 +13,11 @@ class DatabaseSeeder extends Seeder {
             SumberDanaSeeder::class,
             KasDesaSeeder::class,
             KehadiranJamKerjaSeeder::class,
+            KlasifikasiSeeder::class,
+            TemplateSuratSeeder::class,
+            PersyaratanSuratSeeder::class,
+            AkunRekeningSeeder::class,
+            SuperAdminSeeder::class,
         ]);
 
         $this->command->info('');

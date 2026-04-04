@@ -204,6 +204,13 @@ class PendudukController extends Controller {
     // CREATE
     // =========================================================================
     public function create(Request $request) {
+        
+        // Pengecekan tabel wilayah
+        if (Wilayah::count() === 0) {
+            return redirect()->route('admin.penduduk')
+                ->with('error', 'Data Wilayah masih kosong. Silakan isi data Wilayah/Dusun terlebih dahulu sebelum menambah data penduduk.');
+        }
+
         $jenis = in_array($request->get('jenis'), ['lahir', 'masuk'])
             ? $request->get('jenis')
             : 'lahir';
@@ -237,7 +244,7 @@ class PendudukController extends Controller {
             'refShdk',
             'refWarganegara',
             'refCaraKb',
-        ));
+        ));   
     }
 
     // =========================================================================
