@@ -15,8 +15,7 @@ class IdmIndikatorSeeder extends Seeder
 
     private int $tahun;
 
-    public function run(): void
-    {
+    public function run(): void {
         // Mengambil tahun dari env 'TAHUN', default ke tahun sekarang jika tidak diisi
         $envTahun = getenv('TAHUN');
         $this->tahun = $envTahun ? (int)$envTahun : (int)date('Y');
@@ -43,8 +42,7 @@ class IdmIndikatorSeeder extends Seeder
         }
     }
 
-    private function dataIndikator(): array
-    {
+    private function dataIndikator(): array {
         return [
             // ════════════════════════════════════════════════
             // IKS – Indeks Ketahanan Sosial (30 indikator)
