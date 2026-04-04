@@ -3,26 +3,22 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Models\Users;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 
-class PenggunaController extends Controller
-{
-    public function index()
-    {
-        $users = User::all();
+class PenggunaController extends Controller {
+    public function index() {
+        $users = Users::all();
         return view('admin.pengguna', compact('users'));
     }
 
-    public function create()
-    {
+    public function create() {
         return view('admin.pengguna-create');
     }
 
-    public function store(Request $request)
-    {
+    public function store(Request $request) {
         $request->validate([
             'name' => 'required|string|max:255',
             'username' => 'required|string|max:255|unique:users',
@@ -31,7 +27,7 @@ class PenggunaController extends Controller
             'role' => 'required|string|in:admin,operator',
         ]);
 
-        User::create([
+        Users::create([
             'name' => $request->name,
             'username' => $request->username,
             'email' => $request->email,
@@ -42,17 +38,15 @@ class PenggunaController extends Controller
         return redirect()->route('admin.pengguna.index')->with('success', 'Pengguna berhasil ditambahkan');
     }
 
-    public function edit(User $user)
-    {
-        return view('admin.pengguna-edit', compact('user'));
+    public function edit(Users $users) {
+        return view('admin.pengguna-edit', compact('users'));
     }
 
-    public function update(Request $request, User $user)
-    {
+    public function update(Request $request, Users $users) {
         $request->validate([
             'name' => 'required|string|max:255',
-            'username' => ['required', 'string', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
+            'username' => ['required', 'string', 'max:255', Rule::unique('users')->ignore($users->id)],
+            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($users->id)],
             'password' => 'nullable|string|min:8|confirmed',
             'role' => 'required|string|in:admin,operator',
         ]);
@@ -68,14 +62,13 @@ class PenggunaController extends Controller
             $data['password'] = Hash::make($request->password);
         }
 
-        $user->update($data);
+        $users->update($data);
 
         return redirect()->route('admin.pengguna.index')->with('success', 'Pengguna berhasil diperbarui');
     }
 
-    public function destroy(User $user)
-    {
-        $user->delete();
+    public function destroy(Users $users) {
+        $users->delete();
         return redirect()->route('admin.pengguna.index')->with('success', 'Pengguna berhasil dihapus');
     }
 }
