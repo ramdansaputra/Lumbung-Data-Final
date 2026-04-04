@@ -15,9 +15,6 @@ RUN apt-get update && apt-get install -y \
     gd \
     opcache
 
-RUN a2dismod mpm_event mpm_worker 2>/dev/null || true \
-    && a2enmod mpm_prefork rewrite
-
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
@@ -43,4 +40,4 @@ RUN echo '<VirtualHost *:80>\n\
 
 EXPOSE 80
 
-CMD ["apache2-foreground"]
+CMD bash -c "a2dismod mpm_event mpm_worker 2>/dev/null; a2enmod mpm_prefork rewrite 2>/dev/null; apache2-foreground"
