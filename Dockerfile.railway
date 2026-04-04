@@ -23,6 +23,8 @@ WORKDIR /var/www/html
 
 COPY . .
 
+RUN if [ -d "app/Http/Controllers/admin" ]; then mv app/Http/Controllers/admin app/Http/Controllers/Admin; fi
+
 RUN mkdir -p storage/framework/views \
     storage/framework/cache \
     storage/framework/sessions \

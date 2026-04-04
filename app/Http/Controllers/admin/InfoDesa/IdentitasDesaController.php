@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\admin\InfoDesa;
+namespace App\Http\Controllers\Admin\InfoDesa;
 
 use App\Http\Controllers\Controller;
 use App\Models\IdentitasDesa;
