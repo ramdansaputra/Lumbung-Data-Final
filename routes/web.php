@@ -15,12 +15,12 @@ use App\Http\Controllers\InfoDesa\LembagaKategoriController;
 use App\Http\Controllers\InfoDesa\LembagaDesaController;
 
 // Kependudukan
-use App\Http\Controllers\Admin\kependudukan\PendudukController;
-use App\Http\Controllers\Admin\kependudukan\KeluargaController;
-use App\Http\Controllers\Admin\kependudukan\RumahTanggaController;
-use App\Http\Controllers\Admin\kependudukan\KelompokController;
-use App\Http\Controllers\Admin\kependudukan\DataSuplemenController;
-use App\Http\Controllers\Admin\kependudukan\CalonPemilihController;
+use App\Http\Controllers\Admin\Kependudukan\PendudukController;
+use App\Http\Controllers\Admin\Kependudukan\KeluargaController;
+use App\Http\Controllers\Admin\Kependudukan\RumahTanggaController;
+use App\Http\Controllers\Admin\Kependudukan\KelompokController;
+use App\Http\Controllers\Admin\Kependudukan\DataSuplemenController;
+use App\Http\Controllers\Admin\Kependudukan\CalonPemilihController;
 
 // Kehadiran
 use App\Http\Controllers\Admin\Kehadiran\JamKerjaController;
@@ -32,11 +32,11 @@ use App\Http\Controllers\Admin\Kehadiran\InputKehadiranController;
 // Buku Umum / Administrasi Desa
 use App\Http\Controllers\Admin\PeraturanDesaController;
 use App\Http\Controllers\Admin\BukuUmumController;
-use App\Http\Controllers\Admin\buku\KeputusanController;
-use App\Http\Controllers\Admin\buku\PemerintahController;
+use App\Http\Controllers\Admin\Buku\KeputusanController;
+use App\Http\Controllers\Admin\Buku\PemerintahController;
 use App\Http\Controllers\Admin\Buku\TanahKasDesaController;
 use App\Http\Controllers\Admin\Buku\TanahDesaController;
-use App\Http\Controllers\Admin\buku\AgendaSuratKeluarController;
+use App\Http\Controllers\Admin\Buku\AgendaSuratKeluarController;
 use App\Http\Controllers\Admin\Buku\AgendaSuratMasukController;
 use App\Http\Controllers\Admin\Buku\EkspedisiController;
 use App\Http\Controllers\Admin\Buku\LembaranDesaController;
@@ -61,10 +61,10 @@ use App\Http\Controllers\Admin\BukuAdministrasi\BukuKaderPemberdayaanController;
 use App\Http\Controllers\Admin\BukuAdministrasi\ArsipDesa\ArsipDesaController;
 
 // Sekretariat
-use App\Http\Controllers\Admin\sekretariat\SekretariatController;
+use App\Http\Controllers\Admin\Sekretariat\SekretariatController;
 
 // Keuangan
-use App\Http\Controllers\Admin\keuangan\KeuanganController;
+use App\Http\Controllers\Admin\Keuangan\KeuanganController;
 use App\Http\Controllers\Admin\Keuangan\InputController;
 
 // Layanan Surat

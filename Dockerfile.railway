@@ -23,6 +23,11 @@ WORKDIR /var/www/html
 
 COPY . .
 
+RUN find app/Http/Controllers -type d | while read dir; do \
+    newdir=$(echo "$dir" | sed 's|/admin/|/Admin/|g; s|/keuangan/|/Keuangan/|g; s|/kependudukan/|/Kependudukan/|g; s|/sekretariat/|/Sekretariat/|g; s|/kehadiran/|/Kehadiran/|g; s|/buku/|/Buku/|g; s|/statistik/|/Statistik/|g'); \
+    if [ "$dir" != "$newdir" ]; then mv "$dir" "$newdir" 2>/dev/null || true; fi; \
+    done
+
 RUN if [ -d "app/Http/Controllers/admin" ]; then mv app/Http/Controllers/admin app/Http/Controllers/Admin; fi
 
 RUN mkdir -p storage/framework/views \
