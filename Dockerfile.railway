@@ -23,12 +23,15 @@ WORKDIR /var/www/html
 
 COPY . .
 
-RUN find app/Http/Controllers -type d | while read dir; do \
-    newdir=$(echo "$dir" | sed 's|/admin/|/Admin/|g; s|/keuangan/|/Keuangan/|g; s|/kependudukan/|/Kependudukan/|g; s|/sekretariat/|/Sekretariat/|g; s|/kehadiran/|/Kehadiran/|g; s|/buku/|/Buku/|g; s|/statistik/|/Statistik/|g'); \
-    if [ "$dir" != "$newdir" ]; then mv "$dir" "$newdir" 2>/dev/null || true; fi; \
-    done
-
-RUN if [ -d "app/Http/Controllers/admin" ]; then mv app/Http/Controllers/admin app/Http/Controllers/Admin; fi
+# Fix case sensitivity (Linux is case-sensitive, Windows is not)
+RUN [ -d "app/Http/Controllers/admin" ]       && mv app/Http/Controllers/admin       app/Http/Controllers/Admin       || true
+RUN [ -d "app/Http/Controllers/Admin/keuangan" ]     && mv app/Http/Controllers/Admin/keuangan     app/Http/Controllers/Admin/Keuangan     || true
+RUN [ -d "app/Http/Controllers/Admin/kependudukan" ] && mv app/Http/Controllers/Admin/kependudukan app/Http/Controllers/Admin/Kependudukan || true
+RUN [ -d "app/Http/Controllers/Admin/sekretariat" ]  && mv app/Http/Controllers/Admin/sekretariat  app/Http/Controllers/Admin/Sekretariat  || true
+RUN [ -d "app/Http/Controllers/Admin/kehadiran" ]    && mv app/Http/Controllers/Admin/kehadiran    app/Http/Controllers/Admin/Kehadiran    || true
+RUN [ -d "app/Http/Controllers/Admin/statistik" ]    && mv app/Http/Controllers/Admin/statistik    app/Http/Controllers/Admin/Statistik    || true
+RUN [ -d "app/Http/Controllers/Admin/buku" ]         && mv app/Http/Controllers/Admin/buku         app/Http/Controllers/Admin/Buku_temp    || true
+RUN [ -d "app/Http/Controllers/Admin/Buku_temp" ]    && mv app/Http/Controllers/Admin/Buku_temp    app/Http/Controllers/Admin/Buku         || true
 
 RUN mkdir -p storage/framework/views \
     storage/framework/cache \
