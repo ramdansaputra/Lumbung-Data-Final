@@ -1,8 +1,8 @@
 @extends('superadmin.layout.superadmin')
 
-@section('title', 'Tambah User Baru')
-@section('header', 'Tambah User Baru')
-@section('subheader', 'Tambahkan pengguna baru ke dalam sistem.')
+@section('title', 'Edit User')
+@section('header', 'Edit User')
+@section('subheader', 'Perbarui data pengguna yang sudah terdaftar.')
 
 @section('content')
 
@@ -23,8 +23,9 @@
     {{-- Form Card --}}
     <div class="bg-white border border-slate-100 rounded-2xl shadow-sm p-8 space-y-6">
 
-        <form action="{{ route('superadmin.users.store') }}" method="POST">
+        <form action="{{ route('superadmin.users.update', $user->id) }}" method="POST">
             @csrf
+            @method('PUT')
 
             {{-- Nama --}}
             <div>
@@ -32,7 +33,7 @@
                 <input
                     type="text"
                     name="name"
-                    value="{{ old('name') }}"
+                    value="{{ old('name', $user->name) }}"
                     placeholder="Masukkan nama lengkap..."
                     required
                     class="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm font-semibold text-slate-800 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
@@ -45,7 +46,7 @@
                 <input
                     type="email"
                     name="email"
-                    value="{{ old('email') }}"
+                    value="{{ old('email', $user->email) }}"
                     placeholder="contoh@email.com"
                     required
                     class="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm font-semibold text-slate-800 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
@@ -54,12 +55,14 @@
 
             {{-- Password --}}
             <div>
-                <label class="block text-xs font-extrabold text-slate-500 uppercase tracking-widest mb-2">Password</label>
+                <label class="block text-xs font-extrabold text-slate-500 uppercase tracking-widest mb-2">
+                    Password
+                    <span class="normal-case font-medium text-slate-400 ml-1">(kosongkan jika tidak ingin mengubah)</span>
+                </label>
                 <input
                     type="password"
                     name="password"
                     placeholder="Minimal 6 karakter"
-                    required
                     class="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm font-semibold text-slate-800 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 >
             </div>
@@ -72,10 +75,10 @@
                     required
                     class="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm font-semibold text-slate-800 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 >
-                    <option value="" disabled selected>-- Pilih Role --</option>
-                    <option value="admin"      {{ old('role') == 'admin'      ? 'selected' : '' }}>Admin</option>
-                    <option value="operator"   {{ old('role') == 'operator'   ? 'selected' : '' }}>Operator</option>
-                    <option value="superadmin" {{ old('role') == 'superadmin' ? 'selected' : '' }}>Superadmin</option>
+                    <option value="" disabled>-- Pilih Role --</option>
+                    <option value="admin"      {{ old('role', $user->role) == 'admin'      ? 'selected' : '' }}>Admin</option>
+                    <option value="operator"   {{ old('role', $user->role) == 'operator'   ? 'selected' : '' }}>Operator</option>
+                    <option value="superadmin" {{ old('role', $user->role) == 'superadmin' ? 'selected' : '' }}>Superadmin</option>
                 </select>
             </div>
 
@@ -85,7 +88,7 @@
                     type="submit"
                     class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-blue-100"
                 >
-                    Simpan User
+                    Simpan Perubahan
                 </button>
                 <a
                     href="{{ route('superadmin.users.index') }}"
