@@ -22,6 +22,6 @@ class Pengumuman extends Model
     // Relasi untuk mengetahui siapa yang membuat
     public function pembuat()
     {
-        return $this->belongsTo(User::class, 'dibuat_oleh');
+        return $this->belongsTo(Users::class, 'dibuat_oleh');
     }
 }
