@@ -38,10 +38,10 @@ class PenggunaController extends Controller {
         return redirect()->route('admin.pengguna.index')->with('success', 'Pengguna berhasil ditambahkan');
     }
 
-    public function edit(Users $users) {
-        return view('admin.pengguna-edit', ['user' => $users]);
+    public function edit(Users $user) {
+        return view('admin.pengguna-edit', compact('user'));
     }
-    
+
     public function update(Request $request, Users $users) {
         $request->validate([
             'name' => 'required|string|max:255',
