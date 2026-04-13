@@ -13,19 +13,135 @@
             display: none;
             position: fixed;
             z-index: 9999;
-            background: #fff;
+            background: #ffffff;
             border: 1px solid #e5e7eb;
             border-radius: 12px;
-            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.13), 0 2px 8px rgba(0, 0, 0, 0.07);
-            min-width: 224px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            min-width: 240px; /* Diperlebar agar teks muat */
             overflow: hidden;
             animation: aksiDropIn 0.12s ease-out;
+            padding: 0.5rem 0; /* Memberi ruang di atas dan bawah list */
         }
 
         .dark .aksi-dropdown-portal {
             background: #1e293b;
             border-color: #334155;
-            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+
+        /* ─── KODE BARU: Layout Item di Dalam Dropdown ─── */
+        .aksi-dropdown-portal .aksi-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem; /* Jarak antara icon dan teks */
+            padding: 0.625rem 1rem; /* Jarak atas/bawah dan kiri/kanan */
+            font-size: 0.875rem; /* Ukuran font 14px */
+            font-weight: 500;
+            color: #4b5563; /* text-gray-600 */
+            text-decoration: none;
+            width: 100%;
+            text-align: left;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            transition: all 0.15s ease-in-out;
+        }
+
+        .dark .aksi-dropdown-portal .aksi-item {
+            color: #cbd5e1; /* text-slate-300 */
+        }
+
+        /* Hover Efek Default */
+        .aksi-dropdown-portal .aksi-item:hover {
+            background-color: #f3f4f6; /* bg-gray-100 */
+            color: #111827; /* text-gray-900 */
+        }
+
+        .dark .aksi-dropdown-portal .aksi-item:hover {
+            background-color: #334155; /* bg-slate-700 */
+            color: #f8fafc; /* text-slate-50 */
+        }
+
+        /* ─── KODE BARU: Garis Pemisah (Divider) ─── */
+        .aksi-dropdown-portal .aksi-divider {
+            height: 1px;
+            background-color: #e5e7eb; /* border-gray-200 */
+            margin: 0.375rem 0; /* Spasi luar margin */
+        }
+
+        .dark .aksi-dropdown-portal .aksi-divider {
+            background-color: #475569; /* border-slate-600 */
+        }
+
+        /* ─── KODE BARU: Hover Effects Berwarna (Opsional) ─── */
+        /* Menyesuaikan warna background saat di-hover dengan warna icon */
+        .aksi-item-amber:hover { background-color: #fef3c7 !important; color: #d97706 !important; }
+        .aksi-item-teal:hover { background-color: #ccfbf1 !important; color: #0f766e !important; }
+        .aksi-item-orange:hover { background-color: #ffedd5 !important; color: #c2410c !important; }
+        .aksi-item-blue:hover { background-color: #dbeafe !important; color: #1d4ed8 !important; }
+        .aksi-item-indigo:hover { background-color: #e0e7ff !important; color: #4338ca !important; }
+        .aksi-item-red:hover { background-color: #fee2e2 !important; color: #b91c1c !important; }
+        
+        /* Dark mode hover effects berwarna */
+        .dark .aksi-item-amber:hover { background-color: rgba(245, 158, 11, 0.15) !important; color: #fbbf24 !important; }
+        .dark .aksi-item-teal:hover { background-color: rgba(20, 184, 166, 0.15) !important; color: #2dd4bf !important; }
+        .dark .aksi-item-orange:hover { background-color: rgba(249, 115, 22, 0.15) !important; color: #fb923c !important; }
+        .dark .aksi-item-blue:hover { background-color: rgba(59, 130, 246, 0.15) !important; color: #60a5fa !important; }
+        .dark .aksi-item-indigo:hover { background-color: rgba(99, 102, 241, 0.15) !important; color: #818cf8 !important; }
+        .dark .aksi-item-red:hover { background-color: rgba(239, 68, 68, 0.15) !important; color: #f87171 !important; }
+
+        @keyframes aksiDropIn {
+            from { opacity: 0; transform: scale(0.95) translateY(-5px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        /* ─── KODE BARU: Styling Tombol "Pilih Aksi" di Tabel ─── */
+        .btn-aksi {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.375rem; /* Jarak antara icon gear, teks, dan panah bawah */
+            padding: 0.375rem 0.75rem; /* Spasi dalam tombol */
+            font-size: 0.75rem; /* Ukuran font 12px */
+            font-weight: 600;
+            color: #059669; /* Warna teks hijau (emerald-600) */
+            background-color: #ecfdf5; /* Warna latar hijau sangat muda (emerald-50) */
+            border: 1px solid #a7f3d0; /* Border hijau muda (emerald-200) */
+            border-radius: 0.375rem; /* Sudut membulat */
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            white-space: nowrap; /* Mencegah teks turun ke baris baru */
+        }
+
+        /* Efek saat cursor mouse berada di atas tombol */
+        .btn-aksi:hover {
+            background-color: #d1fae5;
+            border-color: #6ee7b7;
+            color: #047857;
+        }
+
+        /* Efek saat dropdown sedang terbuka (Class .active dari Javascript) */
+        .btn-aksi.active {
+            background-color: #10b981; /* Background hijau penuh */
+            border-color: #10b981;
+            color: #ffffff; /* Teks putih */
+        }
+
+        /* ─── Dark Mode untuk Tombol Aksi ─── */
+        .dark .btn-aksi {
+            background-color: rgba(16, 185, 129, 0.1);
+            border-color: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+        }
+
+        .dark .btn-aksi:hover {
+            background-color: rgba(16, 185, 129, 0.2);
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .dark .btn-aksi.active {
+            background-color: #10b981;
+            color: #ffffff;
         }
     </style>
 
@@ -1590,29 +1706,56 @@
                     '&gt;');
             }
 
-            /* ─── Posisikan portal di bawah / atas tombol ─── */
+            /* ─── Posisikan portal dengan Smart Flip (Otomatis Atas/Bawah) ─── */
             function positionPortal(btn) {
                 var rect = btn.getBoundingClientRect();
                 var vpW = window.innerWidth;
                 var vpH = window.innerHeight;
 
-                // Tampil sementara (hidden) agar bisa ukur
+                // Tampil sementara (hidden) agar bisa mengukur dimensi asli
                 portal.style.visibility = 'hidden';
                 portal.style.display = 'block';
+                
+                // Reset styling dari perhitungan sebelumnya
+                portal.style.maxHeight = 'none';
+                portal.style.overflowY = 'hidden';
 
                 var ddW = portal.offsetWidth;
                 var ddH = portal.offsetHeight;
 
-                var top = rect.bottom + 4;
+                // --- 1. Hitung Posisi Horizontal (Kiri/Kanan) ---
                 var left = rect.left;
+                if (left + ddW > vpW - 8) {
+                    left = rect.right - ddW; // Jika mentok kanan, sejajarkan kanan dengan tombol
+                }
+                if (left < 4) left = 4; // Batas aman kiri
 
-                // Overflow kanan → geser kiri
-                if (left + ddW > vpW - 8) left = rect.right - ddW;
-                // Overflow bawah → muncul di atas
-                if (top + ddH > vpH - 8) top = rect.top - ddH - 4;
-                // Jangan lebih kiri dari 4px
-                if (left < 4) left = 4;
+                // --- 2. Hitung Posisi Vertikal (Atas/Bawah) dengan Smart Flip ---
+                var top = rect.bottom + 4; // Default: Buka ke bawah
+                var spaceBelow = vpH - rect.bottom - 8; // Sisa ruang di bawah tombol
+                var spaceAbove = rect.top - 8; // Sisa ruang di atas tombol
 
+                // Jika tinggi menu lebih besar dari sisa ruang di bawah layar (Artinya mentok bawah)
+                if (ddH > spaceBelow) {
+                    // Cek apakah ruang di ATAS lebih besar daripada di BAWAH
+                    if (spaceAbove > spaceBelow) {
+                        // Buka ke ATAS tombol
+                        top = rect.top - ddH - 4;
+                        
+                        // Jika ternyata ruang di atas juga nggak muat semua, kasih batas max-height & scroll
+                        if (ddH > spaceAbove) {
+                            portal.style.maxHeight = spaceAbove + 'px';
+                            portal.style.overflowY = 'auto';
+                        }
+                    } else {
+                        // Jika ruang di bawah masih lebih besar dari atas (misal layar super sempit), 
+                        // tetap di bawah tapi dibatasi dan kasih scroll
+                        portal.style.maxHeight = spaceBelow + 'px';
+                        portal.style.overflowY = 'auto';
+                    }
+                }
+
+                // --- 3. Terapkan Posisi ---
                 portal.style.top = top + 'px';
                 portal.style.left = left + 'px';
                 portal.style.visibility = 'visible';
