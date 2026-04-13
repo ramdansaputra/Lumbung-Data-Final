@@ -6,7 +6,7 @@
 
     {{-- ══════════════════════════════════════════════════════════════
      STYLE: dropdown portal (posisi fixed, keluar dari tabel)
-══════════════════════════════════════════════════════════════ --}}
+    ══════════════════════════════════════════════════════════════ --}}
     <style>
         /* Dropdown Portal — dirender di body, posisi fixed */
         .aksi-dropdown-portal {
@@ -27,63 +27,41 @@
             border-color: #334155;
             box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
         }
+    </style>
 
     {{-- ── FLASH MESSAGES ── --}}
-    <!-- @if (session('success'))
-        <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 6000)"
-            x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 -translate-y-2"
-            x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-200"
-            x-transition:leave-end="opacity-0"
-            class="flex items-start gap-3 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl mb-5">
-            <svg class="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clip-rule="evenodd" />
+    {{-- Breadcrumb Navigation --}}
+    <nav class="flex items-center gap-2 mb-5 text-sm">
+        <a href="#" class="inline-flex items-center gap-1.5 text-gray-500 hover:text-emerald-600 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
             </svg>
-            <div>
-                <h2 class="text-lg font-bold text-gray-800 dark:text-slate-100">Data Penduduk</h2>
-                <p class="text-sm text-gray-400 dark:text-slate-500 mt-0.5">Kelola data penduduk desa</p>
-            </div>
-        </div>
-    @endif -->
+            Beranda
+        </a>
+        <svg class="w-3.5 h-3.5 text-gray-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+        <span class="text-gray-600 dark:text-slate-300 font-medium">Data Penduduk</span>
+    </nav>
 
-    <!-- @if (session('error'))
-        <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 6000)"
-            x-transition:leave="transition ease-in duration-200" x-transition:leave-end="opacity-0"
-            class="flex items-center gap-3 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl mb-5">
-            <svg class="w-5 h-5 text-red-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                    clip-rule="evenodd" />
-            </svg>
-            <p class="text-sm font-medium text-red-700 dark:text-red-300">{{ session('error') }}</p>
-        </div>
-    @endif -->
+    {{-- Wrapper state component Alpine JS untuk bulk action & checkbox --}}
+    <div x-data="{
+        selectedIds: [],
+        selectAll: false,
+        toggleAll() {
+            if (this.selectAll) {
+                this.selectedIds = Array.from(document.querySelectorAll('.row-checkbox')).map(cb => cb.value);
+            } else {
+                this.selectedIds = [];
+            }
+        },
+        toggleOne() {
+            const totalCheckboxes = document.querySelectorAll('.row-checkbox').length;
+            this.selectAll = totalCheckboxes > 0 && this.selectedIds.length === totalCheckboxes;
+        }
+    }">
 
-    {{-- ── CARD UTAMA ── --}}
-    <div class="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700">
-
-        {{-- ════ BARIS TOMBOL AKSI ════ --}}
-        <div class="flex flex-wrap items-center gap-2 px-5 pt-5 pb-4 border-b border-gray-100 dark:border-slate-700">
-
-            {{-- 1. Tambah Penduduk --}}
-            <div class="relative" x-data="{ open: false }" @click.away="open = false">
-                <button @click="open = !open"
-                    class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold rounded-lg transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                    </svg>
-                    Beranda
-                </a>
-                <svg class="w-3.5 h-3.5 text-gray-300 dark:text-slate-600" fill="none" stroke="currentColor"
-                    viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-                <span class="text-gray-600 dark:text-slate-300 font-medium">Data Penduduk</span>
-            </nav>
-        </div>
-        
         {{-- ── CARD UTAMA ── --}}
         <div class="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700">
 
@@ -223,8 +201,7 @@
                             </svg>
                             NIK Sementara
                             @if ($isNikSementara)
-                                <span
-                                    class="ml-auto text-[10px] bg-emerald-500 text-white px-1.5 py-0.5 rounded-full">Aktif</span>
+                                <span class="ml-auto text-[10px] bg-emerald-500 text-white px-1.5 py-0.5 rounded-full">Aktif</span>
                             @endif
                         </a>
 
@@ -367,10 +344,8 @@
                             <span x-text="label || placeholder"
                                 :class="label ? 'text-gray-800 dark:text-slate-200' : 'text-gray-400 dark:text-slate-500'"></span>
                             <svg class="w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ml-2"
-                                :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 9l-7 7-7-7" />
+                                :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
                         <div x-show="open" x-transition:enter="transition ease-out duration-100"
@@ -454,10 +429,8 @@
                             <span x-text="label || placeholder"
                                 :class="label ? 'text-gray-800 dark:text-slate-200' : 'text-gray-400 dark:text-slate-500'"></span>
                             <svg class="w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ml-2"
-                                :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 9l-7 7-7-7" />
+                                :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
                         <div x-show="open" x-transition:enter="transition ease-out duration-100"
@@ -537,10 +510,8 @@
                             <span x-text="label || placeholder"
                                 :class="label ? 'text-gray-800 dark:text-slate-200' : 'text-gray-400 dark:text-slate-500'"></span>
                             <svg class="w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ml-2"
-                                :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 9l-7 7-7-7" />
+                                :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
                         <div x-show="open" x-transition:enter="transition ease-out duration-100"
@@ -590,7 +561,7 @@
                         selected: '{{ request('dusun') }}',
                         placeholder: 'Pilih Dusun',
                         options: [
-                            @foreach ($dusunList as $dusun)
+                            @foreach ($dusunList ?? [] as $dusun)
                     { value: '{{ addslashes($dusun) }}', label: '{{ addslashes($dusun) }}' }, @endforeach
                         ],
                         get label() { return this.options.find(o => o.value === this.selected)?.label ?? ''; },
@@ -620,10 +591,8 @@
                             <span x-text="label || placeholder"
                                 :class="label ? 'text-gray-800 dark:text-slate-200' : 'text-gray-400 dark:text-slate-500'"></span>
                             <svg class="w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ml-2"
-                                :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 9l-7 7-7-7" />
+                                :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
                         <div x-show="open" x-transition:enter="transition ease-out duration-100"
@@ -673,8 +642,7 @@
                                bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300
                                rounded-lg border border-sky-300 dark:border-sky-700 hover:bg-sky-200 transition-colors">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M6 18L18 6M6 6l12 12" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                             </svg>
                             NIK Sementara
                         </a>
@@ -703,8 +671,7 @@
                                hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors
                                border border-red-200 dark:border-red-800">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M6 18L18 6M6 6l12 12" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                             </svg>
                             Reset
                         </a>
@@ -750,10 +717,8 @@
                                 'border-gray-300 dark:border-slate-600 hover:border-emerald-400 dark:hover:border-emerald-500'">
                             <span x-text="label" class="text-gray-700 dark:text-slate-200"></span>
                             <svg class="w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ml-1"
-                                :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 9l-7 7-7-7" />
+                                :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
                         <div x-show="open" x-transition:enter="transition ease-out duration-100"
@@ -784,7 +749,7 @@
                     <span>entri</span>
                 </form>
 
-                {{-- Search (tidak berubah) --}}
+                {{-- Search --}}
                 <form method="GET" action="{{ route('admin.penduduk') }}" class="flex items-center gap-2">
                     @foreach (request()->except('search', 'page') as $key => $val)
                         <input type="hidden" name="{{ $key }}" value="{{ $val }}">
@@ -1512,8 +1477,7 @@
                         <div class="px-6 py-5">
                             <label class="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">Kumpulan
                                 NIK</label>
-                            <textarea name="kumpulan_nik" rows="6"
-                                placeholder="-- Masukkan NIK, pisahkan dengan enter, koma, atau spasi --"
+                            <textarea name="kumpulan_nik" rows="6" placeholder="-- Masukkan NIK, pisahkan dengan enter, koma, atau spasi --"
                                 class="w-full px-3 py-2.5 border border-gray-300 dark:border-slate-600 rounded-lg text-sm font-mono bg-white dark:bg-slate-700 text-gray-700 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none resize-none">{{ request('kumpulan_nik') }}</textarea>
                             <p class="mt-1.5 text-xs text-gray-400 dark:text-slate-500">Masukkan satu NIK per baris, atau
                                 pisahkan dengan koma/spasi</p>
@@ -1542,11 +1506,11 @@
             </div>
         </div>
 
-    </div>{{-- /x-data --}}
+    </div>{{-- /x-data penutup wrapper alpine utama --}}
 
     {{-- ══════════════════════════════════════════════════════════════
      JAVASCRIPT — Dropdown Portal Engine
-══════════════════════════════════════════════════════════════ --}}
+    ══════════════════════════════════════════════════════════════ --}}
     <script>
         (function() {
             'use strict';
