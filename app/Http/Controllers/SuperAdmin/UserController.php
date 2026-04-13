@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 class UserController extends Controller {
 
     public function index() {
-        $users = Users::whereIn('role', ['superadmin', 'admin', 'operator'])
+        $users = Users::whereIn('role', ['superadmin', 'admin'])
             ->latest()
             ->paginate(10);
 
@@ -23,13 +23,15 @@ class UserController extends Controller {
     public function store(Request $request) {
         $request->validate([
             'name'     => 'required|string|max:255',
+            'username' => 'required|string|max:255|unique:users,username',
             'email'    => 'required|email|unique:users,email',
             'password' => 'required|min:6',
-            'role'     => 'required|in:superadmin,admin,operator',
+            'role'     => 'required|in:superadmin,admin',
         ]);
 
         Users::create([
             'name'     => $request->name,
+            'username' => $request->username,
             'email'    => $request->email,
             'password' => bcrypt($request->password),
             'role'     => $request->role,
@@ -48,15 +50,17 @@ class UserController extends Controller {
 
         $request->validate([
             'name'     => 'required|string|max:255',
+            'username' => 'required|string|max:255|unique:users,username,' . $id,
             'email'    => 'required|email|unique:users,email,' . $id,
-            'role'     => 'required|in:superadmin,admin,operator',
+            'role'     => 'required|in:superadmin,admin',
             'password' => 'nullable|min:6',
         ]);
 
         $user->update([
-            'name'  => $request->name,
-            'email' => $request->email,
-            'role'  => $request->role,
+            'name'     => $request->name,
+            'username' => $request->username,
+            'email'    => $request->email,
+            'role'     => $request->role,
             ...($request->filled('password') ? ['password' => bcrypt($request->password)] : []),
         ]);
 
