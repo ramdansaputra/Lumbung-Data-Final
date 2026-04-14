@@ -1,501 +1,407 @@
-@extends('layouts.app') {{-- sesuaikan dengan layout warga Anda --}}
+@extends('layouts.app')
 
 @section('title', 'Notifikasi Saya')
 
 @section('content')
+<div x-data="wargaNotifPage()">
 
-<div class="min-h-screen bg-slate-50 py-8 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-3xl mx-auto">
-
-        {{-- ── Header ── --}}
-        <div class="mb-6 flex items-center justify-between">
-            <div>
-                <h1 class="text-2xl font-bold text-slate-800">Notifikasi Saya</h1>
-                <p class="text-sm text-slate-500 mt-0.5">Semua pesan & pembaruan status surat Anda</p>
-            </div>
-            {{-- Tombol Tandai Semua --}}
-            <button
-                id="btn-tandai-semua"
-                onclick="tandaiSemuaDibaca()"
-                class="hidden items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl shadow-sm transition-all">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                Tandai Semua Dibaca
-            </button>
+    {{-- Header --}}
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h2 class="text-lg font-bold text-gray-700 dark:text-slate-200">Notifikasi Saya</h2>
+            <p class="text-sm text-gray-400 dark:text-slate-500 mt-0.5">Semua pesan & pembaruan status surat</p>
         </div>
-
-        {{-- ── Filter Bar ── --}}
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 px-4 py-3 mb-4 flex flex-wrap items-center gap-3">
-
-            {{-- Filter Status --}}
-            <div class="flex items-center gap-1 bg-slate-100 rounded-xl p-1">
-                <button onclick="setFilter('semua')" id="filter-semua"
-                    class="filter-btn active px-3 py-1.5 text-xs font-semibold rounded-lg transition-all">
-                    Semua
-                </button>
-                <button onclick="setFilter('belum')" id="filter-belum"
-                    class="filter-btn px-3 py-1.5 text-xs font-semibold rounded-lg transition-all text-slate-500">
-                    Belum Dibaca
-                </button>
-                <button onclick="setFilter('sudah')" id="filter-sudah"
-                    class="filter-btn px-3 py-1.5 text-xs font-semibold rounded-lg transition-all text-slate-500">
-                    Sudah Dibaca
-                </button>
-            </div>
-
-            {{-- Filter Kategori --}}
-            <select id="filter-tipe" onchange="renderList()"
-                class="text-xs font-medium text-slate-600 bg-slate-100 border-0 rounded-xl px-3 py-2 focus:ring-2 focus:ring-emerald-400 outline-none cursor-pointer">
-                <option value="semua">Semua Kategori</option>
-                <option value="pesan">Pesan Masuk</option>
-                <option value="surat">Update Surat</option>
-            </select>
-
-            {{-- Spacer + Jumlah --}}
-            <div class="ml-auto">
-                <span id="notif-count" class="text-xs text-slate-400 font-medium"></span>
-            </div>
-        </div>
-
-        {{-- ── List Notifikasi ── --}}
-        <div id="notif-list" class="space-y-2">
-            {{-- Loading skeleton --}}
-            <div id="skeleton" class="space-y-2">
-                @for($i = 0; $i < 4; $i++)
-                <div class="bg-white rounded-2xl border border-slate-100 px-4 py-4 animate-pulse flex gap-3">
-                    <div class="w-10 h-10 bg-slate-200 rounded-full flex-shrink-0"></div>
-                    <div class="flex-1 space-y-2">
-                        <div class="h-3 bg-slate-200 rounded w-1/3"></div>
-                        <div class="h-3 bg-slate-200 rounded w-2/3"></div>
-                        <div class="h-2.5 bg-slate-100 rounded w-1/4"></div>
-                    </div>
-                </div>
-                @endfor
-            </div>
-        </div>
-
-        {{-- ── Empty state ── --}}
-        <div id="empty-state" class="hidden text-center py-16">
-            <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                </svg>
-            </div>
-            <p class="text-slate-500 font-medium">Tidak ada notifikasi</p>
-            <p class="text-slate-400 text-sm mt-1">Notifikasi akan muncul di sini</p>
-        </div>
-
     </div>
-</div>
 
-<style>
-    .filter-btn.active {
-        background: #fff;
-        color: #059669;
-        font-weight: 700;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-    }
+    {{-- Action Buttons --}}
+    <div class="flex items-center justify-end gap-2 mb-6">
+        <button @click="confirmDeleteSelected()" x-show="selectedItems.length > 0"
+            class="inline-flex items-center gap-2 px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            Hapus (<span x-text="selectedItems.length"></span>)
+        </button>
+        <button @click="markAllRead()"
+            class="inline-flex items-center gap-2 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            Tandai Semua Dibaca
+        </button>
+    </div>
 
-    /* Card notifikasi */
-    .notif-card {
-        background: #fff;
-        border-radius: 1rem;
-        border: 1px solid #f1f5f9;
-        padding: 1rem;
-        display: flex;
-        align-items: flex-start;
-        gap: 0.75rem;
-        transition: box-shadow 0.15s, background 0.15s;
-        position: relative;
-    }
-    .notif-card:hover {
-        box-shadow: 0 4px 16px rgba(0,0,0,0.07);
-    }
-    .notif-card.unread {
-        background: #f0fdf9;
-        border-color: #d1fae5;
-    }
-    .notif-card.unread::before {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        width: 3px;
-        background: #10b981;
-        border-radius: 3px 0 0 3px;
-    }
+    {{-- Filter --}}
+    <div class="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-5 mb-6">
+        <h3 class="text-sm font-semibold text-gray-900 dark:text-slate-100 mb-4 flex items-center gap-2">
+            <svg class="w-4 h-4 text-gray-500 dark:text-slate-400" fill="none" stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
+            </svg>
+            Filter Data
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+                <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1.5">Status</label>
+                <select x-model="filters.status" @change="applyFilters()"
+                    class="w-full border border-gray-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-colors">
+                    <option value="">Semua</option>
+                    <option value="unread">Belum Dibaca</option>
+                    <option value="read">Sudah Dibaca</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1.5">Kategori</label>
+                <select x-model="filters.category" @change="applyFilters()"
+                    class="w-full border border-gray-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-colors">
+                    <option value="">Semua</option>
+                    <option value="pesan">Pesan</option>
+                    <option value="surat">Surat Permohonan</option>
+                </select>
+            </div>
+        </div>
+    </div>
 
-    /* Icon wrapper */
-    .notif-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 9999px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-    }
+    {{-- Table --}}
+    <div
+        class="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr class="bg-gray-50 dark:bg-slate-700/50 border-b border-gray-200 dark:border-slate-700">
+                        <th
+                            class="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider w-10">
+                            <input type="checkbox" @change="toggleSelectAll($event.target.checked)"
+                                class="w-4 h-4 rounded border-gray-300 dark:border-slate-600 text-emerald-600 focus:ring-emerald-500">
+                        </th>
+                        <th
+                            class="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                            NO</th>
+                        <th
+                            class="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                            KATEGORI</th>
+                        <th
+                            class="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                            STATUS</th>
+                        <th
+                            class="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                            PESAN</th>
+                        <th
+                            class="px-5 py-3 text-right text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                            AKSI</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 dark:divide-slate-700">
 
-    /* Tombol aksi kanan */
-    .notif-actions {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        flex-shrink: 0;
-        margin-left: auto;
-    }
-    .btn-check {
-        width: 30px;
-        height: 30px;
-        border-radius: 9999px;
-        border: 1.5px solid #d1d5db;
-        background: #fff;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: border-color 0.15s, background 0.15s;
-        flex-shrink: 0;
-    }
-    .btn-check:hover {
-        border-color: #10b981;
-        background: #ecfdf5;
-    }
-    .btn-check svg { width: 13px; height: 13px; stroke: #9ca3af; transition: stroke 0.15s; }
-    .btn-check:hover svg { stroke: #10b981; }
+                    <template x-if="loading">
+                        <tr>
+                            <td colspan="6" class="py-12 text-center">
+                                <svg class="animate-spin h-8 w-8 text-emerald-500 mx-auto" fill="none"
+                                    viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10"
+                                        stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                    </path>
+                                </svg>
+                                <p class="text-sm text-gray-500 dark:text-slate-400 mt-2">Memuat...</p>
+                            </td>
+                        </tr>
+                    </template>
 
-    .btn-hapus {
-        width: 30px;
-        height: 30px;
-        border-radius: 9999px;
-        border: 1.5px solid #fecaca;
-        background: #fff;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: border-color 0.15s, background 0.15s;
-        flex-shrink: 0;
-    }
-    .btn-hapus:hover { border-color: #ef4444; background: #fef2f2; }
-    .btn-hapus svg { width: 13px; height: 13px; stroke: #fca5a5; transition: stroke 0.15s; }
-    .btn-hapus:hover svg { stroke: #ef4444; }
+                    <template x-if="!loading && filteredItems.length === 0">
+                        <tr>
+                            <td colspan="6" class="py-12 text-center">
+                                <svg class="w-16 h-16 text-gray-300 dark:text-slate-600 mx-auto mb-3" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                </svg>
+                                <p class="text-gray-500 dark:text-slate-400 font-medium">Tidak ada notifikasi</p>
+                            </td>
+                        </tr>
+                    </template>
 
-    /* Badge tipe */
-    .badge-tipe {
-        display: inline-flex;
-        align-items: center;
-        padding: 1px 8px;
-        border-radius: 9999px;
-        font-size: 10px;
-        font-weight: 600;
-        letter-spacing: 0.02em;
-    }
+                    <template x-for="(item, index) in paginatedItems" :key="item.id">
+                        <tr class="hover:bg-gray-50 dark:hover:bg-slate-700/40 transition-colors"
+                            :class="!item.is_read ? 'bg-emerald-50/30 dark:bg-emerald-900/10' : ''">
+                            <td class="px-5 py-4">
+                                <input type="checkbox" :value="item.id" @change="toggleSelect(item.id)"
+                                    :checked="selectedItems.includes(item.id)"
+                                    class="w-4 h-4 rounded border-gray-300 dark:border-slate-600 text-emerald-600 focus:ring-emerald-500">
+                            </td>
+                            <td class="px-5 py-4 text-sm text-gray-600 dark:text-slate-300"
+                                x-text="(currentPage - 1) * perPage + index + 1"></td>
+                            <td class="px-5 py-4">
+                                <span class="px-2.5 py-1 rounded-full text-xs font-medium"
+                                    :class="{
+                                        'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300': item.type === 'pesan',
+                                        'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300': item.type === 'surat'
+                                    }"
+                                    x-text="item.type === 'pesan' ? 'Pesan' : 'Surat Permohonan'">
+                                </span>
+                            </td>
+                            <td class="px-5 py-4">
+                                <span class="px-2.5 py-1 rounded-full text-xs font-medium"
+                                    :class="item.is_read ?
+                                        'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300' :
+                                        'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'"
+                                    x-text="item.is_read ? 'Sudah dibaca' : 'Belum dibaca'">
+                                </span>
+                            </td>
+                            <td class="px-5 py-4">
+                                <div>
+                                    <p class="text-sm font-semibold text-gray-800 dark:text-slate-100"
+                                        x-text="item.title"></p>
+                                    <p class="text-xs text-gray-500 dark:text-slate-400 truncate max-w-xs"
+                                        x-text="item.message"></p>
+                                    <p class="text-[10px] text-gray-400 dark:text-slate-500 mt-0.5"
+                                        x-text="item.time"></p>
+                                </div>
+                            </td>
+                            <td class="px-5 py-4">
+                                <div class="flex items-center justify-end gap-1.5">
+                                    {{-- Tandai Baca --}}
+                                    <button @click="markRead(item.id, item.type)" x-show="!item.is_read"
+                                        title="Tandai Dibaca"
+                                        class="w-8 h-8 inline-flex items-center justify-center rounded-lg bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 border border-emerald-100 dark:border-emerald-800 transition-all duration-150 hover:scale-110">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    </button>
 
-    /* Animasi hapus */
-    @keyframes card-remove {
-        0%   { opacity: 1; transform: translateX(0); max-height: 120px; }
-        100% { opacity: 0; transform: translateX(20px); max-height: 0; padding: 0; margin: 0; overflow: hidden; }
-    }
-    .notif-card.removing {
-        animation: card-remove 0.3s ease-out forwards;
-        pointer-events: none;
-    }
-</style>
+                                    {{-- Hapus --}}
+                                    <button type="button" title="Hapus"
+                                        @click="confirmDeleteItem(item.id, item.type)"
+                                        class="w-8 h-8 inline-flex items-center justify-center rounded-lg bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/50 border border-red-100 dark:border-red-800 transition-all duration-150 hover:scale-110">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </template>
 
-<script>
-    const CSRF = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
-    let allItems     = [];
-    let filterStatus = 'semua';
+                </tbody>
+            </table>
 
-    // ════════════════════════════════════════════════════════════
-    // FIX #1: _updateBadge() — seperti admin, dispatch event supaya
-    //         navbar bell update LANGSUNG tanpa menunggu polling 30 detik
-    // ════════════════════════════════════════════════════════════
-    async function _updateBadge() {
-        try {
-            const res = await fetch('/warga/notifikasi/badges', {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            });
-            if (!res.ok) return;
-            const data = await res.json();
-            const total = (data.unread_pesan ?? 0) + (data.update_surat ?? 0);
-
-            // Dispatch ke navbar (didengarkan oleh wargaNotifApp)
-            window.dispatchEvent(new CustomEvent('warga-notif-badge-changed', {
-                detail: { total }
-            }));
-        } catch (e) { /* silent */ }
-    }
-
-    // ── Fetch data dari endpoint list ─────────────────────────────
-    async function fetchNotifikasi() {
-        try {
-            const res = await fetch('/warga/notifikasi/list', {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            });
-            const data = await res.json();
-            allItems = data.items ?? [];
-        } catch (e) {
-            allItems = [];
-        }
-    }
-
-    // ── Set filter status ─────────────────────────────────────────
-    function setFilter(val) {
-        filterStatus = val;
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active', 'text-slate-500'));
-        const active = document.getElementById('filter-' + val);
-        if (active) active.classList.add('active');
-        document.querySelectorAll('.filter-btn:not(.active)').forEach(b => b.classList.add('text-slate-500'));
-        renderList();
-    }
-
-    // ── Render list ───────────────────────────────────────────────
-    function renderList() {
-        const tipe = document.getElementById('filter-tipe').value;
-
-        let items = [...allItems];
-
-        if (filterStatus === 'belum') items = items.filter(i => !i.dibaca);
-        if (filterStatus === 'sudah') items = items.filter(i => i.dibaca);
-        if (tipe === 'pesan')  items = items.filter(i => i.tipe === 'pesan');
-        if (tipe === 'surat')  items = items.filter(i => i.tipe !== 'pesan');
-
-        // Update count
-        const unread = allItems.filter(i => !i.dibaca).length;
-        const countEl = document.getElementById('notif-count');
-        countEl.textContent = items.length + ' notifikasi' + (unread > 0 ? ' · ' + unread + ' belum dibaca' : '');
-
-        // Tampilkan / sembunyikan tombol tandai semua
-        const btnTandai = document.getElementById('btn-tandai-semua');
-        if (unread > 0) btnTandai.classList.replace('hidden', 'flex');
-        else            btnTandai.classList.replace('flex', 'hidden');
-
-        const container = document.getElementById('notif-list');
-        const skeleton  = document.getElementById('skeleton');
-        const empty     = document.getElementById('empty-state');
-
-        if (skeleton) skeleton.classList.add('hidden');
-
-        if (items.length === 0) {
-            container.innerHTML = '';
-            empty.classList.remove('hidden');
-            return;
-        }
-
-        empty.classList.add('hidden');
-        container.innerHTML = items.map(item => cardHTML(item)).join('');
-    }
-
-    // ── HTML satu card ────────────────────────────────────────────
-    function cardHTML(item) {
-        const iconBg = {
-            pesan:   'bg-purple-100',
-            success: 'bg-emerald-100',
-            danger:  'bg-red-100',
-            info:    'bg-blue-100',
-        }[item.tipe] ?? 'bg-slate-100';
-
-        const iconSVG = {
-            pesan: `<svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>`,
-            success: `<svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
-            danger: `<svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
-            info: `<svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
-        }[item.tipe] ?? '';
-
-        const badgeColor = {
-            pesan:   'bg-purple-50 text-purple-700',
-            success: 'bg-emerald-50 text-emerald-700',
-            danger:  'bg-red-50 text-red-600',
-            info:    'bg-blue-50 text-blue-700',
-        }[item.tipe] ?? 'bg-slate-100 text-slate-600';
-
-        const badgeLabel = {
-            pesan:   'Pesan Masuk',
-            success: 'Surat Selesai',
-            danger:  'Surat Ditolak',
-            info:    'Update Surat',
-        }[item.tipe] ?? item.tipe;
-
-        const unreadClass = !item.dibaca ? 'unread' : '';
-
-        const btnCentang = !item.dibaca ? `
-            <button class="btn-check" onclick="tandaiSatu('${escAttr(item.id)}', '${escAttr(item.tipe)}', this)" title="Tandai dibaca">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
-                </svg>
-            </button>` : `
-            <span class="text-[10px] text-slate-400 font-medium px-2">Dibaca</span>`;
-
-        return `
-        <div class="notif-card ${unreadClass}" data-id="${escAttr(item.id)}">
-            <div class="notif-icon ${iconBg}">${iconSVG}</div>
-            <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-2 flex-wrap mb-0.5">
-                    <span class="text-sm font-semibold text-slate-800">${escHtml(item.judul)}</span>
-                    <span class="badge-tipe ${badgeColor}">${badgeLabel}</span>
-                </div>
-                <p class="text-sm text-slate-500 leading-relaxed">${escHtml(item.pesan)}</p>
-                <p class="text-xs text-slate-400 mt-1.5 flex items-center gap-1">
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    ${escHtml(item.waktu)}
+            {{-- Pagination --}}
+            <div
+                class="flex flex-col sm:flex-row items-center justify-between gap-4 px-5 py-4 border-t border-gray-100 dark:border-slate-700">
+                <p class="text-sm text-gray-500 dark:text-slate-400">
+                    Menampilkan <span x-text="paginationStart"></span> sampai
+                    <span x-text="paginationEnd"></span> dari
+                    <span x-text="filteredItems.length"></span> entri
                 </p>
+                <div class="flex items-center gap-2">
+                    <button @click="prevPage()" :disabled="currentPage === 1"
+                        class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+                        :class="currentPage === 1 ?
+                            'bg-gray-100 dark:bg-slate-700 text-gray-400 dark:text-slate-500 cursor-not-allowed' :
+                            'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-200 hover:bg-gray-200 dark:hover:bg-slate-600'">
+                        Sebelumnya
+                    </button>
+                    <button @click="nextPage()" :disabled="currentPage >= totalPages"
+                        class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+                        :class="currentPage >= totalPages ?
+                            'bg-gray-100 dark:bg-slate-700 text-gray-400 dark:text-slate-500 cursor-not-allowed' :
+                            'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-200 hover:bg-gray-200 dark:hover:bg-slate-600'">
+                        Selanjutnya
+                    </button>
+                </div>
             </div>
-            <div class="notif-actions">
-                ${btnCentang}
-                <button class="btn-hapus" onclick="hapusSatu('${escAttr(item.id)}', '${escAttr(item.tipe)}', this)" title="Hapus notifikasi">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                    </svg>
-                </button>
-            </div>
-        </div>`;
-    }
 
-    // ── Escape helpers ────────────────────────────────────────────
-    function escHtml(str) {
-        return String(str ?? '').replace(/[&<>"']/g, c => (
-            {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]
-        ));
-    }
-    // FIX: escAttr khusus untuk nilai di dalam onclick attribute (hindari XSS)
-    function escAttr(str) {
-        return String(str ?? '').replace(/'/g, "\\'");
-    }
+        </div>
+    </div>
 
-    // ════════════════════════════════════════════════════════════
-    // FIX #2: tandaiSatu — tambah _updateBadge() setelah berhasil
-    //         (sebelumnya tidak dispatch apapun ke navbar)
-    // ════════════════════════════════════════════════════════════
-    async function tandaiSatu(id, tipe, btn) {
-        btn.disabled = true;
-        btn.innerHTML = `<svg class="w-3.5 h-3.5 text-emerald-500 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>`;
+</div>
+@endsection
 
-        try {
-            const res = await fetch('/warga/notifikasi/baca-satu', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': CSRF,
-                },
-                body: JSON.stringify({ id, tipe })
-            });
+@section('scripts')
+<script>
+    function wargaNotifPage() {
+        return {
+            items: [],
+            loading: true,
+            selectedItems: [],
+            currentPage: 1,
+            perPage: 10,
+            filters: {
+                status: '',
+                category: ''
+            },
 
-            if (!res.ok) throw new Error('HTTP ' + res.status);
+            async init() {
+                await this.fetchData();
+            },
 
-            // Update state lokal
-            const item = allItems.find(i => i.id === id);
-            if (item) item.dibaca = true;
-            renderList();
-
-            // FIX: dispatch ke navbar supaya badge langsung berkurang
-            await _updateBadge();
-
-        } catch (e) {
-            // Reset tombol jika gagal
-            btn.disabled = false;
-            btn.innerHTML = `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>`;
-        }
-    }
-
-    // ════════════════════════════════════════════════════════════
-    // FIX #3: hapusSatu — tambah _updateBadge() setelah berhasil
-    //         (sebelumnya tidak dispatch apapun ke navbar)
-    // ════════════════════════════════════════════════════════════
-    async function hapusSatu(id, tipe, btn) {
-        const card = btn.closest('.notif-card');
-
-        // Animasi hilang dulu
-        card.classList.add('removing');
-
-        try {
-            const res = await fetch('/warga/notifikasi/hapus-satu', {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': CSRF,
-                },
-                body: JSON.stringify({ id, tipe })
-            });
-
-            if (!res.ok) throw new Error('HTTP ' + res.status);
-
-            // Hapus dari state lokal setelah animasi selesai
-            setTimeout(async () => {
-                allItems = allItems.filter(i => i.id !== id);
-                renderList();
-                // FIX: dispatch ke navbar supaya badge langsung berkurang
-                await _updateBadge();
-            }, 300);
-
-        } catch (e) {
-            card.classList.remove('removing');
-        }
-    }
-
-    // ════════════════════════════════════════════════════════════
-    // FIX #4: tandaiSemuaDibaca — sebelumnya HANYA memanggil
-    //         /surat-dibaca sehingga pesan TIDAK ikut ditandai.
-    //         Sekarang: mark surat lewat endpoint, lalu mark tiap
-    //         pesan yang belum dibaca lewat baca-satu (sejajar admin).
-    //         Setelahnya dispatch _updateBadge().
-    // ════════════════════════════════════════════════════════════
-    async function tandaiSemuaDibaca() {
-        const btn = document.getElementById('btn-tandai-semua');
-        btn.disabled = true;
-        btn.innerHTML = `<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Memproses...`;
-
-        try {
-            // 1. Mark semua surat lewat endpoint yang sudah ada
-            await fetch('/warga/notifikasi/surat-dibaca', {
-                method: 'POST',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': CSRF,
+            async fetchData() {
+                this.loading = true;
+                try {
+                    const res = await fetch('/warga/notifikasi/list', {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+                    const data = await res.json();
+                    this.items = data.items || [];
+                } catch (e) {
+                    console.error('Gagal memuat notifikasi:', e);
+                    this.items = [];
+                } finally {
+                    this.loading = false;
                 }
-            });
+            },
 
-            // 2. Mark semua pesan yang belum dibaca lewat baca-satu
-            //    (admin punya endpoint tandai-semua; warga tidak, jadi pakai batch)
-            const unreadPesan = allItems.filter(i => i.tipe === 'pesan' && !i.dibaca);
-            await Promise.allSettled(
-                unreadPesan.map(item =>
-                    fetch('/warga/notifikasi/baca-satu', {
+            get filteredItems() {
+                let result = this.items;
+                if (this.filters.status === 'unread') result = result.filter(i => !i.is_read);
+                else if (this.filters.status === 'read') result = result.filter(i => i.is_read);
+                if (this.filters.category) result = result.filter(i => i.type === this.filters.category);
+                return result;
+            },
+
+            get totalPages() {
+                return Math.ceil(this.filteredItems.length / this.perPage) || 1;
+            },
+
+            get paginatedItems() {
+                const start = (this.currentPage - 1) * this.perPage;
+                return this.filteredItems.slice(start, start + this.perPage);
+            },
+
+            get paginationStart() {
+                if (this.filteredItems.length === 0) return 0;
+                return (this.currentPage - 1) * this.perPage + 1;
+            },
+
+            get paginationEnd() {
+                return Math.min(this.currentPage * this.perPage, this.filteredItems.length);
+            },
+
+            applyFilters() { this.currentPage = 1; },
+
+            toggleSelectAll(checked) {
+                this.selectedItems = checked ? this.paginatedItems.map(i => i.id) : [];
+            },
+
+            toggleSelect(id) {
+                if (this.selectedItems.includes(id)) {
+                    this.selectedItems = this.selectedItems.filter(i => i !== id);
+                } else {
+                    this.selectedItems.push(id);
+                }
+            },
+
+            prevPage() { if (this.currentPage > 1) this.currentPage--; },
+            nextPage() { if (this.currentPage < this.totalPages) this.currentPage++; },
+
+            async markRead(id, type) {
+                try {
+                    const res = await fetch('/warga/notifikasi/baca-satu', {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json',
                             'X-Requested-With': 'XMLHttpRequest',
-                            'X-CSRF-TOKEN': CSRF,
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
                         },
-                        body: JSON.stringify({ id: item.id, tipe: item.tipe })
-                    })
-                )
-            );
+                        body: JSON.stringify({ id, tipe: type })
+                    });
+                    if (res.ok) {
+                        const item = this.items.find(i => i.id === id);
+                        if (item) item.is_read = true;
+                        this._updateBadge();
+                    }
+                } catch (e) {
+                    console.error('Gagal tandai dibaca:', e);
+                }
+            },
 
-            // 3. Update state lokal — semua jadi dibaca
-            allItems = allItems.map(i => ({ ...i, dibaca: true }));
-            renderList();
+            async markAllRead() {
+                try {
+                    const res = await fetch('/warga/notifikasi/tandai-semua', {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+                        }
+                    });
+                    if (res.ok) {
+                        this.items = this.items.map(item => ({ ...item, is_read: true }));
+                        this._updateBadge();
+                    }
+                } catch (e) {
+                    console.error('Gagal tandai semua:', e);
+                }
+            },
 
-            // 4. FIX: dispatch ke navbar supaya badge langsung jadi 0
-            await _updateBadge();
+            confirmDeleteItem(id, type) {
+                if (confirm('Hapus notifikasi ini?')) {
+                    this.deleteItem(id, type);
+                }
+            },
 
-        } catch (e) {
-            // Reset tombol jika gagal
-            btn.disabled = false;
-            btn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Tandai Semua Dibaca`;
-        }
+            async deleteItem(id, type) {
+                try {
+                    const res = await fetch('/warga/notifikasi/hapus-satu', {
+                        method: 'DELETE',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+                        },
+                        body: JSON.stringify({ id, tipe: type })
+                    });
+                    if (res.ok) {
+                        this.items = this.items.filter(i => i.id !== id);
+                        this._updateBadge();
+                    }
+                } catch (e) {
+                    console.error('Gagal hapus:', e);
+                }
+            },
+
+            confirmDeleteSelected() {
+                const count = this.selectedItems.length;
+                if (count === 0) return;
+                if (confirm(`Hapus ${count} notifikasi yang dipilih?`)) {
+                    this._doDeleteSelected();
+                }
+            },
+
+            async _doDeleteSelected() {
+                try {
+                    const res = await fetch('/warga/notifikasi/hapus-banyak', {
+                        method: 'DELETE',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+                        },
+                        body: JSON.stringify({ ids: this.selectedItems })
+                    });
+                    if (res.ok) {
+                        this.items = this.items.filter(i => !this.selectedItems.includes(i.id));
+                        this.selectedItems = [];
+                        this._updateBadge();
+                    }
+                } catch (e) {
+                    console.error('Gagal hapus:', e);
+                }
+            },
+
+            _updateBadge() {
+                const unreadCount = this.items.filter(i => !i.is_read).length;
+                window.dispatchEvent(new CustomEvent('warga-notif-badge-changed', {
+                    detail: { total: unreadCount }
+                }));
+            }
+        };
     }
-
-    // ── Init ──────────────────────────────────────────────────────
-    document.addEventListener('DOMContentLoaded', async () => {
-        await fetchNotifikasi();
-        renderList();
-    });
 </script>
-
 @endsection

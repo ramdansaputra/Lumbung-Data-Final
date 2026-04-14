@@ -286,78 +286,134 @@ Route::prefix('warga')->name('warga.')->middleware(['auth', 'role:warga'])->grou
             $user = Auth::user();
             $items = [];
 
+            $readPesan = DB::table('notifikasi_dibaca')
+                ->where('user_id', $user->id)
+                ->where('notif_type', 'pesan')
+                ->pluck('notif_id')
+                ->toArray();
+
+            $dismissedPesan = DB::table('notifikasi_dismissed')
+                ->where('user_id', $user->id)
+                ->where('notif_type', 'pesan')
+                ->pluck('notif_id')
+                ->toArray();
+
             // Pesan masuk
             $pesan = \App\Models\Pesan::where('penerima_id', $user->id)
                 ->orderBy('created_at', 'desc')
                 ->get();
 
             foreach ($pesan as $p) {
+                if (in_array($p->id, $dismissedPesan)) continue;
                 $items[] = [
-                    'id'     => 'pesan-' . $p->id,
-                    'tipe'   => 'pesan',
-                    'judul'  => 'Pesan dari Admin',
-                    'pesan'  => $p->isi ?? 'Pesan baru',
-                    'waktu'  => $p->created_at->diffForHumans(),
-                    'dibaca' => $p->sudah_dibaca,
+                    'id'       => 'pesan-' . $p->id,
+                    'type'     => 'pesan',
+                    'title'    => 'Pesan Masuk',
+                    'message'  => \Illuminate\Support\Str::limit($p->isi ?? 'Pesan baru', 60),
+                    'url'      => '#',
+                    'is_read'  => (bool)$p->sudah_dibaca,
+                    'time'     => $p->created_at->diffForHumans(),
                     'timestamp' => $p->created_at->timestamp,
                 ];
             }
 
-            // Update surat - ambil read status sekali di awal, bukan di loop
+            // Update surat
             if ($user->penduduk_id) {
+                $readSurat = DB::table('notifikasi_dibaca')
+                    ->where('user_id', $user->id)
+                    ->where('notif_type', 'surat')
+                    ->pluck('notif_id')
+                    ->toArray();
+
+                $dismissedSurat = DB::table('notifikasi_dismissed')
+                    ->where('user_id', $user->id)
+                    ->where('notif_type', 'surat')
+                    ->pluck('notif_id')
+                    ->toArray();
+
                 $surat = \App\Models\SuratPermohonan::where('penduduk_id', $user->penduduk_id)
                     ->whereNotIn('status', ['menunggu', 'diajukan'])
                     ->orderBy('updated_at', 'desc')
                     ->get();
 
-                // Ambil dismissed dan read IDs sekali saja
-                $dismissedSuratIds = DB::table('notifikasi_dismissed')
-                    ->where('user_id', $user->id)
-                    ->where('notif_type', 'surat')
-                    ->pluck('notif_id')
-                    ->toArray();
-
-                $readSuratIds = DB::table('notifikasi_dibaca')
-                    ->where('user_id', $user->id)
-                    ->where('notif_type', 'surat')
-                    ->pluck('notif_id')
-                    ->toArray();
-
                 foreach ($surat as $s) {
-                    if (in_array($s->id, $dismissedSuratIds)) continue;
-
-                    $tipe = match($s->status) {
-                        'disetujui' => 'success',
-                        'ditolak' => 'danger',
-                        default => 'info'
-                    };
-                    $judul = match($s->status) {
-                        'disetujui' => 'Surat Disetujui',
-                        'ditolak' => 'Surat Ditolak',
-                        default => 'Update Surat'
-                    };
+                    if (in_array($s->id, $dismissedSurat)) continue;
 
                     $items[] = [
-                        'id'     => 'surat-' . $s->id,
-                        'tipe'   => $tipe,
-                        'judul'  => $judul,
-                        'pesan'  => 'Surat Permohonan - ' . $s->status,
-                        'waktu'  => $s->updated_at->diffForHumans(),
-                        'dibaca' => in_array($s->id, $readSuratIds),
+                        'id'       => 'surat-' . $s->id,
+                        'type'     => 'surat',
+                        'title'    => 'Surat Permohonan',
+                        'message'  => 'Status: ' . $s->status,
+                        'url'      => '#',
+                        'is_read'  => in_array($s->id, $readSurat),
+                        'time'     => $s->updated_at->diffForHumans(),
                         'timestamp' => $s->updated_at->timestamp,
                     ];
                 }
             }
 
-            // Urutkan berdasarkan waktu terbaru
             usort($items, fn($a, $b) => $b['timestamp'] <=> $a['timestamp']);
-
             return response()->json(['items' => $items]);
         } catch (\Exception $e) {
             \Log::error('Notifikasi list error: ' . $e->getMessage());
-            return response()->json(['items' => [], 'error' => $e->getMessage()], 200);
+            return response()->json(['items' => []], 200);
         }
     })->name('notifikasi.list');
+
+    Route::post('/notifikasi/tandai-semua', function () {
+        $user = Auth::user();
+
+        // Mark all unread messages
+        \App\Models\Pesan::where('penerima_id', $user->id)
+            ->where('sudah_dibaca', false)
+            ->update(['sudah_dibaca' => true]);
+
+        // Mark all unread surat
+        if ($user->penduduk_id) {
+            $suratIds = \App\Models\SuratPermohonan::where('penduduk_id', $user->penduduk_id)
+                ->whereNotIn('status', ['menunggu', 'diajukan'])
+                ->pluck('id');
+
+            foreach ($suratIds as $id) {
+                DB::table('notifikasi_dibaca')->updateOrInsert(
+                    ['user_id' => $user->id, 'notif_type' => 'surat', 'notif_id' => $id],
+                    ['created_at' => now(), 'updated_at' => now()]
+                );
+            }
+        }
+
+        return response()->json(['ok' => true]);
+    })->name('notifikasi.tandai-semua');
+
+    Route::delete('/notifikasi/hapus-banyak', function (\Illuminate\Http\Request $request) {
+        $ids = $request->input('ids', []);
+        if (!is_array($ids) || empty($ids)) {
+            return response()->json(['ok' => false], 422);
+        }
+
+        $user = Auth::user();
+        foreach ($ids as $id) {
+            $parts = explode('-', $id, 2);
+            $type = $parts[0] ?? '';
+            $rawId = $parts[1] ?? null;
+
+            if (!$rawId || !is_numeric($rawId)) continue;
+            $rawId = (int)$rawId;
+
+            if ($type === 'pesan') {
+                \App\Models\Pesan::where('id', $rawId)
+                    ->where('penerima_id', $user->id)
+                    ->delete();
+            } elseif ($type === 'surat') {
+                DB::table('notifikasi_dismissed')->updateOrInsert(
+                    ['user_id' => $user->id, 'notif_type' => 'surat', 'notif_id' => $rawId],
+                    ['created_at' => now(), 'updated_at' => now()]
+                );
+            }
+        }
+
+        return response()->json(['ok' => true]);
+    })->name('notifikasi.hapus-banyak');
 
     Route::post('/notifikasi/baca-satu', function (\Illuminate\Http\Request $request) {
         $parts  = explode('-', $request->input('id'), 2);
