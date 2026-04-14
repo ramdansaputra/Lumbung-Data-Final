@@ -15,16 +15,22 @@
 
     {{-- Action Buttons --}}
     <div class="flex flex-col sm:flex-row items-center justify-end gap-2 mb-6">
-        <button @click="confirmDeleteSelected()" x-show="selectedItems.length > 0"
-            class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors">
+        <button @click="confirmDeleteSelected()" :disabled="selectedItems.length === 0"
+            class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold rounded-lg shadow-sm transition-colors"
+            :class="selectedItems.length === 0 ?
+                'bg-gray-100 text-gray-400 cursor-not-allowed' :
+                'bg-red-600 hover:bg-red-700 text-white'">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
             Hapus (<span x-text="selectedItems.length"></span>)
         </button>
-        <button @click="markAllRead()"
-            class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors">
+        <button @click="markAllRead()" :disabled="selectedItems.length === 0"
+            class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold rounded-lg shadow-sm transition-colors"
+            :class="selectedItems.length === 0 ?
+                'bg-gray-100 text-gray-400 cursor-not-allowed' :
+                'bg-emerald-600 hover:bg-emerald-700 text-white'">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
             </svg>
@@ -163,6 +169,18 @@
                             </td>
                             <td class="px-3 sm:px-5 py-4">
                                 <div class="flex items-center justify-end gap-1.5">
+                                    {{-- Lihat --}}
+                                    <button @click="viewDetail(item)" title="Lihat Detail"
+                                        class="w-8 h-8 inline-flex items-center justify-center rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-100 transition-all duration-150 hover:scale-110">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                    </button>
+
                                     {{-- Tandai Baca --}}
                                     <button @click="markRead(item.id, item.type)" x-show="!item.is_read"
                                         title="Tandai Dibaca"
@@ -221,6 +239,62 @@
         </div>
     </div>
 
+    {{-- Modal Detail Notifikasi --}}
+    <div x-show="showDetailModal" x-cloak
+        class="fixed inset-0 z-50 overflow-y-auto"
+        @keydown.escape.window="showDetailModal = false"
+        x-transition:enter="ease-out duration-300"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="ease-in duration-200"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" @click="showDetailModal = false">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mt-3 text-center sm:mt-0 sm:text-left w-full">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                                Detail Notifikasi
+                            </h3>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Judul</label>
+                                    <p class="mt-1 text-sm text-gray-900" x-text="selectedItem?.title || ''"></p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Pesan</label>
+                                    <p class="mt-1 text-sm text-gray-900" x-text="selectedItem?.message || ''"></p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Kategori</label>
+                                    <p class="mt-1 text-sm text-gray-900" x-text="selectedItem?.type === 'pesan' ? 'Pesan' : 'Surat Permohonan'"></p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Status</label>
+                                    <p class="mt-1 text-sm text-gray-900" x-text="selectedItem?.is_read ? 'Sudah Dibaca' : 'Belum Dibaca'"></p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Waktu</label>
+                                    <p class="mt-1 text-sm text-gray-900" x-text="selectedItem?.time || ''"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" @click="showDetailModal = false"
+                        class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-emerald-600 text-base font-medium text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 @endsection
 
@@ -237,6 +311,8 @@
                 status: '',
                 category: ''
             },
+            showDetailModal: false,
+            selectedItem: null,
 
             async init() {
                 await this.fetchData();
@@ -323,20 +399,26 @@
             },
 
             async markAllRead() {
+                if (this.selectedItems.length === 0) return;
                 try {
-                    const res = await fetch('/warga/notifikasi/tandai-semua', {
+                    const res = await fetch('/warga/notifikasi/tandai-banyak', {
                         method: 'POST',
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest',
+                            'Content-Type': 'application/json',
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
-                        }
+                        },
+                        body: JSON.stringify({ ids: this.selectedItems })
                     });
                     if (res.ok) {
-                        this.items = this.items.map(item => ({ ...item, is_read: true }));
+                        this.items = this.items.map(item => 
+                            this.selectedItems.includes(item.id) ? { ...item, is_read: true } : item
+                        );
+                        this.selectedItems = [];
                         this._updateBadge();
                     }
                 } catch (e) {
-                    console.error('Gagal tandai semua:', e);
+                    console.error('Gagal tandai banyak:', e);
                 }
             },
 
@@ -393,6 +475,11 @@
                 } catch (e) {
                     console.error('Gagal hapus:', e);
                 }
+            },
+
+            viewDetail(item) {
+                this.selectedItem = item;
+                this.showDetailModal = true;
             },
 
             _updateBadge() {

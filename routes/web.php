@@ -385,6 +385,36 @@ Route::prefix('warga')->name('warga.')->middleware(['auth', 'role:warga'])->grou
         return response()->json(['ok' => true]);
     })->name('notifikasi.tandai-semua');
 
+    Route::post('/notifikasi/tandai-banyak', function (\Illuminate\Http\Request $request) {
+        $ids = $request->input('ids', []);
+        if (!is_array($ids) || empty($ids)) {
+            return response()->json(['ok' => false], 422);
+        }
+
+        $user = Auth::user();
+        foreach ($ids as $id) {
+            $parts = explode('-', $id, 2);
+            $type = $parts[0] ?? '';
+            $rawId = $parts[1] ?? null;
+
+            if (!$rawId || !is_numeric($rawId)) continue;
+            $rawId = (int)$rawId;
+
+            if ($type === 'pesan') {
+                \App\Models\Pesan::where('id', $rawId)
+                    ->where('penerima_id', $user->id)
+                    ->update(['sudah_dibaca' => true]);
+            } elseif ($type === 'surat') {
+                DB::table('notifikasi_dibaca')->updateOrInsert(
+                    ['user_id' => $user->id, 'notif_type' => 'surat', 'notif_id' => $rawId],
+                    ['created_at' => now(), 'updated_at' => now()]
+                );
+            }
+        }
+
+        return response()->json(['ok' => true]);
+    })->name('notifikasi.tandai-banyak');
+
     Route::delete('/notifikasi/hapus-banyak', function (\Illuminate\Http\Request $request) {
         $ids = $request->input('ids', []);
         if (!is_array($ids) || empty($ids)) {
