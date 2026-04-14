@@ -424,11 +424,11 @@ Route::prefix('warga')->name('warga.')->middleware(['auth', 'role:warga'])->grou
             \App\Models\Pesan::where('id', (int)$rawId)
                 ->where('penerima_id', Auth::id())
                 ->update(['sudah_dibaca' => true]);
-        } elseif (in_array($prefix, ['komentar', 'permohonan', 'surat']) && $rawId) {
+        } elseif ($prefix === 'surat' && $rawId) {
             DB::table('notifikasi_dibaca')->updateOrInsert(
                 [
                     'user_id'    => Auth::id(),
-                    'notif_type' => $prefix,
+                    'notif_type' => 'surat',
                     'notif_id'   => (int) $rawId,
                 ],
                 [

@@ -3,7 +3,7 @@
 @section('title', 'Notifikasi Saya')
 
 @section('content')
-<div x-data="wargaNotifPage()">
+<div x-data="wargaNotifPage()" x-init="init()">
 
     {{-- Header --}}
     <div class="flex items-center justify-between mb-6">
@@ -224,7 +224,7 @@
 </div>
 @endsection
 
-@section('scripts')
+@push('scripts')
 <script>
     function wargaNotifPage() {
         return {
@@ -404,4 +404,4 @@
         };
     }
 </script>
-@endsection
+@endpush
