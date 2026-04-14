@@ -470,6 +470,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
     Route::get('/notifikasi/semua', function () {
         $userId = Auth::id();
 
+        // ID yang sudah dibaca
         $readKomentar   = DB::table('notifikasi_dibaca')
             ->where('user_id', $userId)->where('notif_type', 'komentar')
             ->pluck('notif_id')->toArray();
@@ -478,18 +479,36 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
             ->where('user_id', $userId)->where('notif_type', 'permohonan')
             ->pluck('notif_id')->toArray();
 
+        // ★ ID yang sudah di-dismiss (hapus dari halaman notifikasi)
+        $dismissedKomentar   = DB::table('notifikasi_dismissed')
+            ->where('user_id', $userId)->where('notif_type', 'komentar')
+            ->pluck('notif_id')->toArray();
+
+        $dismissedPermohonan = DB::table('notifikasi_dismissed')
+            ->where('user_id', $userId)->where('notif_type', 'permohonan')
+            ->pluck('notif_id')->toArray();
+
+        $dismissedPesan = DB::table('notifikasi_dismissed')
+            ->where('user_id', $userId)->where('notif_type', 'pesan')
+            ->pluck('notif_id')->toArray();
+
         $items = [];
 
+        // Komentar pending — kecuali yang sudah di-dismiss
         if (class_exists(\App\Models\KomentarArtikel::class)) {
-            foreach (
-                \App\Models\KomentarArtikel::where('status', 'pending')
-                    ->orderByDesc('created_at')->get() as $k
-            ) {
+            $query = \App\Models\KomentarArtikel::where('status', 'pending')
+                ->orderByDesc('created_at');
+
+            if (!empty($dismissedKomentar)) {
+                $query->whereNotIn('id', $dismissedKomentar);
+            }
+
+            foreach ($query->get() as $k) {
                 $items[] = [
                     'id'      => 'komentar-' . $k->id,
                     'type'    => 'komentar',
                     'title'   => 'Komentar Menunggu',
-                    'message' => \Illuminate\Support\Str::limit($k->isi ?? 'Komentar baru', 60),
+                    'message' => \Illuminate\Support\Str::limit($k->isi ?? 'Komentar baru menunggu persetujuan', 60),
                     'url'     => route('admin.komentar.index'),
                     'is_read' => in_array($k->id, $readKomentar),
                     'time'    => $k->created_at->diffForHumans(),
@@ -497,11 +516,16 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
             }
         }
 
+        // Pesan — kecuali yang sudah di-dismiss (yang sudah dihapus pesan-nya sudah benar-benar dihapus)
         if (class_exists(\App\Models\Pesan::class)) {
-            foreach (
-                \App\Models\Pesan::where('penerima_id', $userId)
-                    ->orderByDesc('created_at')->get() as $p
-            ) {
+            $query = \App\Models\Pesan::where('penerima_id', $userId)
+                ->orderByDesc('created_at');
+
+            if (!empty($dismissedPesan)) {
+                $query->whereNotIn('id', $dismissedPesan);
+            }
+
+            foreach ($query->get() as $p) {
                 $items[] = [
                     'id'      => 'pesan-' . $p->id,
                     'type'    => 'pesan',
@@ -514,20 +538,25 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
             }
         }
 
+        // Permohonan surat — kecuali yang sudah di-dismiss
         if (class_exists(\App\Models\SuratPermohonan::class)) {
-            foreach (
-                \App\Models\SuratPermohonan::whereIn('status', [
-                    'sedang diperiksa',
-                    'menunggu',
-                    'menunggu tandatangan',
-                    'belum lengkap'
-                ])->orderByDesc('created_at')->get() as $s
-            ) {
+            $query = \App\Models\SuratPermohonan::whereIn('status', [
+                'sedang diperiksa',
+                'menunggu',
+                'menunggu tandatangan',
+                'belum lengkap'
+            ])->orderByDesc('created_at');
+
+            if (!empty($dismissedPermohonan)) {
+                $query->whereNotIn('id', $dismissedPermohonan);
+            }
+
+            foreach ($query->get() as $s) {
                 $items[] = [
                     'id'      => 'permohonan-' . $s->id,
                     'type'    => 'permohonan',
                     'title'   => 'Permohonan Surat',
-                    'message' => 'Permohonan ' . ($s->jenisSurat->nama_surat ?? 'surat') . ' menunggu',
+                    'message' => 'Permohonan ' . ($s->jenisSurat->nama_surat ?? 'surat') . ' menunggu persetujuan',
                     'url'     => '/admin/layanan-surat/permohonan/' . $s->id,
                     'is_read' => in_array($s->id, $readPermohonan),
                     'time'    => $s->created_at->diffForHumans(),
@@ -536,15 +565,48 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
         }
 
         usort($items, fn($a, $b) => strcmp($b['time'], $a['time']));
+
         return response()->json(['items' => $items]);
     })->name('notifikasi.semua');
 
     Route::post('/notifikasi/tandai-semua', function () {
+        $userId = Auth::id();
+
+        // Tandai semua pesan sebagai dibaca
         if (class_exists(\App\Models\Pesan::class)) {
-            \App\Models\Pesan::where('penerima_id', Auth::id())
+            \App\Models\Pesan::where('penerima_id', $userId)
                 ->where('sudah_dibaca', false)
                 ->update(['sudah_dibaca' => true]);
         }
+
+        // Tandai semua komentar pending sebagai dibaca
+        if (class_exists(\App\Models\KomentarArtikel::class)) {
+            $komentarIds = \App\Models\KomentarArtikel::where('status', 'pending')->pluck('id');
+            foreach ($komentarIds as $kid) {
+                DB::table('notifikasi_dibaca')->updateOrInsert(
+                    ['user_id' => $userId, 'notif_type' => 'komentar', 'notif_id' => $kid],
+                    ['created_at' => now(), 'updated_at' => now()]
+                );
+            }
+        }
+
+        // Tandai semua permohonan pending sebagai dibaca
+        if (class_exists(\App\Models\SuratPermohonan::class)) {
+            $permohonanIds = \App\Models\SuratPermohonan::whereIn('status', [
+                'sedang diperiksa',
+                'menunggu',
+                'menunggu tandatangan',
+                'belum lengkap'
+            ])->pluck('id');
+
+            foreach ($permohonanIds as $pid) {
+                DB::table('notifikasi_dibaca')->updateOrInsert(
+                    ['user_id' => $userId, 'notif_type' => 'permohonan', 'notif_id' => $pid],
+                    ['created_at' => now(), 'updated_at' => now()]
+                );
+            }
+        }
+
         return response()->json(['ok' => true]);
     })->name('notifikasi.tandai-semua');
 
@@ -568,16 +630,60 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
         return response()->json(['ok' => true]);
     })->name('notifikasi.baca-satu');
     Route::delete('/notifikasi/hapus-satu', function (\Illuminate\Http\Request $request) {
-        $id = $request->input('id');
-        $parts = explode('-', $id, 2);
-        $prefix = $parts[0] ?? '';
-        $rawId = $parts[1] ?? null;
+        $id   = $request->input('id');
+        $tipe = $request->input('type'); // frontend kirim type juga
 
-        if ($prefix === 'pesan' && $rawId) {
-            \App\Models\Pesan::where('id', (int)$rawId)
-                ->where('penerima_id', Auth::id())
-                ->delete();
+        $parts  = explode('-', $id, 2);
+        $prefix = $parts[0] ?? '';
+        $rawId  = $parts[1] ?? null;
+
+        if (!$rawId || !is_numeric($rawId)) {
+            return response()->json(['status' => 'error', 'message' => 'ID tidak valid'], 422);
         }
+
+        $userId = Auth::id();
+
+        if ($prefix === 'pesan') {
+            // Pesan: hapus betulan dari DB
+            \App\Models\Pesan::where('id', (int) $rawId)
+                ->where('penerima_id', $userId)
+                ->delete();
+
+            // Juga bersihkan di notifikasi_dibaca jika ada
+            DB::table('notifikasi_dibaca')
+                ->where('user_id', $userId)
+                ->where('notif_type', 'pesan')
+                ->where('notif_id', (int) $rawId)
+                ->delete();
+        } elseif (in_array($prefix, ['komentar', 'permohonan'])) {
+            // Komentar & Permohonan: tidak bisa dihapus dari sumbernya,
+            // simpan ke notifikasi_dismissed supaya tidak muncul lagi
+            DB::table('notifikasi_dismissed')->updateOrInsert(
+                [
+                    'user_id'    => $userId,
+                    'notif_type' => $prefix,
+                    'notif_id'   => (int) $rawId,
+                ],
+                [
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]
+            );
+
+            // Tandai juga sebagai dibaca sekalian
+            DB::table('notifikasi_dibaca')->updateOrInsert(
+                [
+                    'user_id'    => $userId,
+                    'notif_type' => $prefix,
+                    'notif_id'   => (int) $rawId,
+                ],
+                [
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]
+            );
+        }
+
         return response()->json(['status' => 'ok']);
     })->name('notifikasi.hapus-satu');
 
