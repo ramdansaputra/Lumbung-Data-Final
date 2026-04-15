@@ -17,7 +17,6 @@
     @endif
 
     {{-- 2. GRADIENT OVERLAY LAYER --}}
-    {{-- Ini adalah lapisan warna di atas foto agar teks tetap kontras --}}
     <div class="absolute inset-0 bg-gradient-to-br from-emerald-950/95 via-emerald-900/90 to-teal-900/80 z-0"></div>
 
     {{-- 3. PATTERN LAYER --}}
@@ -123,16 +122,15 @@
     </div>
 </div>
 
-<div class="relative -mt-24 z-20 container mx-auto px-4 mb-24">
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+{{-- STATS SECTION - Fix: responsive negative margin --}}
+<div class="relative z-20 container mx-auto px-4 -mt-10 sm:-mt-14 lg:-mt-24 mb-16 lg:mb-24">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
         
         @forelse($statistik as $index => $stat)
             @php
-                // Logika Warna Berbeda-beda Sesuai Urutan (Hijau, Biru, Kuning, Ungu)
                 $colors = ['emerald', 'blue', 'amber', 'purple'];
                 $currentColor = $colors[$index % 4]; 
                 
-                // Unit label tambahan (opsional, disesuaikan dengan jenis data)
                 $unitLabel = match(strtolower($stat['label'])) {
                     'total penduduk' => 'Jiwa',
                     'laki-laki' => 'Jiwa',
@@ -141,7 +139,6 @@
                     default => ''
                 };
 
-                // Icon SVG
                 $iconSvg = match($stat['icon']) {
                     'users' => '<svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>',
                     'user' => '<svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>',
@@ -158,7 +155,7 @@
                 :unit="$unitLabel"
             />
         @empty
-            <div class="col-span-4 text-center py-6 text-slate-400 font-medium bg-white rounded-3xl shadow-sm">
+            <div class="col-span-2 lg:col-span-4 text-center py-6 text-slate-400 font-medium bg-white rounded-3xl shadow-sm">
                 Data statistik belum tersedia.
             </div>
         @endforelse
@@ -166,32 +163,41 @@
     </div>
 </div>
 
-<section class="py-24 bg-gray-50">
+{{-- TENTANG KAMI - Fix: overflow hidden pada wrapper blob, mobile image height --}}
+<section class="py-16 lg:py-24 bg-gray-50">
     <div class="container mx-auto px-4">
-        <div class="flex flex-col lg:flex-row items-center gap-16">
-            <div class="lg:w-1/2 relative group">
-                <div class="absolute -top-4 -left-4 w-24 h-24 bg-emerald-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
-                <div class="absolute -bottom-4 -right-4 w-24 h-24 bg-teal-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
-                
-                <div class="relative rounded-3xl overflow-hidden shadow-2xl">
-                    <img src="{{ $desaInfo['gambar_kantor'] }}" alt="Kantor Desa" class="w-full h-[400px] object-cover hover:scale-105 transition duration-700">
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                    
-                    <div class="absolute bottom-6 left-6 right-6 text-white">
-                        <div class="flex items-start gap-3">
-                            <div class="p-2 bg-emerald-600 rounded-lg">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                            </div>
-                            <div>
-                                <p class="text-xs text-emerald-200 font-bold uppercase tracking-wider mb-1">Lokasi Kantor</p>
-                                <p class="font-semibold text-sm leading-snug">{{ $desaInfo['alamat_kantor'] }}</p>
+        <div class="flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
+
+            {{-- Gambar dengan blob - Fix: overflow-hidden pada wrapper --}}
+            <div class="lg:w-1/2 relative w-full">
+                {{-- Wrapper overflow-hidden agar blob tidak bikin horizontal scroll --}}
+                <div class="relative overflow-hidden rounded-3xl">
+                    {{-- Blob dekorasi (dibatasi di dalam wrapper) --}}
+                    <div class="absolute -top-4 -left-4 w-24 h-24 bg-emerald-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob pointer-events-none"></div>
+                    <div class="absolute -bottom-4 -right-4 w-24 h-24 bg-teal-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000 pointer-events-none"></div>
+
+                    {{-- Gambar --}}
+                    <div class="relative rounded-3xl overflow-hidden shadow-2xl">
+                        <img src="{{ $desaInfo['gambar_kantor'] }}" alt="Kantor Desa" class="w-full h-64 sm:h-80 lg:h-[400px] object-cover hover:scale-105 transition duration-700">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                        
+                        {{-- Info Lokasi di bawah gambar - Fix: padding lebih kecil di mobile --}}
+                        <div class="absolute bottom-0 left-0 right-0 p-4 sm:p-6 text-white">
+                            <div class="flex items-start gap-3">
+                                <div class="p-2 bg-emerald-600 rounded-lg flex-shrink-0">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-xs text-emerald-200 font-bold uppercase tracking-wider mb-1">Lokasi Kantor</p>
+                                    <p class="font-semibold text-sm leading-snug break-words">{{ $desaInfo['alamat_kantor'] }}</p>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="lg:w-1/2">
+            <div class="lg:w-1/2 w-full">
                 <x-section-title 
                     title="Mengenal Desa Kami" 
                     subtitle="Komitmen kami untuk melayani masyarakat dengan integritas, transparansi, dan inovasi tiada henti."
@@ -199,28 +205,28 @@
                     badge="Tentang Kami"
                 />
 
-                <p class="text-gray-600 leading-loose mb-8 text-lg">
+                <p class="text-gray-600 leading-loose mb-8 text-base lg:text-lg">
                     {{ $desaInfo['deskripsi_singkat'] }}
                 </p>
 
                 <div class="space-y-4">
                     <div class="flex items-center p-4 bg-white rounded-xl shadow-sm border border-gray-100 hover:border-emerald-300 transition group cursor-pointer">
-                        <div class="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 mr-4 group-hover:bg-blue-600 group-hover:text-white transition">
+                        <div class="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 mr-4 flex-shrink-0 group-hover:bg-blue-600 group-hover:text-white transition">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
                         </div>
-                        <div>
+                        <div class="min-w-0">
                             <p class="text-xs text-gray-500 uppercase font-bold tracking-wide">Email Resmi</p>
-                            <p class="text-gray-900 font-medium">{{ $desaInfo['email_desa'] }}</p>
+                            <p class="text-gray-900 font-medium truncate">{{ $desaInfo['email_desa'] }}</p>
                         </div>
                     </div>
                     
                     <div class="flex items-center p-4 bg-white rounded-xl shadow-sm border border-gray-100 hover:border-emerald-300 transition group cursor-pointer">
-                        <div class="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 mr-4 group-hover:bg-emerald-600 group-hover:text-white transition">
+                        <div class="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 mr-4 flex-shrink-0 group-hover:bg-emerald-600 group-hover:text-white transition">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
                         </div>
-                        <div>
+                        <div class="min-w-0">
                             <p class="text-xs text-gray-500 uppercase font-bold tracking-wide">Layanan Telepon</p>
-                            <p class="text-gray-900 font-medium">{{ $desaInfo['telepon_desa'] }}</p>
+                            <p class="text-gray-900 font-medium truncate">{{ $desaInfo['telepon_desa'] }}</p>
                         </div>
                     </div>
                 </div>
@@ -239,30 +245,30 @@
             badge="Pemerintahan"
         />
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
             @forelse($perangkatUtama as $perangkat)
                 <div class="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100">
-                    <div class="relative h-72 overflow-hidden bg-gray-100">
+                    <div class="relative h-48 sm:h-60 lg:h-72 overflow-hidden bg-gray-100">
                         @if(isset($perangkat['foto']) && $perangkat['foto'])
                             <img src="{{ $perangkat['foto'] }}" alt="{{ $perangkat['nama'] }}" class="w-full h-full object-cover object-top group-hover:scale-110 transition-transform duration-700">
                         @else
                             <div class="w-full h-full flex items-center justify-center bg-emerald-50 text-emerald-200">
-                                <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                                <svg class="w-16 h-16 lg:w-24 lg:h-24" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                             </div>
                         @endif
                         
-                        <div class="absolute inset-0 bg-gradient-to-t from-emerald-900 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
-                            <p class="text-white font-bold text-lg transform translate-y-4 group-hover:translate-y-0 transition duration-300">{{ $perangkat['nama'] ?? 'Nama' }}</p>
-                            <p class="text-emerald-200 text-sm transform translate-y-4 group-hover:translate-y-0 transition duration-300 delay-75">{{ $perangkat['posisi'] ?? 'Jabatan' }}</p>
+                        <div class="absolute inset-0 bg-gradient-to-t from-emerald-900 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4 lg:p-6">
+                            <p class="text-white font-bold text-sm lg:text-lg transform translate-y-4 group-hover:translate-y-0 transition duration-300">{{ $perangkat['nama'] ?? 'Nama' }}</p>
+                            <p class="text-emerald-200 text-xs lg:text-sm transform translate-y-4 group-hover:translate-y-0 transition duration-300 delay-75">{{ $perangkat['posisi'] ?? 'Jabatan' }}</p>
                         </div>
                     </div>
-                    <div class="p-5 text-center group-hover:bg-emerald-50 transition bg-white relative z-10">
-                        <h3 class="text-lg font-bold text-gray-900 mb-1 group-hover:text-emerald-700 truncate">{{ $perangkat['nama'] ?? 'Nama Pegawai' }}</h3>
-                        <p class="text-sm text-emerald-600 font-medium">{{ $perangkat['posisi'] ?? 'Jabatan' }}</p>
+                    <div class="p-3 sm:p-4 lg:p-5 text-center group-hover:bg-emerald-50 transition bg-white relative z-10">
+                        <h3 class="text-sm sm:text-base lg:text-lg font-bold text-gray-900 mb-1 group-hover:text-emerald-700 truncate">{{ $perangkat['nama'] ?? 'Nama Pegawai' }}</h3>
+                        <p class="text-xs sm:text-sm text-emerald-600 font-medium line-clamp-2">{{ $perangkat['posisi'] ?? 'Jabatan' }}</p>
                     </div>
                 </div>
             @empty
-                <div class="col-span-4 text-center py-12">
+                <div class="col-span-2 lg:col-span-4 text-center py-12">
                     <div class="inline-flex justify-center items-center w-16 h-16 rounded-full bg-gray-100 text-gray-400 mb-4">
                         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                     </div>
@@ -280,11 +286,11 @@
     </div>
 </section>
 
-<section class="py-20 bg-gray-50">
+<section class="py-16 lg:py-20 bg-gray-50">
     <div class="container mx-auto px-4">
-        <div class="flex flex-col lg:flex-row gap-12">
+        <div class="flex flex-col lg:flex-row gap-10 lg:gap-12">
             
-            <div class="lg:w-2/3">
+            <div class="lg:w-2/3 w-full">
                 <x-section-title 
                     title="Transparansi Desa" 
                     subtitle="Laporan realisasi dan rencana anggaran pendapatan belanja desa tahun {{ $anggaranChart['tahun'] }}."
@@ -292,13 +298,13 @@
                     badge="APBDes"
                 />
                 
-                <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
+                <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 sm:p-8">
                     <div class="flex items-center justify-between mb-8">
                         <div>
                             <p class="text-sm text-gray-500 uppercase font-bold tracking-wide">Total Anggaran</p>
-                            <h3 class="text-3xl font-extrabold text-emerald-600 mt-1">{{ $anggaranChart['total'] }}</h3>
+                            <h3 class="text-2xl sm:text-3xl font-extrabold text-emerald-600 mt-1">{{ $anggaranChart['total'] }}</h3>
                         </div>
-                        <div class="p-3 bg-emerald-50 rounded-xl text-emerald-600">
+                        <div class="p-3 bg-emerald-50 rounded-xl text-emerald-600 flex-shrink-0">
                             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         </div>
                     </div>
@@ -306,14 +312,13 @@
                     <div class="space-y-6">
                         @forelse($anggaranChart['detail'] as $sumber)
                             @php 
-                                // Hitung persentase sederhana (asumsi total > 0)
                                 $rawTotal = str_replace(['Rp ', '.'], '', $anggaranChart['total']);
                                 $persen = $rawTotal > 0 ? ($sumber->total / $rawTotal) * 100 : 0;
                             @endphp
                             <div>
-                                <div class="flex justify-between items-end mb-2">
-                                    <span class="font-semibold text-gray-800">{{ $sumber->nama_sumber }}</span>
-                                    <span class="text-sm font-bold text-gray-600">Rp {{ number_format($sumber->total, 0, ',', '.') }}</span>
+                                <div class="flex justify-between items-end mb-2 gap-2">
+                                    <span class="font-semibold text-gray-800 text-sm sm:text-base leading-tight">{{ $sumber->nama_sumber }}</span>
+                                    <span class="text-xs sm:text-sm font-bold text-gray-600 flex-shrink-0">Rp {{ number_format($sumber->total, 0, ',', '.') }}</span>
                                 </div>
                                 <div class="w-full bg-gray-100 rounded-full h-3">
                                     <div class="bg-emerald-500 h-3 rounded-full" style="width: {{ $persen }}%"></div>
@@ -332,25 +337,25 @@
                 </div>
             </div>
 
-            <div class="lg:w-1/3">
-                <div class="flex items-center justify-between mb-8">
-                    <h3 class="text-2xl font-bold text-gray-900">Agenda Desa</h3>
+            <div class="lg:w-1/3 w-full">
+                <div class="flex items-center justify-between mb-6 lg:mb-8">
+                    <h3 class="text-xl sm:text-2xl font-bold text-gray-900">Agenda Desa</h3>
                     <a href="#" class="text-sm font-semibold text-emerald-600 hover:underline">Lihat Semua</a>
                 </div>
 
                 <div class="space-y-4">
                     @forelse($agendaTerbaru as $agenda)
                         <div class="flex gap-4 p-4 bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition group">
-                            <div class="flex-shrink-0 w-16 h-16 bg-emerald-50 rounded-xl flex flex-col items-center justify-center text-emerald-700 border border-emerald-100">
-                                <span class="text-xl font-bold leading-none">{{ $agenda['tanggal'] }}</span>
+                            <div class="flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 bg-emerald-50 rounded-xl flex flex-col items-center justify-center text-emerald-700 border border-emerald-100">
+                                <span class="text-lg sm:text-xl font-bold leading-none">{{ $agenda['tanggal'] }}</span>
                                 <span class="text-[10px] uppercase font-bold mt-1">{{ $agenda['bulan'] }}</span>
                             </div>
-                            <div>
-                                <h4 class="font-bold text-gray-900 line-clamp-2 group-hover:text-emerald-600 transition">{{ $agenda['judul'] }}</h4>
+                            <div class="min-w-0">
+                                <h4 class="font-bold text-gray-900 line-clamp-2 group-hover:text-emerald-600 transition text-sm sm:text-base">{{ $agenda['judul'] }}</h4>
                                 <div class="flex items-center gap-4 mt-2 text-xs text-gray-500">
                                     <span class="flex items-center gap-1">
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                        {{ $agenda['lokasi'] }}
+                                        <svg class="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                        <span class="truncate">{{ $agenda['lokasi'] }}</span>
                                     </span>
                                 </div>
                             </div>
@@ -369,22 +374,22 @@
     </div>
 </section>
 
-<section class="py-20 bg-white">
+<section class="py-16 lg:py-20 bg-white">
     <div class="container mx-auto px-4">
-        <div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-4">
+        <div class="flex flex-col md:flex-row justify-between items-end mb-10 lg:mb-12 gap-4">
             <x-section-title 
                 title="Kabar Desa Terkini" 
                 subtitle="Informasi terbaru seputar kegiatan dan pengumuman desa." 
                 :centered="false" 
                 badge="Berita" 
             />
-            <a href="{{ route('berita') }}" class="inline-flex items-center gap-2 text-emerald-600 font-semibold hover:text-emerald-700 transition group mb-12">
+            <a href="{{ route('berita') }}" class="inline-flex items-center gap-2 text-emerald-600 font-semibold hover:text-emerald-700 transition group mb-0 md:mb-12 flex-shrink-0">
                 Lihat Semua Berita
                 <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
             </a>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             @forelse($artikelTerbaru as $artikel)
                 <x-article-card 
                     :title="$artikel['title']"
@@ -396,7 +401,7 @@
                     :author="$artikel['author'] ?? 'Admin'"
                 />
             @empty
-                <div class="col-span-3 py-12 text-center bg-gray-50 rounded-xl border border-dashed border-gray-300">
+                <div class="col-span-1 sm:col-span-2 lg:col-span-3 py-12 text-center bg-gray-50 rounded-xl border border-dashed border-gray-300">
                     <div class="inline-flex justify-center items-center w-12 h-12 rounded-full bg-gray-200 text-gray-400 mb-3">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
                     </div>
@@ -418,10 +423,10 @@
             <div class="absolute -bottom-24 -left-24 w-72 h-72 bg-emerald-800 rounded-full mix-blend-multiply filter blur-3xl opacity-50"></div>
 
             <div class="relative z-10 px-6 py-12 md:py-16 text-center">
-                <h2 class="text-3xl md:text-4xl font-extrabold text-white mb-4 tracking-tight">
+                <h2 class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white mb-4 tracking-tight">
                     Butuh Layanan Surat atau Pengaduan?
                 </h2>
-                <p class="text-emerald-100 text-lg mb-8 max-w-2xl mx-auto leading-relaxed">
+                <p class="text-emerald-100 text-base sm:text-lg mb-8 max-w-2xl mx-auto leading-relaxed">
                     Gunakan fitur layanan mandiri kami untuk mengurus administrasi secara online atau sampaikan aspirasi Anda demi kemajuan desa bersama.
                 </p>
                 
