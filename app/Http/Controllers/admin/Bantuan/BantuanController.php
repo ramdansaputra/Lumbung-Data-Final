@@ -35,7 +35,9 @@ class BantuanController extends Controller
 
     public function create()
     {
-        return view('admin.bantuan.create');
+        $bantuan = null;
+
+        return view('admin.bantuan.create', compact('bantuan'));
     }
 
     public function store(Request $request)
@@ -59,16 +61,16 @@ class BantuanController extends Controller
 
     public function show($id)
     {
-        $program = Program::findOrFail($id);
+        $bantuan = Program::findOrFail($id);
 
-        return view('admin.bantuan.show', compact('program'));
+        return view('admin.bantuan.show', compact('bantuan'));
     }
 
     public function edit($id)
     {
-        $program = Program::findOrFail($id);
+        $bantuan = Program::findOrFail($id);
 
-        return view('admin.bantuan.edit', compact('program'));
+        return view('admin.bantuan.edit', compact('bantuan'));
     }
 
     public function update(Request $request, $id)
