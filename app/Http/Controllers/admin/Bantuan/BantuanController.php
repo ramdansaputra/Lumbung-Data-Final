@@ -161,4 +161,8 @@ class BantuanController extends Controller
 
         return redirect()->route('admin.bantuan.bersihkan')->with('success', 'Data peserta tidak valid dan duplikat berhasil dihapus.');
     }
+    public function contohFormat() {
+        // Implementasi nanti, sementara return 404
+        abort(404, 'Template belum tersedia');
+    }
 }

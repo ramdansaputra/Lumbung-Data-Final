@@ -584,7 +584,7 @@
                 </div>
 
                 {{-- Body Modal --}}
-                <form action="{{ route('admin.bantuan.impor') }}" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('admin.bantuan.import.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="px-6 py-5 space-y-5 max-h-[70vh] overflow-y-auto">
 
