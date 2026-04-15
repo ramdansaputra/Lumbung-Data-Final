@@ -1,67 +1,156 @@
-    <?php
+<?php
 
-    namespace App\Http\Controllers\Admin\Bantuan;
+namespace App\Http\Controllers\Admin\Bantuan;
 
-    use App\Http\Controllers\Controller;
-    use App\Models\Program;
-    use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use App\Models\Program;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
-    class BantuanController extends Controller {
-        public function index() {
-            $programs = Program::withCount('peserta')->latest()->paginate(10);
-            return view('admin.bantuan.index', compact('programs'));
+class BantuanController extends Controller
+{
+    public function index(Request $request)
+    {
+        $query = Program::withCount('peserta');
+
+        // Apply filters using scopeFilter if available
+        if ($request->has('status') && $request->status) {
+            $query->where('status', $request->status);
         }
 
-        public function create() {
-            return view('admin.bantuan.create');
+        if ($request->has('sasaran') && $request->sasaran) {
+            $query->where('sasaran', $request->sasaran);
         }
 
-        public function store(Request $request) {
-            $request->validate([
-                'nama'           => 'required|string|max:255',
-                'sumber_dana'    => 'nullable|string|max:255',
-                'tahun'          => 'nullable|integer|min:2000|max:2099',
-                'nominal'        => 'nullable|numeric|min:0',
-                'sasaran'        => 'required|in:1,2',
-                'tanggal_mulai'  => 'nullable|date',
-                'tanggal_selesai' => 'nullable|date|after_or_equal:tanggal_mulai',
-            ]);
-
-            Program::create($request->all());
-
-            return redirect()->route('admin.bantuan.index')
-                ->with('success', 'Program bantuan berhasil ditambahkan.');
+        if ($request->has('search') && $request->search) {
+            $query->where('nama', 'like', '%' . $request->search . '%');
         }
 
-        public function show(Program $bantuan) {
-            $peserta = $bantuan->peserta()->paginate(10);
-            return view('admin.bantuan.show', compact('bantuan', 'peserta'));
-        }
+        $perPage = $request->get('per_page', 10);
+        $programs = $query->paginate($perPage)->appends($request->query());
 
-        public function edit(Program $bantuan) {
-            return view('admin.bantuan.edit', compact('bantuan'));
-        }
-
-        public function update(Request $request, Program $bantuan) {
-            $request->validate([
-                'nama'           => 'required|string|max:255',
-                'sumber_dana'    => 'nullable|string|max:255',
-                'tahun'          => 'nullable|integer|min:2000|max:2099',
-                'nominal'        => 'nullable|numeric|min:0',
-                'sasaran'        => 'required|in:1,2',
-                'tanggal_mulai'  => 'nullable|date',
-                'tanggal_selesai' => 'nullable|date|after_or_equal:tanggal_mulai',
-            ]);
-
-            $bantuan->update($request->all());
-
-            return redirect()->route('admin.bantuan.index')
-                ->with('success', 'Program bantuan berhasil diperbarui.');
-        }
-
-        public function destroy(Program $bantuan) {
-            $bantuan->delete();
-            return redirect()->route('admin.bantuan.index')
-                ->with('success', 'Program bantuan berhasil dihapus.');
-        }
+        return view('admin.bantuan.index', compact('programs'));
     }
+
+    public function create()
+    {
+        return view('admin.bantuan.create');
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'nama' => 'required|string|max:255',
+            'sasaran' => 'required|in:1,2',
+            'sumber_dana' => 'nullable|string|max:100',
+            'tahun' => 'nullable|integer|min:2000|max:2099',
+            'nominal' => 'nullable|numeric|min:0',
+            'tanggal_mulai' => 'nullable|date',
+            'tanggal_selesai' => 'nullable|date|after_or_equal:tanggal_mulai',
+            'publikasi' => 'required|in:0,1',
+            'keterangan' => 'nullable|string',
+        ]);
+
+        Program::create($validated);
+
+        return redirect()->route('admin.bantuan.index')->with('success', 'Program bantuan berhasil ditambahkan.');
+    }
+
+    public function show($id)
+    {
+        $program = Program::findOrFail($id);
+
+        return view('admin.bantuan.show', compact('program'));
+    }
+
+    public function edit($id)
+    {
+        $program = Program::findOrFail($id);
+
+        return view('admin.bantuan.edit', compact('program'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $program = Program::findOrFail($id);
+
+        $validated = $request->validate([
+            'nama' => 'required|string|max:255',
+            'sasaran' => 'required|in:1,2',
+            'sumber_dana' => 'nullable|string|max:100',
+            'tahun' => 'nullable|integer|min:2000|max:2099',
+            'nominal' => 'nullable|numeric|min:0',
+            'tanggal_mulai' => 'nullable|date',
+            'tanggal_selesai' => 'nullable|date|after_or_equal:tanggal_mulai',
+            'publikasi' => 'required|in:0,1',
+            'keterangan' => 'nullable|string',
+        ]);
+
+        $program->update($validated);
+
+        return redirect()->route('admin.bantuan.index')->with('success', 'Program bantuan berhasil diperbarui.');
+    }
+
+    public function destroy($id)
+    {
+        $program = Program::findOrFail($id);
+        $program->delete();
+
+        return redirect()->route('admin.bantuan.index')->with('success', 'Program bantuan berhasil dihapus.');
+    }
+
+    public function importForm()
+    {
+        return abort(204);
+    }
+
+    public function bersihkan()
+    {
+        $pesertaTidakValid = DB::table('program_peserta')
+            ->leftJoin('program', 'program_peserta.program_id', '=', 'program.id')
+            ->leftJoin('penduduk', 'program_peserta.penduduk_id', '=', 'penduduk.id')
+            ->whereNull('program.id')
+            ->select([
+                'program_peserta.*',
+                'program.nama as program_nama',
+                'program.sasaran as program_sasaran',
+                'penduduk.nama as peserta_nama',
+            ])
+            ->get();
+
+        $pesertaDuplikat = DB::table('program_peserta')
+            ->select('program_id', 'penduduk_id', DB::raw('COUNT(*) as jumlah_duplikat'))
+            ->groupBy('program_id', 'penduduk_id')
+            ->having('jumlah_duplikat', '>', 1)
+            ->get()
+            ->flatMap(function ($item) {
+                return DB::table('program_peserta')
+                    ->leftJoin('program', 'program_peserta.program_id', '=', 'program.id')
+                    ->leftJoin('penduduk', 'program_peserta.penduduk_id', '=', 'penduduk.id')
+                    ->where('program_peserta.program_id', $item->program_id)
+                    ->where('program_peserta.penduduk_id', $item->penduduk_id)
+                    ->select([
+                        'program_peserta.*',
+                        'program.nama as program_nama',
+                        'program.sasaran as program_sasaran',
+                        'penduduk.nama as peserta_nama',
+                        DB::raw((int) $item->jumlah_duplikat . ' as jumlah_duplikat'),
+                    ])
+                    ->get();
+            });
+
+        return view('admin.bantuan.bersihkan', compact('pesertaTidakValid', 'pesertaDuplikat'));
+    }
+
+    public function bersihkanDestroy(Request $request)
+    {
+        $ids = $request->input('ids', []);
+
+        if (!empty($ids)) {
+            DB::table('program_peserta')->whereIn('id', $ids)->delete();
+        }
+
+        return redirect()->route('admin.bantuan.bersihkan')->with('success', 'Data peserta tidak valid dan duplikat berhasil dihapus.');
+    }
+}
