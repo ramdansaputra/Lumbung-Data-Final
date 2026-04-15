@@ -62,8 +62,9 @@ class BantuanController extends Controller
     public function show($id)
     {
         $bantuan = Program::findOrFail($id);
+        $peserta = $bantuan->peserta()->orderBy('created_at', 'desc')->paginate(10);
 
-        return view('admin.bantuan.show', compact('bantuan'));
+        return view('admin.bantuan.show', compact('bantuan', 'peserta'));
     }
 
     public function edit($id)
