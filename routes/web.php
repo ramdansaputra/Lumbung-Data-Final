@@ -385,36 +385,6 @@ Route::prefix('warga')->name('warga.')->middleware(['auth', 'role:warga'])->grou
         return response()->json(['ok' => true]);
     })->name('notifikasi.tandai-semua');
 
-    Route::post('/notifikasi/tandai-banyak', function (\Illuminate\Http\Request $request) {
-        $ids = $request->input('ids', []);
-        if (!is_array($ids) || empty($ids)) {
-            return response()->json(['ok' => false], 422);
-        }
-
-        $user = Auth::user();
-        foreach ($ids as $id) {
-            $parts = explode('-', $id, 2);
-            $type = $parts[0] ?? '';
-            $rawId = $parts[1] ?? null;
-
-            if (!$rawId || !is_numeric($rawId)) continue;
-            $rawId = (int)$rawId;
-
-            if ($type === 'pesan') {
-                \App\Models\Pesan::where('id', $rawId)
-                    ->where('penerima_id', $user->id)
-                    ->update(['sudah_dibaca' => true]);
-            } elseif ($type === 'surat') {
-                DB::table('notifikasi_dibaca')->updateOrInsert(
-                    ['user_id' => $user->id, 'notif_type' => 'surat', 'notif_id' => $rawId],
-                    ['created_at' => now(), 'updated_at' => now()]
-                );
-            }
-        }
-
-        return response()->json(['ok' => true]);
-    })->name('notifikasi.tandai-banyak');
-
     Route::delete('/notifikasi/hapus-banyak', function (\Illuminate\Http\Request $request) {
         $ids = $request->input('ids', []);
         if (!is_array($ids) || empty($ids)) {
@@ -1703,6 +1673,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
         }
         return response()->json(['found' => false]);
     })->name('bantuan.cari-penduduk');
+
+    Route::get('/bantuan/import', [BantuanController::class, 'importForm'])->name('bantuan.import');
+    Route::post('/bantuan/import', [BantuanController::class, 'import'])->name('bantuan.import.store');
+    Route::get('/bantuan/contoh-format', [BantuanController::class, 'contohFormat'])
+        ->name('bantuan.contoh-format');
+    Route::get('/bantuan/bersihkan', [BantuanController::class, 'bersihkan'])->name('bantuan.bersihkan');
+    Route::delete('/bantuan/bersihkan/destroy', [BantuanController::class, 'bersihkanDestroy'])->name('bantuan.bersihkan.destroy');
 
     Route::resource('bantuan', BantuanController::class);
 
