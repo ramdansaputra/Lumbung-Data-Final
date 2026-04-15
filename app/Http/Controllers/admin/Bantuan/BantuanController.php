@@ -28,9 +28,9 @@ class BantuanController extends Controller
         }
 
         $perPage = $request->get('per_page', 10);
-        $programs = $query->paginate($perPage)->appends($request->query());
+        $bantuan = $query->paginate($perPage)->appends($request->query());
 
-        return view('admin.bantuan.index', compact('programs'));
+        return view('admin.bantuan.index', compact('bantuan'));
     }
 
     public function create()
