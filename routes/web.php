@@ -1675,6 +1675,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
     })->name('bantuan.cari-penduduk');
 
     Route::get('/bantuan/import', [BantuanController::class, 'importForm'])->name('bantuan.import');
+    Route::post('/bantuan/import', [BantuanController::class, 'import'])->name('bantuan.import.store');
     Route::get('/bantuan/bersihkan', [BantuanController::class, 'bersihkan'])->name('bantuan.bersihkan');
     Route::delete('/bantuan/bersihkan/destroy', [BantuanController::class, 'bersihkanDestroy'])->name('bantuan.bersihkan.destroy');
 

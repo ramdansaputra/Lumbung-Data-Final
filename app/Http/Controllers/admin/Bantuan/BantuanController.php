@@ -108,6 +108,11 @@ class BantuanController extends Controller
         return abort(204);
     }
 
+    public function import(Request $request)
+    {
+        return abort(204);
+    }
+
     public function bersihkan()
     {
         $pesertaTidakValid = DB::table('program_peserta')
