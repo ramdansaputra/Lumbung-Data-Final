@@ -504,9 +504,8 @@
                                     </template>
                                 </div>
 
-                                {{-- Footer: hanya tombol "Selengkapnya..." --}}
-                                <div
-                                    class="px-4 py-2.5 bg-slate-50 border-t border-slate-100 flex justify-center items-center flex-shrink-0">
+                                {{-- Footer --}}
+                                <div class="px-4 py-2.5 bg-slate-50 border-t border-slate-100 flex justify-center items-center flex-shrink-0">
                                     <a href="{{ route('warga.notifikasi.index') }}"
                                         class="text-xs text-emerald-600 font-semibold hover:underline flex items-center gap-1 whitespace-nowrap">
                                         Selengkapnya...
@@ -632,9 +631,8 @@
                                 class="fixed bg-white rounded-2xl shadow-2xl border border-slate-100 z-[200] flex flex-col overflow-hidden"
                                 style="top: 72px; left: 1rem; right: 1rem; display:none; max-height:70vh;">
 
-                                {{-- Header --}}
-                                <div
-                                    class="flex-shrink-0 flex items-center justify-between px-4 py-3 bg-gradient-to-r from-emerald-600 to-teal-600">
+                                {{-- Header Mobile --}}
+                                <div class="flex-shrink-0 flex items-center justify-between px-4 py-3 bg-gradient-to-r from-emerald-600 to-teal-600">
                                     <div class="flex items-center gap-2 min-w-0">
                                         <svg class="w-4 h-4 text-white flex-shrink-0" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
@@ -648,7 +646,7 @@
                                         style="display:none"></span>
                                 </div>
 
-                                {{-- List --}}
+                                {{-- List Mobile --}}
                                 <div class="flex-1 overflow-y-auto divide-y divide-slate-50 min-h-0">
                                     <div x-show="loading" class="flex items-center justify-center py-8">
                                         <svg class="animate-spin w-5 h-5 text-emerald-500" fill="none"
@@ -714,19 +712,10 @@
                                     </template>
                                 </div>
 
-                                {{-- Footer Mobile: hanya Selengkapnya --}}
-                                <div
-                                    class="flex-shrink-0 px-4 py-2.5 bg-slate-50 border-t border-slate-100 flex justify-center items-center">
+                                {{-- Footer Mobile --}}
+                                <div class="flex-shrink-0 px-4 py-2.5 bg-slate-50 border-t border-slate-100 flex justify-center items-center">
                                     <a href="{{ route('warga.notifikasi.index') }}"
                                         class="text-xs text-emerald-600 font-semibold hover:underline flex items-center gap-1 whitespace-nowrap">
-                                        Selengkapnya...
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M9 5l7 7-7 7" />
-                                        </svg>
-                                    </a>
-                                </div>
-                                        class="text-xs text-emerald-600 font-semibold hover:underline flex items-center gap-1">
                                         Selengkapnya...
                                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -967,9 +956,8 @@
 
             _initialized: false,
             _prevTotal: 0,
-            _audioPlaying: false,   // guard supaya tidak double play
+            _audioPlaying: false,
 
-            // ── INIT ─────────────────────────────────────────────
             init() {
                 const saved = localStorage.getItem('notif_sound');
                 this.soundEnabled = saved === null ? true : saved === 'true';
@@ -980,7 +968,6 @@
 
                 setInterval(() => this._fetchBadges(true), 30000);
 
-                // FIX #5: Dengarkan event dari halaman notifikasi warga.
                 window.addEventListener('warga-notif-badge-changed', (e) => {
                     const total = e.detail?.total ?? 0;
                     const naik = this._initialized && total > this._prevTotal;
@@ -990,7 +977,6 @@
                 });
             },
 
-            // ── Toggle Dropdown ───────────────────────────────────
             async toggleDropdown() {
                 this.dropdownOpen = !this.dropdownOpen;
                 if (this.dropdownOpen) {
@@ -998,13 +984,10 @@
                 }
             },
 
-            // ── Fetch badge count ─────────────────────────────────
             async _fetchBadges(playSound) {
                 try {
                     const res = await fetch('/warga/notifikasi/badges', {
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
                     });
                     if (!res.ok) throw new Error('HTTP ' + res.status);
                     const data = await res.json();
@@ -1016,19 +999,14 @@
                     this._prevTotal = newTotal;
 
                     if (naik) this._triggerNew();
-                } catch (e) {
-                    // silent
-                }
+                } catch (e) {}
             },
 
-            // ── Fetch list notifikasi ─────────────────────────────
             async _fetchList() {
                 this.loading = true;
                 try {
                     const res = await fetch('/warga/notifikasi/list', {
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
                     });
                     if (!res.ok) throw new Error('HTTP ' + res.status);
                     const data = await res.json();
@@ -1047,15 +1025,12 @@
                 }
             },
 
-            // ── ✅ Tandai SATU item dibaca ──────────────────────────
             async markOneRead(item, event) {
                 if (item.dibaca) return;
 
-                // Animasi tombol centang
                 const btn = event?.currentTarget;
                 if (btn) btn.classList.add('marking');
 
-                // Fade row
                 const row = btn?.closest('.notif-item-row');
                 if (row) row.classList.add('marked');
 
@@ -1065,13 +1040,9 @@
                         headers: {
                             'Content-Type': 'application/json',
                             'X-Requested-With': 'XMLHttpRequest',
-                            'X-CSRF-TOKEN': document.querySelector(
-                                'meta[name="csrf-token"]')?.content ?? ''
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? ''
                         },
-                        body: JSON.stringify({
-                            id: item.id,
-                            tipe: item.tipe
-                        })
+                        body: JSON.stringify({ id: item.id, tipe: item.tipe })
                     });
 
                     setTimeout(() => {
@@ -1088,31 +1059,24 @@
                 }
             },
 
-            // ── Tandai semua dibaca (masih ada sebagai fallback) ──
             async markAllRead() {
                 try {
                     await fetch('/warga/notifikasi/surat-dibaca', {
                         method: 'POST',
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest',
-                            'X-CSRF-TOKEN': document.querySelector(
-                                'meta[name="csrf-token"]')?.content ?? ''
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? ''
                         }
                     });
                     this.totalNotif = 0;
                     this._prevTotal = 0;
-                    this.notifItems = this.notifItems.map(i => ({
-                        ...i,
-                        dibaca: true
-                    }));
+                    this.notifItems = this.notifItems.map(i => ({ ...i, dibaca: true }));
                 } catch (e) {}
             },
 
             _triggerNew() {
                 this.bellRinging = true;
-                setTimeout(() => {
-                    this.bellRinging = false;
-                }, 1000);
+                setTimeout(() => { this.bellRinging = false; }, 1000);
                 this._playSound();
             },
 

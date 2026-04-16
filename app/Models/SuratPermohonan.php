@@ -23,7 +23,6 @@ class SuratPermohonan extends Model
      */
     protected $fillable = [
         'penduduk_id',
-        'jenis_surat_id',    // Gunakan ini jika kolom di DB belum di-rename
         'surat_template_id', // Tambahkan ini jika Anda berencana me-rename kolom
         'keperluan',
         'dokumen_pendukung',
