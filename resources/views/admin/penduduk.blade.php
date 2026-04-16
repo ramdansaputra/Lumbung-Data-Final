@@ -2284,11 +2284,9 @@
     ══════════════════════════════════════════════════════════════ --}}
         <div x-data="{
             show: false,
-            mode: 'textarea',
             search: '',
             selectedNiks: [],
             openDrop: false,
-            textareaValue: '{{ request('kumpulan_nik') }}',
             niksData: [
                 @foreach ($penduduk ?? [] as $p)
                     { nik: '{{ $p->nik }}', nama: '{{ addslashes($p->nama) }}' },
@@ -2310,11 +2308,7 @@
                 this.selectedNiks = this.selectedNiks.filter(n => n !== nik);
             },
             submitForm() {
-                if (this.mode === 'textarea') {
-                    document.getElementById('hidden-kumpulan').value = this.textareaValue;
-                } else {
-                    document.getElementById('hidden-kumpulan').value = this.selectedNiks.join('\\n');
-                }
+                document.getElementById('hidden-kumpulan').value = this.selectedNiks.join('\\n');
                 document.getElementById('form-kumpulan-nik').submit();
             }
         }" @open-kumpulan-nik.window="show = true"
@@ -2346,30 +2340,8 @@
                         <input type="hidden" id="hidden-kumpulan" name="kumpulan_nik">
 
                         <div class="px-6 py-5 space-y-4">
-                            {{-- Toggle Mode --}}
-                            <div class="flex gap-2 border-b border-gray-200 dark:border-slate-600 pb-4">
-                                <button type="button" @click="mode='textarea'; openDrop=false"
-                                    :class="mode==='textarea' ? 'px-3 py-1.5 bg-emerald-500 text-white text-xs font-semibold rounded-lg' : 'px-3 py-1.5 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-300 text-xs font-semibold rounded-lg hover:border-emerald-400'"
-                                    class="transition-colors">
-                                    Ketik Manual
-                                </button>
-                                <button type="button" @click="mode='pilih'; openDrop=false"
-                                    :class="mode==='pilih' ? 'px-3 py-1.5 bg-emerald-500 text-white text-xs font-semibold rounded-lg' : 'px-3 py-1.5 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-300 text-xs font-semibold rounded-lg hover:border-emerald-400'"
-                                    class="transition-colors">
-                                    Pilih dari Daftar
-                                </button>
-                            </div>
-
-                            {{-- Mode: Ketik Manual --}}
-                            <div x-show="mode==='textarea'">
-                                <label class="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">Kumpulan NIK</label>
-                                <textarea x-model="textareaValue" rows="6" placeholder="Masukkan NIK, pisahkan dengan enter, koma, atau spasi"
-                                    class="w-full px-3 py-2.5 border border-gray-300 dark:border-slate-600 rounded-lg text-sm font-mono bg-white dark:bg-slate-700 text-gray-700 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none resize-none"></textarea>
-                                <p class="mt-1.5 text-xs text-gray-400 dark:text-slate-500">Masukkan satu NIK per baris, atau pisahkan dengan koma/spasi</p>
-                            </div>
-
-                            {{-- Mode: Pilih dari Daftar --}}
-                            <div x-show="mode==='pilih'">
+                            {{-- Mode: Pilih dari Daftar (Hanya Mode Dropdown) --}}
+                            <div>
                                 <label class="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">Pilih NIK dari Daftar</label>
                                 
                                 {{-- Custom Dropdown --}}
