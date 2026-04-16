@@ -107,10 +107,13 @@ class PendudukController extends Controller {
         }
         if ($request->filled('tanggal_lahir')) {
             $tgl = $request->tanggal_lahir;
-            if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $tgl)) {
-                $query->whereDate('tanggal_lahir', $tgl);
+            if (preg_match('/^(\d{2})-(\d{2})-(\d{4})$/', $tgl, $m)) {
+                // Format DD-MM-YYYY → filter tanggal penuh
+                $query->whereDate('tanggal_lahir', Carbon::createFromFormat('d-m-Y', $tgl)->format('Y-m-d'));
             } elseif (preg_match('/^(\d{2})-(\d{2})$/', $tgl, $m)) {
-                $query->whereMonth('tanggal_lahir', (int) $m[1])->whereDay('tanggal_lahir', (int) $m[2]);
+                // Format DD-MM → filter hari & bulan saja
+                $query->whereDay('tanggal_lahir', (int) $m[1])
+                    ->whereMonth('tanggal_lahir', (int) $m[2]);
             }
         }
         foreach (

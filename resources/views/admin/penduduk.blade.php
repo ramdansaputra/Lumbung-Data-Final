@@ -1485,53 +1485,46 @@
                             </div>
 
                             {{-- Full Width: Tanggal Lahir --}}
+                            @once
+                                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+                                <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+                            @endonce
+
                             <div x-data="{
-                                    rawDate: '',
-                                    useYear: true,
-                                    formatted: '',
-                                    init() {
-                                        const initial = '{{ request('tanggal_lahir') }}';
-                                        if (initial && /^\d{2}-\d{2}$/.test(initial)) {
-                                            this.useYear = false;
-                                            this.rawDate = '2000-' + initial;
-                                        } else {
-                                            this.rawDate = initial || '';
-                                        }
-                                        this.updateFormatted();
-                                    },
-                                    updateFormatted() {
-                                        if (!this.rawDate) {
-                                            this.formatted = '';
-                                            return;
-                                        }
-                                        if (this.useYear) {
-                                            this.formatted = this.rawDate;
-                                            return;
-                                        }
-                                        const parts = this.rawDate.split('-');
-                                        if (parts.length === 3) {
-                                            this.formatted = `${parts[1]}-${parts[2]}`;
-                                        } else {
-                                            this.formatted = this.rawDate;
-                                        }
-                                    }
-                                }" x-init="init()">
+                                useYear: {{ request('tanggal_lahir') && preg_match('/^\d{2}-\d{2}-\d{4}$/', request('tanggal_lahir')) ? 'true' : 'false' }},
+                                fp: null,
+                                init() { this.$nextTick(() => this.initPicker()); },
+                                initPicker() {
+                                    if (this.fp) { this.fp.destroy();
+                                        this.fp = null; }
+                                    this.fp = flatpickr(this.$refs.tglInput, {
+                                        dateFormat: this.useYear ? 'd-m-Y' : 'd-m',
+                                        allowInput: true,
+                                        disableMobile: true,
+                                    });
+                                }
+                            }">
                                 <label class="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1.5">Tanggal
                                     Lahir</label>
-                                <div class="flex flex-col gap-2">
-                                    <input type="date" x-model="rawDate" @input="updateFormatted()"
-                                        class="px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-700 text-gray-700 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
-                                    <div class="flex items-center gap-2">
+                                <div class="flex items-center gap-2">
+                                    <input type="text" x-ref="tglInput" name="tanggal_lahir"
+                                        value="{{ request('tanggal_lahir') }}"
+                                        :placeholder="useYear ? 'DD-MM-YYYY' : 'DD-MM'"
+                                        class="flex-1 px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm
+                   bg-white dark:bg-slate-700 text-gray-700 dark:text-slate-200
+                   focus:ring-2 focus:ring-emerald-500 outline-none">
+                                    <div class="flex items-center gap-1.5 flex-shrink-0">
                                         <input id="tanggal_lahir_use_year" type="checkbox" x-model="useYear"
-                                            @change="updateFormatted()"
+                                            @change="$refs.tglInput.value = ''; initPicker();"
                                             class="border-gray-300 dark:border-slate-600 rounded text-emerald-600 focus:ring-emerald-500">
                                         <label for="tanggal_lahir_use_year"
-                                            class="text-xs text-gray-600 dark:text-slate-400">Sertakan tahun (YYYY-MM-DD)</label>
+                                            class="text-xs text-gray-600 dark:text-slate-400 whitespace-nowrap cursor-pointer">Tahun</label>
                                     </div>
                                 </div>
-                                <input type="hidden" name="tanggal_lahir" :value="formatted">
-                                <p class="mt-1 text-xs text-gray-500 dark:text-slate-400">Pilih tanggal di kalender; kosongkan checkbox jika hanya ingin mencari berdasarkan bulan & hari.</p>
-                                <p class="mt-1 text-xs text-red-600 dark:text-red-400">Centang 'Sertakan tahun' untuk filter lengkap dengan tahun. Jika tidak, hanya bulan & hari akan diproses.</p>
+                                <p class="mt-1 text-xs text-red-600 dark:text-red-400">
+                                    Klik input untuk memilih hari &amp; bulan. Centang "Tahun" untuk memilih tanggal
+                                    lengkap.
+                                </p>
                             </div>
 
                             {{-- Grid 2 Kolom --}}
