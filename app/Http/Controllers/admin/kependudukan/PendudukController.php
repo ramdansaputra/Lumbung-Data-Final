@@ -19,6 +19,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
@@ -220,10 +221,6 @@ class PendudukController extends Controller {
             return redirect()->route('admin.penduduk')
                 ->with('error', 'Data Wilayah masih kosong. Silakan isi data Wilayah/Dusun terlebih dahulu sebelum menambah data penduduk.');
         }
-
-        $jenis = in_array($request->get('jenis'), ['lahir', 'masuk'])
-            ? $request->get('jenis')
-            : 'lahir';
 
         $keluarga = Keluarga::aktif()
             ->with('kepalaKeluarga:id,nama')
