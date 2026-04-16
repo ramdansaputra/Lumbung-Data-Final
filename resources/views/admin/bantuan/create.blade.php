@@ -25,7 +25,7 @@
         </nav>
     </div>
 
-    <div class="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden">
+rounded-xl border border-gray-200 dark:border-slate-700 overflow-visible"
 
         <div
             class="px-5 py-5 border-b border-gray-200 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
