@@ -128,27 +128,12 @@ class PendudukController extends Controller {
                 $query->where($col, $request->$param);
             }
         }
-        if ($request->filled('disabilitas'))
-            $query->where('disabilitas', $request->disabilitas === 'ya' ? 1 : 0);
-        if ($request->filled('asuransi'))
-            $query->where('asuransi', $request->asuransi === 'ya' ? 1 : 0);
-        if ($request->filled('bpjs_ketenagakerjaan'))
-            $query->where('bpjs_ketenagakerjaan', $request->bpjs_ketenagakerjaan === 'ya' ? 1 : 0);
-        if ($request->filled('sakit_menahun'))
-            $query->where('sakit_menahun', $request->sakit_menahun === 'ya' ? 1 : 0);
-        if ($request->filled('status_ktp'))
-            $query->where('status_ktp', $request->status_ktp);
-        if ($request->filled('has_tag_id_card'))
-            $query->where('tag_id_card', $request->has_tag_id_card === 'ya' ? '!=' : '=', null);
         if ($request->filled('has_kk'))
             $query->when(
                 $request->has_kk === 'ya',
                 fn($q) => $q->whereNotNull('keluarga_id'),
                 fn($q) => $q->whereNull('keluarga_id')
             );
-        if ($request->filled('adat'))       $query->where('adat', 'like', '%' . $request->adat . '%');
-        if ($request->filled('suku_etnis')) $query->where('suku_etnis', 'like', '%' . $request->suku_etnis . '%');
-        if ($request->filled('marga'))      $query->where('marga', 'like', '%' . $request->marga . '%');
         if ($request->has('program_bantuan_id') && class_exists(\App\Models\BantuanPeserta::class)) {
             $val = $request->program_bantuan_id;
 
