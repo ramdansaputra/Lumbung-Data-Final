@@ -19,6 +19,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -93,7 +94,9 @@ class PendudukController extends Controller {
 
         // ── Filter: NIK Sementara ─────────────────────────────────────────────
         if ($request->boolean('nik_sementara')) {
-            $query->where('is_nik_sementara', true);
+            if (Schema::hasColumn('penduduk', 'is_nik_sementara')) {
+                $query->where('is_nik_sementara', true);
+            }
         }
         if ($request->filled('umur_dari') || $request->filled('umur_sampai')) {
             $satuan = $request->get('umur_satuan', 'tahun') === 'bulan' ? 'MONTH' : 'YEAR';
@@ -147,8 +150,19 @@ class PendudukController extends Controller {
         if ($request->filled('adat'))       $query->where('adat', 'like', '%' . $request->adat . '%');
         if ($request->filled('suku_etnis')) $query->where('suku_etnis', 'like', '%' . $request->suku_etnis . '%');
         if ($request->filled('marga'))      $query->where('marga', 'like', '%' . $request->marga . '%');
-        if ($request->filled('program_bantuan_id') && class_exists(\App\Models\BantuanPeserta::class)) {
-            $query->whereHas('bantuanPeserta', fn($q) => $q->where('bantuan_id', $request->program_bantuan_id));
+        if ($request->has('program_bantuan_id') && class_exists(\App\Models\BantuanPeserta::class)) {
+            $val = $request->program_bantuan_id;
+
+            if ($val === 'bukan') {
+                // Penduduk yang tidak terdaftar di program bantuan apapun
+                $query->whereDoesntHave('bantuanPeserta');
+            } elseif ($val === '') {
+                // Penduduk penerima bantuan semua program
+                $query->whereHas('bantuanPeserta');
+            } elseif ($val !== null) {
+                // Program bantuan spesifik
+                $query->whereHas('bantuanPeserta', fn($q) => $q->where('bantuan_id', $val));
+            }
         }
         if ($request->filled('kumpulan_nik')) {
             $niks = preg_split('/[\s,;]+/', trim($request->kumpulan_nik), -1, PREG_SPLIT_NO_EMPTY);
