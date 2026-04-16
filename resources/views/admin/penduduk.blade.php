@@ -1485,16 +1485,53 @@
                             </div>
 
                             {{-- Full Width: Tanggal Lahir --}}
-                            <div>
+                            <div x-data="{
+                                    rawDate: '',
+                                    useYear: true,
+                                    formatted: '',
+                                    init() {
+                                        const initial = '{{ request('tanggal_lahir') }}';
+                                        if (initial && /^\d{2}-\d{2}$/.test(initial)) {
+                                            this.useYear = false;
+                                            this.rawDate = '2000-' + initial;
+                                        } else {
+                                            this.rawDate = initial || '';
+                                        }
+                                        this.updateFormatted();
+                                    },
+                                    updateFormatted() {
+                                        if (!this.rawDate) {
+                                            this.formatted = '';
+                                            return;
+                                        }
+                                        if (this.useYear) {
+                                            this.formatted = this.rawDate;
+                                            return;
+                                        }
+                                        const parts = this.rawDate.split('-');
+                                        if (parts.length === 3) {
+                                            this.formatted = `${parts[1]}-${parts[2]}`;
+                                        } else {
+                                            this.formatted = this.rawDate;
+                                        }
+                                    }
+                                }" x-init="init()">
                                 <label class="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1.5">Tanggal
                                     Lahir</label>
-                                <div class="flex gap-2">
-                                    <input type="text" name="tanggal_lahir" value="{{ request('tanggal_lahir') }}"
-                                        placeholder="YYYY-MM-DD atau MM-DD"
-                                        class="flex-1 px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-700 text-gray-700 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+                                <div class="flex flex-col gap-2">
+                                    <input type="date" x-model="rawDate" @input="updateFormatted()"
+                                        class="px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-700 text-gray-700 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+                                    <div class="flex items-center gap-2">
+                                        <input id="tanggal_lahir_use_year" type="checkbox" x-model="useYear"
+                                            @change="updateFormatted()"
+                                            class="border-gray-300 dark:border-slate-600 rounded text-emerald-600 focus:ring-emerald-500">
+                                        <label for="tanggal_lahir_use_year"
+                                            class="text-xs text-gray-600 dark:text-slate-400">Sertakan tahun (YYYY-MM-DD)</label>
+                                    </div>
                                 </div>
-                                <p class="mt-1 text-xs text-emerald-600 dark:text-emerald-400">Format: YYYY-MM-DD (lengkap)
-                                    atau MM-DD (bulan & hari saja)</p>
+                                <input type="hidden" name="tanggal_lahir" :value="formatted">
+                                <p class="mt-1 text-xs text-gray-500 dark:text-slate-400">Pilih tanggal di kalender; kosongkan checkbox jika hanya ingin mencari berdasarkan bulan & hari.</p>
+                                <p class="mt-1 text-xs text-red-600 dark:text-red-400">Centang 'Sertakan tahun' untuk filter lengkap dengan tahun. Jika tidak, hanya bulan & hari akan diproses.</p>
                             </div>
 
                             {{-- Grid 2 Kolom --}}
