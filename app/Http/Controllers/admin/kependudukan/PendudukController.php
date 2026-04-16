@@ -222,6 +222,10 @@ class PendudukController extends Controller {
                 ->with('error', 'Data Wilayah masih kosong. Silakan isi data Wilayah/Dusun terlebih dahulu sebelum menambah data penduduk.');
         }
 
+        $jenis = in_array($request->get('jenis'), ['lahir', 'masuk'])
+            ? $request->get('jenis')
+            : 'lahir';
+
         $keluarga = Keluarga::aktif()
             ->with('kepalaKeluarga:id,nama')
             ->select('id', 'no_kk', 'kepala_keluarga_id', 'alamat')
