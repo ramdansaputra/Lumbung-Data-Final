@@ -28,9 +28,8 @@
                     x-transition:leave="transition ease-in duration-75"
                     x-transition:leave-start="opacity-100 translate-y-0"
                     x-transition:leave-end="opacity-0 -translate-y-1"
-class="absolute left-0 bottom-full mb-1 w-full z-50 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg overflow-hidden"
+                    class="absolute left-0 top-full mt-1 w-full z-50 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg overflow-hidden"
                     style="display:none">
-
                     <div class="p-2 border-b border-gray-100 dark:border-slate-700">
                         <input type="text" x-model="sasaranSearch" @keydown.escape="sasaranOpen = false"
                             placeholder="Cari sasaran..."
