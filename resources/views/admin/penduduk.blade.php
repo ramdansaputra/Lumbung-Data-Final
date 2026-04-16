@@ -1362,26 +1362,40 @@
         </script>
 
         {{-- ══════════════════════════════════════════════════════════════
-         MODAL: PENCARIAN SPESIFIK
+         MODAL: PENCARIAN SPESIFIK (dengan global dropdown state management)
     ══════════════════════════════════════════════════════════════ --}}
         <div x-data="{
             show: false,
-            openDrops: {},
+            activeDropdown: null,
             searches: {},
             initField(name) {
-                if (!this.openDrops[name]) this.openDrops[name] = false;
                 if (!this.searches[name]) this.searches[name] = '';
             },
-            toggleDrop(name) {
+            openDrop(name) {
                 this.initField(name);
-                this.openDrops[name] = !this.openDrops[name];
+                if (this.activeDropdown && this.activeDropdown !== name) {
+                    this.closeDrop(this.activeDropdown);
+                }
+                this.activeDropdown = name;
             },
             closeDrop(name) {
-                this.openDrops[name] = false;
+                if (this.activeDropdown === name) {
+                    this.activeDropdown = null;
+                }
                 this.searches[name] = '';
+            },
+            toggleDrop(name) {
+                if (this.activeDropdown === name) {
+                    this.closeDrop(name);
+                } else {
+                    this.openDrop(name);
+                }
+            },
+            isDropOpen(name) {
+                return this.activeDropdown === name;
             }
         }" @open-pencarian-spesifik.window="show = true"
-            @keydown.escape.window="show && (show = false)">
+            @keydown.escape.window="show && (show = false, activeDropdown = null)">
             <div x-show="show" x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0"
                 x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-150"
                 x-transition:leave-end="opacity-0" class="fixed inset-0 bg-black/50 dark:bg-black/70 z-[200]"
@@ -1433,53 +1447,42 @@
                                         class="flex-1 px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-700 text-gray-700 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
 
                                     {{-- Custom Dropdown: Satuan Umur --}}
-                                    <div class="relative w-28" x-data="{
-                                        open: false,
-                                        search: '',
-                                        selected: '{{ request('umur_satuan', 'tahun') }}',
-                                        options: [
-                                            { value: 'tahun', label: 'Tahun' },
-                                            { value: 'bulan', label: 'Bulan' }
-                                        ],
-                                        get label() { return this.options.find(o => o.value === this.selected)?.label ?? ''; },
-                                        get filtered() {
-                                            return !this.search ? this.options :
-                                                this.options.filter(o =>
-                                                    o.label.toLowerCase().includes(this.search.toLowerCase())
-                                                );
-                                        },
-                                        choose(opt) {
-                                            this.selected = opt.value;
-                                            this.open = false;
-                                            this.search = '';
-                                        }
-                                    }" @click.away="open = false">
-                                        <button type="button" @click="open=!open" @keydown.escape="open=false"
+                                    <div class="relative w-28" @click.away="activeDropdown !== null && closeDrop(activeDropdown)">
+                                        <button type="button" @click="toggleDrop('umur_satuan')" @keydown.escape="closeDrop('umur_satuan')"
                                             class="w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm bg-white dark:bg-slate-700 transition-colors"
-                                            :class="open ? 'border-emerald-500 ring-2 ring-emerald-500/20' :
+                                            :class="isDropOpen('umur_satuan') ? 'border-emerald-500 ring-2 ring-emerald-500/20' :
                                                 'border-gray-300 dark:border-slate-600 hover:border-emerald-400'">
-                                            <span x-text="label" class="text-gray-700 dark:text-slate-200"></span>
+                                            <span class="text-gray-700 dark:text-slate-200"
+                                                x-text="(() => {
+                                                    const val = document.querySelector('input[name=umur_satuan]').value;
+                                                    return val === 'tahun' ? 'Tahun' : val === 'bulan' ? 'Bulan' : 'Tahun';
+                                                })()"></span>
                                             <svg class="w-3 h-3 text-gray-400 transition-transform"
-                                                :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor"
+                                                :class="isDropOpen('umur_satuan') ? 'rotate-180' : ''" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
                                             </svg>
                                         </button>
-                                        <div x-show="open"
+                                        <div x-show="isDropOpen('umur_satuan')"
                                             class="absolute z-[300] top-full mt-1 w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg overflow-hidden"
                                             style="display:none">
                                             <ul class="py-1">
-                                                <template x-for="opt in filtered" :key="opt.value">
-                                                    <li @click="choose(opt)" x-text="opt.label"
-                                                        class="px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
-                                                        :class="selected === opt.value ? 'bg-emerald-500 text-white' :
-                                                            'text-gray-700 dark:text-slate-200'">
-                                                    </li>
-                                                </template>
+                                                <li @click="document.querySelector('input[name=umur_satuan]').value = 'tahun'; closeDrop('umur_satuan')"
+                                                    class="px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
+                                                    :class="document.querySelector('input[name=umur_satuan]').value === 'tahun' ? 'bg-emerald-500 text-white' :
+                                                        'text-gray-700 dark:text-slate-200'">
+                                                    Tahun
+                                                </li>
+                                                <li @click="document.querySelector('input[name=umur_satuan]').value = 'bulan'; closeDrop('umur_satuan')"
+                                                    class="px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
+                                                    :class="document.querySelector('input[name=umur_satuan]').value === 'bulan' ? 'bg-emerald-500 text-white' :
+                                                        'text-gray-700 dark:text-slate-200'">
+                                                    Bulan
+                                                </li>
                                             </ul>
                                         </div>
-                                        <input type="hidden" name="umur_satuan" :value="selected">
+                                        <input type="hidden" name="umur_satuan" value="{{ request('umur_satuan', 'tahun') }}">
                                     </div>
                                 </div>
                             </div>
@@ -1531,566 +1534,416 @@
                             <div class="grid grid-cols-2 gap-4">
 
                                 {{-- Pekerjaan --}}
-                                <div x-data="{
-                                    open: false,
-                                    search: '',
-                                    selected: '{{ request('pekerjaan_id') }}',
-                                    options: [
-                                        { value: '', label: '--' },
-                                        @foreach ($refPekerjaan ?? [] as $ref)
-                                            { value: '{{ $ref->id }}', label: '{{ addslashes($ref->nama) }}' }, @endforeach
-                                    ],
-                                    get label() { return this.options.find(o => o.value === this.selected)?.label ?? ''; },
-                                    get filtered() {
-                                        return !this.search ? this.options :
-                                            this.options.filter(o =>
-                                                o.label.toLowerCase().includes(this.search.toLowerCase())
-                                            );
-                                    },
-                                    choose(opt) {
-                                        this.selected = opt.value;
-                                        this.open = false;
-                                        this.search = '';
-                                    }
-                                }" @click.away="open = false" class="relative">
+                                <div class="relative" @click.away="activeDropdown !== null && closeDrop(activeDropdown)">
                                     <label
                                         class="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1.5">Pekerjaan</label>
-                                    <button type="button" @click="open=!open" @keydown.escape="open=false"
+                                    <button type="button" @click="toggleDrop('pekerjaan')" @keydown.escape="closeDrop('pekerjaan')"
                                         class="w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm bg-white dark:bg-slate-700 transition-colors"
-                                        :class="open ? 'border-emerald-500 ring-2 ring-emerald-500/20' :
+                                        :class="isDropOpen('pekerjaan') ? 'border-emerald-500 ring-2 ring-emerald-500/20' :
                                             'border-gray-300 dark:border-slate-600 hover:border-emerald-400'">
-                                        <span x-text="label || '--'"
-                                            :class="label ? 'text-gray-700 dark:text-slate-200' :
-                                                'text-gray-400 dark:text-slate-500'"></span>
+                                        <span class="text-gray-700 dark:text-slate-200" x-text="(() => {
+                                            const opts = [{ value: '', label: '--' }, @foreach ($refPekerjaan ?? [] as $ref){ value: '{{ $ref->id }}', label: '{{ addslashes($ref->nama) }}' }, @endforeach];
+                                            const val = document.querySelector('input[name=pekerjaan_id]').value;
+                                            return opts.find(o => o.value === val)?.label ?? '--';
+                                        })()"></span>
                                         <svg class="w-3 h-3 text-gray-400 transition-transform"
-                                            :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor"
+                                            :class="isDropOpen('pekerjaan') ? 'rotate-180' : ''" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
                                         </svg>
                                     </button>
-                                    <div x-show="open"
+                                    <div x-show="isDropOpen('pekerjaan')"
                                         class="absolute z-[300] top-full mt-1 w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg overflow-hidden"
                                         style="display:none">
                                         <div class="p-2 border-b border-gray-100 dark:border-slate-700">
-                                            <input type="text" x-model="search" placeholder="Cari..."
+                                            <input type="text" x-model="searches.pekerjaan" @input="initField('pekerjaan')" placeholder="Cari..."
                                                 class="w-full px-2 py-1.5 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded outline-none focus:border-emerald-500">
                                         </div>
                                         <ul class="max-h-40 overflow-y-auto py-1">
-                                            <template x-for="opt in filtered" :key="opt.value">
-                                                <li @click="choose(opt)" x-text="opt.label"
+                                            <template x-for="opt in (() => {
+                                                const opts = [{ value: '', label: '--' }, @foreach ($refPekerjaan ?? [] as $ref){ value: '{{ $ref->id }}', label: '{{ addslashes($ref->nama) }}' }, @endforeach];
+                                                return !searches.pekerjaan ? opts : opts.filter(o => o.label.toLowerCase().includes(searches.pekerjaan.toLowerCase()));
+                                            })()" :key="opt.value">
+                                                <li @click="document.querySelector('input[name=pekerjaan_id]').value = opt.value; closeDrop('pekerjaan')" x-text="opt.label"
                                                     class="px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
-                                                    :class="selected === opt.value ? 'bg-emerald-500 text-white' :
+                                                    :class="document.querySelector('input[name=pekerjaan_id]').value === opt.value ? 'bg-emerald-500 text-white' :
                                                         'text-gray-700 dark:text-slate-200'">
                                                 </li>
                                             </template>
                                         </ul>
                                     </div>
-                                    <input type="hidden" name="pekerjaan_id" :value="selected">
+                                    <input type="hidden" name="pekerjaan_id" value="{{ request('pekerjaan_id') }}">
                                 </div>
 
                                 {{-- Status Perkawinan --}}
-                                <div x-data="{
-                                    open: false,
-                                    search: '',
-                                    selected: '{{ request('status_kawin_id') }}',
-                                    options: [
-                                        { value: '', label: '--' },
-                                        @foreach ($refStatusKawin ?? [] as $ref)
-                                            { value: '{{ $ref->id }}', label: '{{ addslashes($ref->nama) }}' }, @endforeach
-                                    ],
-                                    get label() { return this.options.find(o => o.value === this.selected)?.label ?? ''; },
-                                    get filtered() {
-                                        return !this.search ? this.options :
-                                            this.options.filter(o =>
-                                                o.label.toLowerCase().includes(this.search.toLowerCase())
-                                            );
-                                    },
-                                    choose(opt) {
-                                        this.selected = opt.value;
-                                        this.open = false;
-                                        this.search = '';
-                                    }
-                                }" @click.away="open = false" class="relative">
+                                <div class="relative" @click.away="activeDropdown !== null && closeDrop(activeDropdown)">
                                     <label
                                         class="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1.5">Status
                                         Perkawinan</label>
-                                    <button type="button" @click="open=!open" @keydown.escape="open=false"
+                                    <button type="button" @click="toggleDrop('status_kawin')" @keydown.escape="closeDrop('status_kawin')"
                                         class="w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm bg-white dark:bg-slate-700 transition-colors"
-                                        :class="open ? 'border-emerald-500 ring-2 ring-emerald-500/20' :
+                                        :class="isDropOpen('status_kawin') ? 'border-emerald-500 ring-2 ring-emerald-500/20' :
                                             'border-gray-300 dark:border-slate-600 hover:border-emerald-400'">
-                                        <span x-text="label || '--'"
-                                            :class="label ? 'text-gray-700 dark:text-slate-200' :
-                                                'text-gray-400 dark:text-slate-500'"></span>
+                                        <span class="text-gray-700 dark:text-slate-200" x-text="(() => {
+                                            const opts = [{ value: '', label: '--' }, @foreach ($refStatusKawin ?? [] as $ref){ value: '{{ $ref->id }}', label: '{{ addslashes($ref->nama) }}' }, @endforeach];
+                                            const val = document.querySelector('input[name=status_kawin_id]').value;
+                                            return opts.find(o => o.value === val)?.label ?? '--';
+                                        })()"></span>
                                         <svg class="w-3 h-3 text-gray-400 transition-transform"
-                                            :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor"
+                                            :class="isDropOpen('status_kawin') ? 'rotate-180' : ''" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
                                         </svg>
                                     </button>
-                                    <div x-show="open"
+                                    <div x-show="isDropOpen('status_kawin')"
                                         class="absolute z-[300] top-full mt-1 w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg overflow-hidden"
                                         style="display:none">
                                         <div class="p-2 border-b border-gray-100 dark:border-slate-700">
-                                            <input type="text" x-model="search" placeholder="Cari..."
+                                            <input type="text" x-model="searches.status_kawin" @input="initField('status_kawin')" placeholder="Cari..."
                                                 class="w-full px-2 py-1.5 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded outline-none focus:border-emerald-500">
                                         </div>
                                         <ul class="max-h-40 overflow-y-auto py-1">
-                                            <template x-for="opt in filtered" :key="opt.value">
-                                                <li @click="choose(opt)" x-text="opt.label"
+                                            <template x-for="opt in (() => {
+                                                const opts = [{ value: '', label: '--' }, @foreach ($refStatusKawin ?? [] as $ref){ value: '{{ $ref->id }}', label: '{{ addslashes($ref->nama) }}' }, @endforeach];
+                                                return !searches.status_kawin ? opts : opts.filter(o => o.label.toLowerCase().includes(searches.status_kawin.toLowerCase()));
+                                            })()" :key="opt.value">
+                                                <li @click="document.querySelector('input[name=status_kawin_id]').value = opt.value; closeDrop('status_kawin')" x-text="opt.label"
                                                     class="px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
-                                                    :class="selected === opt.value ? 'bg-emerald-500 text-white' :
+                                                    :class="document.querySelector('input[name=status_kawin_id]').value === opt.value ? 'bg-emerald-500 text-white' :
                                                         'text-gray-700 dark:text-slate-200'">
                                                 </li>
                                             </template>
                                         </ul>
                                     </div>
-                                    <input type="hidden" name="status_kawin_id" :value="selected">
+                                    <input type="hidden" name="status_kawin_id" value="{{ request('status_kawin_id') }}">
                                 </div>
 
                                 {{-- Hubungan Keluarga (SHDK) --}}
-                                <div x-data="{
-                                    open: false,
-                                    search: '',
-                                    selected: '{{ request('shdk_id') }}',
-                                    options: [
-                                        { value: '', label: '--' },
-                                        @foreach ($refShdk ?? [] as $ref)
-                                            { value: '{{ $ref->id }}', label: '{{ addslashes($ref->nama) }}' }, @endforeach
-                                    ],
-                                    get label() { return this.options.find(o => o.value === this.selected)?.label ?? ''; },
-                                    get filtered() {
-                                        return !this.search ? this.options :
-                                            this.options.filter(o =>
-                                                o.label.toLowerCase().includes(this.search.toLowerCase())
-                                            );
-                                    },
-                                    choose(opt) {
-                                        this.selected = opt.value;
-                                        this.open = false;
-                                        this.search = '';
-                                    }
-                                }" @click.away="open = false" class="relative">
+                                <div class="relative" @click.away="activeDropdown !== null && closeDrop(activeDropdown)">
                                     <label
                                         class="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1.5">Hubungan
                                         Keluarga (SHDK)</label>
-                                    <button type="button" @click="open=!open" @keydown.escape="open=false"
+                                    <button type="button" @click="toggleDrop('shdk')" @keydown.escape="closeDrop('shdk')"
                                         class="w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm bg-white dark:bg-slate-700 transition-colors"
-                                        :class="open ? 'border-emerald-500 ring-2 ring-emerald-500/20' :
+                                        :class="isDropOpen('shdk') ? 'border-emerald-500 ring-2 ring-emerald-500/20' :
                                             'border-gray-300 dark:border-slate-600 hover:border-emerald-400'">
-                                        <span x-text="label || '--'"
-                                            :class="label ? 'text-gray-700 dark:text-slate-200' :
-                                                'text-gray-400 dark:text-slate-500'"></span>
+                                        <span class="text-gray-700 dark:text-slate-200" x-text="(() => {
+                                            const opts = [{ value: '', label: '--' }, @foreach ($refShdk ?? [] as $ref){ value: '{{ $ref->id }}', label: '{{ addslashes($ref->nama) }}' }, @endforeach];
+                                            const val = document.querySelector('input[name=shdk_id]').value;
+                                            return opts.find(o => o.value === val)?.label ?? '--';
+                                        })()"></span>
                                         <svg class="w-3 h-3 text-gray-400 transition-transform"
-                                            :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor"
+                                            :class="isDropOpen('shdk') ? 'rotate-180' : ''" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
                                         </svg>
                                     </button>
-                                    <div x-show="open"
+                                    <div x-show="isDropOpen('shdk')"
                                         class="absolute z-[300] top-full mt-1 w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg overflow-hidden"
                                         style="display:none">
                                         <ul class="py-1">
-                                            <template x-for="opt in filtered" :key="opt.value">
-                                                <li @click="choose(opt)" x-text="opt.label"
+                                            <template x-for="opt in (() => {
+                                                const opts = [{ value: '', label: '--' }, @foreach ($refShdk ?? [] as $ref){ value: '{{ $ref->id }}', label: '{{ addslashes($ref->nama) }}' }, @endforeach];
+                                                return opts;
+                                            })()" :key="opt.value">
+                                                <li @click="document.querySelector('input[name=shdk_id]').value = opt.value; closeDrop('shdk')" x-text="opt.label"
                                                     class="px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
-                                                    :class="selected === opt.value ? 'bg-emerald-500 text-white' :
+                                                    :class="document.querySelector('input[name=shdk_id]').value === opt.value ? 'bg-emerald-500 text-white' :
                                                         'text-gray-700 dark:text-slate-200'">
                                                 </li>
                                             </template>
                                         </ul>
                                     </div>
-                                    <input type="hidden" name="shdk_id" :value="selected">
+                                    <input type="hidden" name="shdk_id" value="{{ request('shdk_id') }}">
                                 </div>
 
                                 {{-- Agama --}}
-                                <div x-data="{
-                                    open: false,
-                                    search: '',
-                                    selected: '{{ request('agama_id') }}',
-                                    options: [
-                                        { value: '', label: '--' },
-                                        @foreach ($refAgama ?? [] as $ref)
-                                            { value: '{{ $ref->id }}', label: '{{ addslashes($ref->nama) }}' }, @endforeach
-                                    ],
-                                    get label() { return this.options.find(o => o.value === this.selected)?.label ?? ''; },
-                                    get filtered() {
-                                        return !this.search ? this.options :
-                                            this.options.filter(o =>
-                                                o.label.toLowerCase().includes(this.search.toLowerCase())
-                                            );
-                                    },
-                                    choose(opt) {
-                                        this.selected = opt.value;
-                                        this.open = false;
-                                        this.search = '';
-                                    }
-                                }" @click.away="open = false" class="relative">
+                                <div class="relative" @click.away="activeDropdown !== null && closeDrop(activeDropdown)">
                                     <label
                                         class="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1.5">Agama</label>
-                                    <button type="button" @click="open=!open" @keydown.escape="open=false"
+                                    <button type="button" @click="toggleDrop('agama')" @keydown.escape="closeDrop('agama')"
                                         class="w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm bg-white dark:bg-slate-700 transition-colors"
-                                        :class="open ? 'border-emerald-500 ring-2 ring-emerald-500/20' :
+                                        :class="isDropOpen('agama') ? 'border-emerald-500 ring-2 ring-emerald-500/20' :
                                             'border-gray-300 dark:border-slate-600 hover:border-emerald-400'">
-                                        <span x-text="label || '--'"
-                                            :class="label ? 'text-gray-700 dark:text-slate-200' :
-                                                'text-gray-400 dark:text-slate-500'"></span>
+                                        <span class="text-gray-700 dark:text-slate-200" x-text="(() => {
+                                            const opts = [{ value: '', label: '--' }, @foreach ($refAgama ?? [] as $ref){ value: '{{ $ref->id }}', label: '{{ addslashes($ref->nama) }}' }, @endforeach];
+                                            const val = document.querySelector('input[name=agama_id]').value;
+                                            return opts.find(o => o.value === val)?.label ?? '--';
+                                        })()"></span>
                                         <svg class="w-3 h-3 text-gray-400 transition-transform"
-                                            :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor"
+                                            :class="isDropOpen('agama') ? 'rotate-180' : ''" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
                                         </svg>
                                     </button>
-                                    <div x-show="open"
+                                    <div x-show="isDropOpen('agama')"
                                         class="absolute z-[300] top-full mt-1 w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg overflow-hidden"
                                         style="display:none">
                                         <div class="p-2 border-b border-gray-100 dark:border-slate-700">
-                                            <input type="text" x-model="search" placeholder="Cari..."
+                                            <input type="text" x-model="searches.agama" @input="initField('agama')" placeholder="Cari..."
                                                 class="w-full px-2 py-1.5 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded outline-none focus:border-emerald-500">
                                         </div>
                                         <ul class="max-h-40 overflow-y-auto py-1">
-                                            <template x-for="opt in filtered" :key="opt.value">
-                                                <li @click="choose(opt)" x-text="opt.label"
+                                            <template x-for="opt in (() => {
+                                                const opts = [{ value: '', label: '--' }, @foreach ($refAgama ?? [] as $ref){ value: '{{ $ref->id }}', label: '{{ addslashes($ref->nama) }}' }, @endforeach];
+                                                return !searches.agama ? opts : opts.filter(o => o.label.toLowerCase().includes(searches.agama.toLowerCase()));
+                                            })()" :key="opt.value">
+                                                <li @click="document.querySelector('input[name=agama_id]').value = opt.value; closeDrop('agama')" x-text="opt.label"
                                                     class="px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
-                                                    :class="selected === opt.value ? 'bg-emerald-500 text-white' :
+                                                    :class="document.querySelector('input[name=agama_id]').value === opt.value ? 'bg-emerald-500 text-white' :
                                                         'text-gray-700 dark:text-slate-200'">
                                                 </li>
                                             </template>
                                         </ul>
                                     </div>
-                                    <input type="hidden" name="agama_id" :value="selected">
+                                    <input type="hidden" name="agama_id" value="{{ request('agama_id') }}">
                                 </div>
 
                                 {{-- Pendidikan Dalam KK --}}
-                                <div x-data="{
-                                    open: false,
-                                    search: '',
-                                    selected: '{{ request('pendidikan_kk_id') }}',
-                                    options: [
-                                        { value: '', label: '--' },
-                                        @foreach ($refPendidikan ?? [] as $ref)
-                                            { value: '{{ $ref->id }}', label: '{{ addslashes($ref->nama) }}' }, @endforeach
-                                    ],
-                                    get label() { return this.options.find(o => o.value === this.selected)?.label ?? ''; },
-                                    get filtered() {
-                                        return !this.search ? this.options :
-                                            this.options.filter(o =>
-                                                o.label.toLowerCase().includes(this.search.toLowerCase())
-                                            );
-                                    },
-                                    choose(opt) {
-                                        this.selected = opt.value;
-                                        this.open = false;
-                                        this.search = '';
-                                    }
-                                }" @click.away="open = false" class="relative">
+                                <div class="relative" @click.away="activeDropdown !== null && closeDrop(activeDropdown)">
                                     <label
                                         class="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1.5">Pendidikan
                                         Dalam KK</label>
-                                    <button type="button" @click="open=!open" @keydown.escape="open=false"
+                                    <button type="button" @click="toggleDrop('pendidikan_kk')" @keydown.escape="closeDrop('pendidikan_kk')"
                                         class="w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm bg-white dark:bg-slate-700 transition-colors"
-                                        :class="open ? 'border-emerald-500 ring-2 ring-emerald-500/20' :
+                                        :class="isDropOpen('pendidikan_kk') ? 'border-emerald-500 ring-2 ring-emerald-500/20' :
                                             'border-gray-300 dark:border-slate-600 hover:border-emerald-400'">
-                                        <span x-text="label || '--'"
-                                            :class="label ? 'text-gray-700 dark:text-slate-200' :
-                                                'text-gray-400 dark:text-slate-500'"></span>
+                                        <span class="text-gray-700 dark:text-slate-200" x-text="(() => {
+                                            const opts = [{ value: '', label: '--' }, @foreach ($refPendidikan ?? [] as $ref){ value: '{{ $ref->id }}', label: '{{ addslashes($ref->nama) }}' }, @endforeach];
+                                            const val = document.querySelector('input[name=pendidikan_kk_id]').value;
+                                            return opts.find(o => o.value === val)?.label ?? '--';
+                                        })()"></span>
                                         <svg class="w-3 h-3 text-gray-400 transition-transform"
-                                            :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor"
+                                            :class="isDropOpen('pendidikan_kk') ? 'rotate-180' : ''" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
                                         </svg>
                                     </button>
-                                    <div x-show="open"
+                                    <div x-show="isDropOpen('pendidikan_kk')"
                                         class="absolute z-[300] top-full mt-1 w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg overflow-hidden"
                                         style="display:none">
                                         <div class="p-2 border-b border-gray-100 dark:border-slate-700">
-                                            <input type="text" x-model="search" placeholder="Cari..."
+                                            <input type="text" x-model="searches.pendidikan_kk" @input="initField('pendidikan_kk')" placeholder="Cari..."
                                                 class="w-full px-2 py-1.5 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded outline-none focus:border-emerald-500">
                                         </div>
                                         <ul class="max-h-40 overflow-y-auto py-1">
-                                            <template x-for="opt in filtered" :key="opt.value">
-                                                <li @click="choose(opt)" x-text="opt.label"
+                                            <template x-for="opt in (() => {
+                                                const opts = [{ value: '', label: '--' }, @foreach ($refPendidikan ?? [] as $ref){ value: '{{ $ref->id }}', label: '{{ addslashes($ref->nama) }}' }, @endforeach];
+                                                return !searches.pendidikan_kk ? opts : opts.filter(o => o.label.toLowerCase().includes(searches.pendidikan_kk.toLowerCase()));
+                                            })()" :key="opt.value">
+                                                <li @click="document.querySelector('input[name=pendidikan_kk_id]').value = opt.value; closeDrop('pendidikan_kk')" x-text="opt.label"
                                                     class="px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
-                                                    :class="selected === opt.value ? 'bg-emerald-500 text-white' :
+                                                    :class="document.querySelector('input[name=pendidikan_kk_id]').value === opt.value ? 'bg-emerald-500 text-white' :
                                                         'text-gray-700 dark:text-slate-200'">
                                                 </li>
                                             </template>
                                         </ul>
                                     </div>
-                                    <input type="hidden" name="pendidikan_kk_id" :value="selected">
+                                    <input type="hidden" name="pendidikan_kk_id" value="{{ request('pendidikan_kk_id') }}">
                                 </div>
 
                                 {{-- Status Penduduk --}}
-                                <div x-data="{
-                                    open: false,
-                                    selected: '{{ request('status') }}',
-                                    options: [
-                                        { value: '', label: '--' },
-                                        { value: '1', label: 'Tetap' },
-                                        { value: '2', label: 'Tidak Tetap' },
-                                        { value: '3', label: 'Pendatang' }
-                                    ],
-                                    get label() { return this.options.find(o => o.value === this.selected)?.label ?? ''; },
-                                    choose(opt) {
-                                        this.selected = opt.value;
-                                        this.open = false;
-                                    }
-                                }" @click.away="open = false" class="relative">
+                                <div class="relative" @click.away="activeDropdown !== null && closeDrop(activeDropdown)">
                                     <label
                                         class="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1.5">Status
                                         Penduduk</label>
-                                    <button type="button" @click="open=!open" @keydown.escape="open=false"
+                                    <button type="button" @click="toggleDrop('status_pend')" @keydown.escape="closeDrop('status_pend')"
                                         class="w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm bg-white dark:bg-slate-700 transition-colors"
-                                        :class="open ? 'border-emerald-500 ring-2 ring-emerald-500/20' :
+                                        :class="isDropOpen('status_pend') ? 'border-emerald-500 ring-2 ring-emerald-500/20' :
                                             'border-gray-300 dark:border-slate-600 hover:border-emerald-400'">
-                                        <span x-text="label || '--'"
-                                            :class="label ? 'text-gray-700 dark:text-slate-200' :
-                                                'text-gray-400 dark:text-slate-500'"></span>
+                                        <span class="text-gray-700 dark:text-slate-200" x-text="(() => {
+                                            const opts = [{ value: '', label: '--' }, { value: '1', label: 'Tetap' }, { value: '2', label: 'Tidak Tetap' }, { value: '3', label: 'Pendatang' }];
+                                            const val = document.querySelector('input[name=status]')?.value;
+                                            return opts.find(o => o.value === val)?.label ?? '--';
+                                        })()"></span>
                                         <svg class="w-3 h-3 text-gray-400 transition-transform"
-                                            :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor"
+                                            :class="isDropOpen('status_pend') ? 'rotate-180' : ''" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
                                         </svg>
                                     </button>
-                                    <div x-show="open"
+                                    <div x-show="isDropOpen('status_pend')"
                                         class="absolute z-[300] top-full mt-1 w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg overflow-hidden"
                                         style="display:none">
                                         <ul class="py-1">
-                                            <template x-for="opt in options" :key="opt.value">
-                                                <li @click="choose(opt)" x-text="opt.label"
+                                            <template x-for="opt in [{value: '', label: '--'}, {value: '1', label: 'Tetap'}, {value: '2', label: 'Tidak Tetap'}, {value: '3', label: 'Pendatang'}]" :key="opt.value">
+                                                <li @click="document.querySelector('input[name=status]').value = opt.value; closeDrop('status_pend')" x-text="opt.label"
                                                     class="px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
-                                                    :class="selected === opt.value ? 'bg-emerald-500 text-white' :
+                                                    :class="document.querySelector('input[name=status]')?.value === opt.value ? 'bg-emerald-500 text-white' :
                                                         'text-gray-700 dark:text-slate-200'">
                                                 </li>
                                             </template>
                                         </ul>
                                     </div>
-                                    <input type="hidden" name="status" :value="selected">
+                                    <input type="hidden" name="status" value="{{ request('status') }}">
                                 </div>
 
                                 {{-- Jenis Kelamin --}}
-                                <div x-data="{
-                                    open: false,
-                                    selected: '{{ request('jenis_kelamin') }}',
-                                    options: [
-                                        { value: '', label: '--' },
-                                        { value: 'L', label: 'Laki-laki' },
-                                        { value: 'P', label: 'Perempuan' }
-                                    ],
-                                    get label() { return this.options.find(o => o.value === this.selected)?.label ?? ''; },
-                                    choose(opt) {
-                                        this.selected = opt.value;
-                                        this.open = false;
-                                    }
-                                }" @click.away="open = false" class="relative">
+                                <div class="relative" @click.away="activeDropdown !== null && closeDrop(activeDropdown)">
                                     <label
                                         class="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1.5">Jenis
                                         Kelamin</label>
-                                    <button type="button" @click="open=!open" @keydown.escape="open=false"
+                                    <button type="button" @click="toggleDrop('jenis_kelamin')" @keydown.escape="closeDrop('jenis_kelamin')"
                                         class="w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm bg-white dark:bg-slate-700 transition-colors"
-                                        :class="open ? 'border-emerald-500 ring-2 ring-emerald-500/20' :
+                                        :class="isDropOpen('jenis_kelamin') ? 'border-emerald-500 ring-2 ring-emerald-500/20' :
                                             'border-gray-300 dark:border-slate-600 hover:border-emerald-400'">
-                                        <span x-text="label || '--'"
-                                            :class="label ? 'text-gray-700 dark:text-slate-200' :
-                                                'text-gray-400 dark:text-slate-500'"></span>
+                                        <span class="text-gray-700 dark:text-slate-200" x-text="(() => {
+                                            const opts = [{ value: '', label: '--' }, { value: 'L', label: 'Laki-laki' }, { value: 'P', label: 'Perempuan' }];
+                                            const val = document.querySelector('input[name=jenis_kelamin]')?.value;
+                                            return opts.find(o => o.value === val)?.label ?? '--';
+                                        })()"></span>
                                         <svg class="w-3 h-3 text-gray-400 transition-transform"
-                                            :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor"
+                                            :class="isDropOpen('jenis_kelamin') ? 'rotate-180' : ''" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
                                         </svg>
                                     </button>
-                                    <div x-show="open"
+                                    <div x-show="isDropOpen('jenis_kelamin')"
                                         class="absolute z-[300] top-full mt-1 w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg overflow-hidden"
                                         style="display:none">
                                         <ul class="py-1">
-                                            <template x-for="opt in options" :key="opt.value">
-                                                <li @click="choose(opt)" x-text="opt.label"
+                                            <template x-for="opt in [{value: '', label: '--'}, {value: 'L', label: 'Laki-laki'}, {value: 'P', label: 'Perempuan'}]" :key="opt.value">
+                                                <li @click="document.querySelector('input[name=jenis_kelamin]').value = opt.value; closeDrop('jenis_kelamin')" x-text="opt.label"
                                                     class="px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
-                                                    :class="selected === opt.value ? 'bg-emerald-500 text-white' :
+                                                    :class="document.querySelector('input[name=jenis_kelamin]')?.value === opt.value ? 'bg-emerald-500 text-white' :
                                                         'text-gray-700 dark:text-slate-200'">
                                                 </li>
                                             </template>
                                         </ul>
                                     </div>
-                                    <input type="hidden" name="jenis_kelamin" :value="selected">
+                                    <input type="hidden" name="jenis_kelamin" value="{{ request('jenis_kelamin') }}">
                                 </div>
 
                                 {{-- Status Dasar / Status Hidup --}}
-                                <div x-data="{
-                                    open: false,
-                                    selected: '{{ request('status_hidup') }}',
-                                    options: [
-                                        { value: '', label: '--' },
-                                        { value: 'hidup', label: 'Hidup' },
-                                        { value: 'mati', label: 'Mati' },
-                                        { value: 'pindah', label: 'Pindah' },
-                                        { value: 'hilang', label: 'Hilang' },
-                                        { value: 'pergi', label: 'Pergi' },
-                                        { value: 'tidak_valid', label: 'Tidak Valid' }
-                                    ],
-                                    get label() { return this.options.find(o => o.value === this.selected)?.label ?? ''; },
-                                    choose(opt) {
-                                        this.selected = opt.value;
-                                        this.open = false;
-                                    }
-                                }" @click.away="open = false" class="relative">
+                                <div class="relative" @click.away="activeDropdown !== null && closeDrop(activeDropdown)">
                                     <label
                                         class="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1.5">Status
                                         Dasar</label>
-                                    <button type="button" @click="open=!open" @keydown.escape="open=false"
+                                    <button type="button" @click="toggleDrop('status_hidup')" @keydown.escape="closeDrop('status_hidup')"
                                         class="w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm bg-white dark:bg-slate-700 transition-colors"
-                                        :class="open ? 'border-emerald-500 ring-2 ring-emerald-500/20' :
+                                        :class="isDropOpen('status_hidup') ? 'border-emerald-500 ring-2 ring-emerald-500/20' :
                                             'border-gray-300 dark:border-slate-600 hover:border-emerald-400'">
-                                        <span x-text="label || '--'"
-                                            :class="label ? 'text-gray-700 dark:text-slate-200' :
-                                                'text-gray-400 dark:text-slate-500'"></span>
+                                        <span class="text-gray-700 dark:text-slate-200" x-text="(() => {
+                                            const opts = [{ value: '', label: '--' }, { value: 'hidup', label: 'Hidup' }, { value: 'mati', label: 'Mati' }, { value: 'pindah', label: 'Pindah' }, { value: 'hilang', label: 'Hilang' }, { value: 'pergi', label: 'Pergi' }, { value: 'tidak_valid', label: 'Tidak Valid' }];
+                                            const val = document.querySelector('input[name=status_hidup]')?.value;
+                                            return opts.find(o => o.value === val)?.label ?? '--';
+                                        })()"></span>
                                         <svg class="w-3 h-3 text-gray-400 transition-transform"
-                                            :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor"
+                                            :class="isDropOpen('status_hidup') ? 'rotate-180' : ''" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
                                         </svg>
                                     </button>
-                                    <div x-show="open"
+                                    <div x-show="isDropOpen('status_hidup')"
                                         class="absolute z-[300] top-full mt-1 w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg overflow-hidden"
                                         style="display:none">
                                         <ul class="py-1">
-                                            <template x-for="opt in options" :key="opt.value">
-                                                <li @click="choose(opt)" x-text="opt.label"
+                                            <template x-for="opt in [{value: '', label: '--'}, {value: 'hidup', label: 'Hidup'}, {value: 'mati', label: 'Mati'}, {value: 'pindah', label: 'Pindah'}, {value: 'hilang', label: 'Hilang'}, {value: 'pergi', label: 'Pergi'}, {value: 'tidak_valid', label: 'Tidak Valid'}]" :key="opt.value">
+                                                <li @click="document.querySelector('input[name=status_hidup]').value = opt.value; closeDrop('status_hidup')" x-text="opt.label"
                                                     class="px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
-                                                    :class="selected === opt.value ? 'bg-emerald-500 text-white' :
+                                                    :class="document.querySelector('input[name=status_hidup]')?.value === opt.value ? 'bg-emerald-500 text-white' :
                                                         'text-gray-700 dark:text-slate-200'">
                                                 </li>
                                             </template>
                                         </ul>
                                     </div>
-                                    <input type="hidden" name="status_hidup" :value="selected">
+                                    <input type="hidden" name="status_hidup" value="{{ request('status_hidup') }}">
                                 </div>
 
                                 {{-- Warga Negara --}}
-                                <div x-data="{
-                                    open: false,
-                                    search: '',
-                                    selected: '{{ request('warganegara_id') }}',
-                                    options: [
-                                        { value: '', label: '--' },
-                                        @foreach ($refWarganegara ?? [] as $ref)
-                                            { value: '{{ $ref->id }}', label: '{{ addslashes($ref->nama) }}' }, @endforeach
-                                    ],
-                                    get label() { return this.options.find(o => o.value === this.selected)?.label ?? ''; },
-                                    get filtered() {
-                                        return !this.search ? this.options :
-                                            this.options.filter(o =>
-                                                o.label.toLowerCase().includes(this.search.toLowerCase())
-                                            );
-                                    },
-                                    choose(opt) {
-                                        this.selected = opt.value;
-                                        this.open = false;
-                                        this.search = '';
-                                    }
-                                }" @click.away="open = false" class="relative">
+                                <div class="relative" @click.away="activeDropdown !== null && closeDrop(activeDropdown)">
                                     <label
                                         class="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1.5">Warga
                                         Negara</label>
-                                    <button type="button" @click="open=!open" @keydown.escape="open=false"
+                                    <button type="button" @click="toggleDrop('warganegara')" @keydown.escape="closeDrop('warganegara')"
                                         class="w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm bg-white dark:bg-slate-700 transition-colors"
-                                        :class="open ? 'border-emerald-500 ring-2 ring-emerald-500/20' :
+                                        :class="isDropOpen('warganegara') ? 'border-emerald-500 ring-2 ring-emerald-500/20' :
                                             'border-gray-300 dark:border-slate-600 hover:border-emerald-400'">
-                                        <span x-text="label || '--'"
-                                            :class="label ? 'text-gray-700 dark:text-slate-200' :
-                                                'text-gray-400 dark:text-slate-500'"></span>
+                                        <span class="text-gray-700 dark:text-slate-200" x-text="(() => {
+                                            const opts = [{ value: '', label: '--' }, @foreach ($refWarganegara ?? [] as $ref){ value: '{{ $ref->id }}', label: '{{ addslashes($ref->nama) }}' }, @endforeach];
+                                            const val = document.querySelector('input[name=warganegara_id]').value;
+                                            return opts.find(o => o.value === val)?.label ?? '--';
+                                        })()"></span>
                                         <svg class="w-3 h-3 text-gray-400 transition-transform"
-                                            :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor"
+                                            :class="isDropOpen('warganegara') ? 'rotate-180' : ''" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
                                         </svg>
                                     </button>
-                                    <div x-show="open"
+                                    <div x-show="isDropOpen('warganegara')"
                                         class="absolute z-[300] top-full mt-1 w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg overflow-hidden"
                                         style="display:none">
                                         <div class="p-2 border-b border-gray-100 dark:border-slate-700">
-                                            <input type="text" x-model="search" placeholder="Cari..."
+                                            <input type="text" x-model="searches.warganegara" @input="initField('warganegara')" placeholder="Cari..."
                                                 class="w-full px-2 py-1.5 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded outline-none focus:border-emerald-500">
                                         </div>
                                         <ul class="max-h-40 overflow-y-auto py-1">
-                                            <template x-for="opt in filtered" :key="opt.value">
-                                                <li @click="choose(opt)" x-text="opt.label"
+                                            <template x-for="opt in (() => {
+                                                const opts = [{ value: '', label: '--' }, @foreach ($refWarganegara ?? [] as $ref){ value: '{{ $ref->id }}', label: '{{ addslashes($ref->nama) }}' }, @endforeach];
+                                                return !searches.warganegara ? opts : opts.filter(o => o.label.toLowerCase().includes(searches.warganegara.toLowerCase()));
+                                            })()" :key="opt.value">
+                                                <li @click="document.querySelector('input[name=warganegara_id]').value = opt.value; closeDrop('warganegara')" x-text="opt.label"
                                                     class="px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
-                                                    :class="selected === opt.value ? 'bg-emerald-500 text-white' :
+                                                    :class="document.querySelector('input[name=warganegara_id]').value === opt.value ? 'bg-emerald-500 text-white' :
                                                         'text-gray-700 dark:text-slate-200'">
                                                 </li>
                                             </template>
                                         </ul>
                                     </div>
-                                    <input type="hidden" name="warganegara_id" :value="selected">
+                                    <input type="hidden" name="warganegara_id" value="{{ request('warganegara_id') }}">
                                 </div>
 
                                 {{-- Golongan Darah --}}
-                                <div x-data="{
-                                    open: false,
-                                    search: '',
-                                    selected: '{{ request('golongan_darah_id') }}',
-                                    options: [
-                                        { value: '', label: '--' },
-                                        @foreach ($refGolDarah ?? [] as $ref)
-                                            { value: '{{ $ref->id }}', label: '{{ addslashes($ref->nama) }}' }, @endforeach
-                                    ],
-                                    get label() { return this.options.find(o => o.value === this.selected)?.label ?? ''; },
-                                    get filtered() {
-                                        return !this.search ? this.options :
-                                            this.options.filter(o =>
-                                                o.label.toLowerCase().includes(this.search.toLowerCase())
-                                            );
-                                    },
-                                    choose(opt) {
-                                        this.selected = opt.value;
-                                        this.open = false;
-                                        this.search = '';
-                                    }
-                                }" @click.away="open = false" class="relative">
+                                <div class="relative" @click.away="activeDropdown !== null && closeDrop(activeDropdown)">
                                     <label
                                         class="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1.5">Golongan
                                         Darah</label>
-                                    <button type="button" @click="open=!open" @keydown.escape="open=false"
+                                    <button type="button" @click="toggleDrop('golongan_darah')" @keydown.escape="closeDrop('golongan_darah')"
                                         class="w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm bg-white dark:bg-slate-700 transition-colors"
-                                        :class="open ? 'border-emerald-500 ring-2 ring-emerald-500/20' :
+                                        :class="isDropOpen('golongan_darah') ? 'border-emerald-500 ring-2 ring-emerald-500/20' :
                                             'border-gray-300 dark:border-slate-600 hover:border-emerald-400'">
-                                        <span x-text="label || '--'"
-                                            :class="label ? 'text-gray-700 dark:text-slate-200' :
-                                                'text-gray-400 dark:text-slate-500'"></span>
+                                        <span class="text-gray-700 dark:text-slate-200" x-text="(() => {
+                                            const opts = [{ value: '', label: '--' }, @foreach ($refGolDarah ?? [] as $ref){ value: '{{ $ref->id }}', label: '{{ addslashes($ref->nama) }}' }, @endforeach];
+                                            const val = document.querySelector('input[name=golongan_darah_id]').value;
+                                            return opts.find(o => o.value === val)?.label ?? '--';
+                                        })()"></span>
                                         <svg class="w-3 h-3 text-gray-400 transition-transform"
-                                            :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor"
+                                            :class="isDropOpen('golongan_darah') ? 'rotate-180' : ''" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
                                         </svg>
                                     </button>
-                                    <div x-show="open"
+                                    <div x-show="isDropOpen('golongan_darah')"
                                         class="absolute z-[300] top-full mt-1 w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg overflow-hidden"
                                         style="display:none">
                                         <div class="p-2 border-b border-gray-100 dark:border-slate-700">
-                                            <input type="text" x-model="search" placeholder="Cari..."
+                                            <input type="text" x-model="searches.golongan_darah" @input="initField('golongan_darah')" placeholder="Cari..."
                                                 class="w-full px-2 py-1.5 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded outline-none focus:border-emerald-500">
                                         </div>
                                         <ul class="max-h-40 overflow-y-auto py-1">
-                                            <template x-for="opt in filtered" :key="opt.value">
-                                                <li @click="choose(opt)" x-text="opt.label"
+                                            <template x-for="opt in (() => {
+                                                const opts = [{ value: '', label: '--' }, @foreach ($refGolDarah ?? [] as $ref){ value: '{{ $ref->id }}', label: '{{ addslashes($ref->nama) }}' }, @endforeach];
+                                                return !searches.golongan_darah ? opts : opts.filter(o => o.label.toLowerCase().includes(searches.golongan_darah.toLowerCase()));
+                                            })()" :key="opt.value">
+                                                <li @click="document.querySelector('input[name=golongan_darah_id]').value = opt.value; closeDrop('golongan_darah')" x-text="opt.label"
                                                     class="px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
-                                                    :class="selected === opt.value ? 'bg-emerald-500 text-white' :
+                                                    :class="document.querySelector('input[name=golongan_darah_id]').value === opt.value ? 'bg-emerald-500 text-white' :
                                                         'text-gray-700 dark:text-slate-200'">
                                                 </li>
                                             </template>
                                         </ul>
                                     </div>
-                                    <input type="hidden" name="golongan_darah_id" :value="selected">
+                                    <input type="hidden" name="golongan_darah_id" value="{{ request('golongan_darah_id') }}">
                                 </div>
                             </div>
                         </div>
@@ -2120,35 +1973,37 @@
         </div>
 
         {{-- ══════════════════════════════════════════════════════════════
-         MODAL: PENCARIAN PROGRAM BANTUAN
+         MODAL: PENCARIAN PROGRAM BANTUAN (dengan global dropdown state management)
     ══════════════════════════════════════════════════════════════ --}}
         <div x-data="{
             show: false,
-            open: false,
-            search: '',
-            selected: '{{ request('program_bantuan_id') }}',
-            options: [
-                { value: '', label: 'Penduduk Penerima Bantuan (Semua)' },
-                { value: 'bukan', label: 'Penduduk Bukan Penerima Bantuan' },
-                @foreach ($programBantuanList ?? [] as $p)
-                    { value: '{{ $p->id }}', label: '{{ addslashes($p->nama) }}' }, @endforeach
-            ],
-            get label() {
-                return this.options.find(o => o.value === this.selected)?.label ?? '';
+            activeDropdown: null,
+            searches: {},
+            initField(name) {
+                if (!this.searches[name]) this.searches[name] = '';
             },
-            get filtered() {
-                return !this.search ? this.options :
-                    this.options.filter(o =>
-                        o.label.toLowerCase().includes(this.search.toLowerCase())
-                    );
+            openDrop(name) {
+                this.initField(name);
+                this.activeDropdown = name;
             },
-            choose(opt) {
-                this.selected = opt.value;
-                this.open = false;
-                this.search = '';
+            closeDrop(name) {
+                if (this.activeDropdown === name) {
+                    this.activeDropdown = null;
+                }
+                this.searches[name] = '';
+            },
+            toggleDrop(name) {
+                if (this.activeDropdown === name) {
+                    this.closeDrop(name);
+                } else {
+                    this.openDrop(name);
+                }
+            },
+            isDropOpen(name) {
+                return this.activeDropdown === name;
             }
         }" @open-program-bantuan.window="show = true"
-            @keydown.escape.window="show && (show = false)">
+            @keydown.escape.window="show && (show = false, activeDropdown = null)">
             <div x-show="show" x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0"
                 x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-150"
                 x-transition:leave-end="opacity-0" class="fixed inset-0 bg-black/50 dark:bg-black/70 z-[200]"
@@ -2178,33 +2033,50 @@
                                 Bantuan</label>
 
                             {{-- Custom Alpine Dropdown --}}
-                            <div class="relative w-full" @click.away="open = false">
-                                <button type="button" @click="open=!open" @keydown.escape="open=false"
+                            <div class="relative w-full" @click.away="activeDropdown !== null && closeDrop(activeDropdown)">
+                                <button type="button" @click="toggleDrop('program_bantuan')" @keydown.escape="closeDrop('program_bantuan')"
                                     class="w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm bg-white dark:bg-slate-700 transition-colors"
-                                    :class="open ? 'border-emerald-500 ring-2 ring-emerald-500/20' :
+                                    :class="isDropOpen('program_bantuan') ? 'border-emerald-500 ring-2 ring-emerald-500/20' :
                                         'border-gray-300 dark:border-slate-600 hover:border-emerald-400'">
-                                    <span x-text="label || 'Pilih Program Bantuan'"
-                                        :class="label ? 'text-gray-800 dark:text-slate-200' :
+                                    <span x-text="(() => {
+                                        const opts = [
+                                            { value: '', label: 'Penduduk Penerima Bantuan (Semua)' },
+                                            { value: 'bukan', label: 'Penduduk Bukan Penerima Bantuan' },
+                                            @foreach ($programBantuanList ?? [] as $p)
+                                                { value: '{{ $p->id }}', label: '{{ addslashes($p->nama) }}' }, @endforeach
+                                        ];
+                                        const val = document.querySelector('input[name=program_bantuan_id]').value;
+                                        return opts.find(o => o.value === val)?.label ?? 'Pilih Program Bantuan';
+                                    })()"
+                                        :class="document.querySelector('input[name=program_bantuan_id]').value ? 'text-gray-800 dark:text-slate-200' :
                                             'text-gray-400 dark:text-slate-500'"></span>
                                     <svg class="w-4 h-4 text-gray-400 transition-transform"
-                                        :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor"
+                                        :class="isDropOpen('program_bantuan') ? 'rotate-180' : ''" fill="none" stroke="currentColor"
                                         viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
                                     </svg>
                                 </button>
-                                <div x-show="open"
+                                <div x-show="isDropOpen('program_bantuan')"
                                     class="absolute z-[300] top-full mt-1 w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg overflow-hidden"
                                     style="display:none">
                                     <div class="p-2 border-b border-gray-100 dark:border-slate-700">
-                                        <input type="text" x-model="search" placeholder="Cari program..."
+                                        <input type="text" x-model="searches.program_bantuan" @input="initField('program_bantuan')" placeholder="Cari program..."
                                             class="w-full px-2 py-1.5 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded outline-none focus:border-emerald-500">
                                     </div>
                                     <ul class="max-h-40 overflow-y-auto py-1">
-                                        <template x-for="opt in filtered" :key="opt.value">
-                                            <li @click="choose(opt)" x-text="opt.label"
+                                        <template x-for="opt in (() => {
+                                            const opts = [
+                                                { value: '', label: 'Penduduk Penerima Bantuan (Semua)' },
+                                                { value: 'bukan', label: 'Penduduk Bukan Penerima Bantuan' },
+                                                @foreach ($programBantuanList ?? [] as $p)
+                                                    { value: '{{ $p->id }}', label: '{{ addslashes($p->nama) }}' }, @endforeach
+                                            ];
+                                            return !searches.program_bantuan ? opts : opts.filter(o => o.label.toLowerCase().includes(searches.program_bantuan.toLowerCase()));
+                                        })()" :key="opt.value">
+                                            <li @click="document.querySelector('input[name=program_bantuan_id]').value = opt.value; closeDrop('program_bantuan')" x-text="opt.label"
                                                 class="px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700"
-                                                :class="selected === opt.value ?
+                                                :class="document.querySelector('input[name=program_bantuan_id]').value === opt.value ?
                                                     'bg-emerald-500 text-white hover:bg-emerald-500' :
                                                     'text-gray-700 dark:text-slate-200'">
                                             </li>
@@ -2212,7 +2084,7 @@
                                     </ul>
                                 </div>
                             </div>
-                            <input type="hidden" name="program_bantuan_id" :value="selected">
+                            <input type="hidden" name="program_bantuan_id" value="{{ request('program_bantuan_id') }}">
                         </div>
                         <div
                             class="flex items-center justify-between px-6 py-4 border-t border-gray-200 dark:border-slate-700">
@@ -2239,13 +2111,14 @@
         </div>
 
         {{-- ══════════════════════════════════════════════════════════════
-         MODAL: PILIHAN KUMPULAN NIK
+         MODAL: PILIHAN KUMPULAN NIK (dengan global dropdown state management)
     ══════════════════════════════════════════════════════════════ --}}
         <div x-data="{
             show: false,
             search: '',
             selectedNiks: [],
-            openDrop: false,
+            activeDropdown: null,
+            searches: {},
             niksData: [
                 @foreach ($penduduk ?? [] as $p)
                     { nik: '{{ $p->nik }}', nama: '{{ addslashes($p->nama) }}' }, @endforeach
@@ -2256,6 +2129,29 @@
                         n.nik.toLowerCase().includes(this.search.toLowerCase()) ||
                         n.nama.toLowerCase().includes(this.search.toLowerCase())
                     );
+            },
+            initField(name) {
+                if (!this.searches[name]) this.searches[name] = '';
+            },
+            openDrop(name) {
+                this.initField(name);
+                this.activeDropdown = name;
+            },
+            closeDrop(name) {
+                if (this.activeDropdown === name) {
+                    this.activeDropdown = null;
+                }
+                this.searches[name] = '';
+            },
+            toggleDrop(name) {
+                if (this.activeDropdown === name) {
+                    this.closeDrop(name);
+                } else {
+                    this.openDrop(name);
+                }
+            },
+            isDropOpen(name) {
+                return this.activeDropdown === name;
             },
             addNik(nik) {
                 if (!this.selectedNiks.includes(nik)) {
@@ -2270,7 +2166,7 @@
                 document.getElementById('form-kumpulan-nik').submit();
             }
         }" @open-kumpulan-nik.window="show = true"
-            @keydown.escape.window="show && (show = false)">
+            @keydown.escape.window="show && (show = false, activeDropdown = null)">
             <div x-show="show" x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0"
                 x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-150"
                 x-transition:leave-end="opacity-0" class="fixed inset-0 bg-black/50 dark:bg-black/70 z-[200]"
@@ -2304,31 +2200,31 @@
                                     NIK</label>
 
                                 {{-- Custom Dropdown --}}
-                                <div class="relative mb-3" @click.away="openDrop = false">
-                                    <button type="button" @click="openDrop=!openDrop"
+                                <div class="relative mb-3" @click.away="activeDropdown !== null && closeDrop(activeDropdown)">
+                                    <button type="button" @click="toggleDrop('kumpulan_nik')" @keydown.escape="closeDrop('kumpulan_nik')"
                                         class="w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm bg-white dark:bg-slate-700 transition-colors"
-                                        :class="openDrop ? 'border-emerald-500 ring-2 ring-emerald-500/20' :
+                                        :class="isDropOpen('kumpulan_nik') ? 'border-emerald-500 ring-2 ring-emerald-500/20' :
                                             'border-gray-300 dark:border-slate-600 hover:border-emerald-400'">
                                         <span class="text-gray-400 dark:text-slate-500"
-                                            x-text="openDrop ? 'Ketik untuk mencari...' : 'Cari NIK atau nama...'"></span>
+                                            x-text="isDropOpen('kumpulan_nik') ? 'Ketik untuk mencari...' : 'Cari NIK atau nama...'"></span>
                                         <svg class="w-4 h-4 text-gray-400 transition-transform"
-                                            :class="openDrop ? 'rotate-180' : ''" fill="none" stroke="currentColor"
+                                            :class="isDropOpen('kumpulan_nik') ? 'rotate-180' : ''" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
                                         </svg>
                                     </button>
 
-                                    <div x-show="openDrop"
+                                    <div x-show="isDropOpen('kumpulan_nik')"
                                         class="absolute z-[300] top-full mt-1 w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg overflow-hidden"
                                         style="display:none">
                                         <div class="p-2 border-b border-gray-100 dark:border-slate-700">
-                                            <input type="text" x-model="search" placeholder="Cari NIK atau nama..."
+                                            <input type="text" x-model="search" @input="initField('kumpulan_nik')" placeholder="Cari NIK atau nama..."
                                                 class="w-full px-2 py-1.5 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded outline-none focus:border-emerald-500">
                                         </div>
                                         <ul class="max-h-40 overflow-y-auto py-1">
                                             <template x-for="opt in filteredNiks" :key="opt.nik">
-                                                <li @click="addNik(opt.nik); search=''; openDrop=false"
+                                                <li @click="addNik(opt.nik); search=''; closeDrop('kumpulan_nik')"
                                                     class="px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 text-gray-700 dark:text-slate-200"
                                                     x-text="opt.nik + ' - ' + opt.nama"></li>
                                             </template>
