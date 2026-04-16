@@ -99,7 +99,7 @@ class PendudukExport implements
             )
             ->when(
                 $this->request->boolean('nik_sementara'),
-                fn($q) => $q->where('is_nik_sementara', true)
+                fn($q) => $q->nikSementara()
             );
 
         if (! $this->semuaData) {

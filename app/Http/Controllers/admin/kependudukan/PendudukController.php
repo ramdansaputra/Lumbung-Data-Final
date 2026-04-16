@@ -94,9 +94,7 @@ class PendudukController extends Controller {
 
         // ── Filter: NIK Sementara ─────────────────────────────────────────────
         if ($request->boolean('nik_sementara')) {
-            if (Schema::hasColumn('penduduk', 'is_nik_sementara')) {
-                $query->where('is_nik_sementara', true);
-            }
+            $query->nikSementara();
         }
         if ($request->filled('umur_dari') || $request->filled('umur_sampai')) {
             $satuan = $request->get('umur_satuan', 'tahun') === 'bulan' ? 'MONTH' : 'YEAR';
@@ -413,9 +411,7 @@ class PendudukController extends Controller {
                 ->orWhere('nik', 'like', "%{$search}%"));
         }
         if ($request->boolean('nik_sementara')) {
-            if (\Illuminate\Support\Facades\Schema::hasColumn('penduduk', 'is_nik_sementara')) {
-                $query->where('is_nik_sementara', true);
-            }
+            $query->nikSementara();
         }
         if ($request->filled('kumpulan_nik')) {
             $niks = preg_split('/[\s,;]+/', trim($request->kumpulan_nik), -1, PREG_SPLIT_NO_EMPTY);
