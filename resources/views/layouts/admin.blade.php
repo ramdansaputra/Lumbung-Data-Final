@@ -1015,12 +1015,12 @@
                                     d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
-                        <div class="submenu mt-1 ml-4 space-y-1"
+                        {{-- <div class="submenu mt-1 ml-4 space-y-1"
                             :class="{
                                 'open': kehadiran || (isSearching &&
                                     groupVisible(menuGroups.find(gi=>gi.key==='kehadiran')))
                             }">
-                            {{-- <a href="{{ route('admin.kehadiran.jam-kerja.index') }}"
+                            <a href="{{ route('admin.kehadiran.jam-kerja.index') }}"
                                 class="menu-item flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-white/80 hover:bg-white/10 hover:text-white {{ request()->is('admin/kehadiran/jam-kerja*') ? 'bg-white/15 text-white' : '' }}"
                                 x-show="itemVisible({label: 'Jam Kerja'})">
                                 <span class="w-1.5 h-1.5 rounded-full bg-white/50 flex-shrink-0"></span>
@@ -1050,7 +1050,7 @@
                                 <span class="w-1.5 h-1.5 rounded-full bg-white/50 flex-shrink-0"></span>
                                 <span class="menu-text whitespace-nowrap">Input Kehadiran</span>
                             </a> --}}
-                        </div>
+                        </div> --}}
                     </div>
 
                     <!-- LAYANAN SURAT -->
@@ -1386,7 +1386,7 @@
                     </a>
 
                     <!-- OPENDK -->
-                    <div x-show="groupVisible(menuGroups.find(g=>g.key==='opendk'))">
+                    {{-- <div x-show="groupVisible(menuGroups.find(g=>g.key==='opendk'))">
                         <button @click="opendk = !opendk" data-tooltip="OpenDK"
                             class="menu-header w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-semibold hover:bg-white/10"
                             :class="{ 'open': opendk, 'bg-white/15': opendk }">
@@ -1415,7 +1415,7 @@
                                 <span class="menu-text whitespace-nowrap">Placeholder</span>
                             </a>
                         </div>
-                    </div>
+                    </div> --}}
 
                     <!-- HUBUNG WARGA -->
                     <div x-show="groupVisible(menuGroups.find(g=>g.key==='hubungWarga'))">
