@@ -810,24 +810,24 @@
                                 <span class="w-1.5 h-1.5 rounded-full bg-white/50 flex-shrink-0"></span>
                                 <span class="menu-text whitespace-nowrap">Lembaga Desa</span>
                             </a>
-                            <a href="/admin/info-desa/status-desa"
+                            {{-- <a href="/admin/info-desa/status-desa"
                                 class="menu-item flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-white/80 hover:bg-white/10 hover:text-white {{ request()->is('admin/info-desa/status-desa*') ? 'bg-white/15 text-white' : '' }}"
                                 x-show="itemVisible({label: 'Status Desa'})">
                                 <span class="w-1.5 h-1.5 rounded-full bg-white/50 flex-shrink-0"></span>
                                 <span class="menu-text whitespace-nowrap">Status Desa</span>
-                            </a>
-                            <a href="{{ route('admin.layanan-pelanggan.index') }}"
+                            </a> --}}
+                            {{-- <a href="{{ route('admin.layanan-pelanggan.index') }}"
                                 class="menu-item flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-white/80 hover:bg-white/10 hover:text-white {{ request()->is('admin/layanan-pelanggan*') ? 'bg-white/15 text-white' : '' }}"
                                 x-show="itemVisible({label: 'Layanan Pelanggan'})">
                                 <span class="w-1.5 h-1.5 rounded-full bg-white/50 flex-shrink-0"></span>
                                 <span class="menu-text whitespace-nowrap">Layanan Pelanggan</span>
-                            </a>
-                            <a href="{{ route('admin.kerjasama.index') }}"
+                            </a> --}}   
+                            {{-- <a href="{{ route('admin.kerjasama.index') }}"
                                 class="menu-item flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-white/80 hover:bg-white/10 hover:text-white {{ request()->is('admin/kerjasama*') ? 'bg-white/15 text-white' : '' }}"
                                 x-show="itemVisible({label: 'Pendaftaran Kerjasama'})">
                                 <span class="w-1.5 h-1.5 rounded-full bg-white/50 flex-shrink-0"></span>
                                 <span class="menu-text whitespace-nowrap">Pendaftaran Kerjasama</span>
-                            </a>
+                            </a> --}}
                         </div>
                     </div>
 
@@ -969,7 +969,7 @@
                                 'open': kesehatan || (isSearching &&
                                     groupVisible(menuGroups.find(gi=>gi.key==='kesehatan')))
                             }">
-                            <a href="/admin/kesehatan/pendataan/posyandu"
+                            {{-- <a href="/admin/kesehatan/pendataan/posyandu"
                                 class="menu-item flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-white/80 hover:bg-white/10 hover:text-white {{ request()->is('admin/kesehatan/pendataan*') ? 'bg-white/15 text-white' : '' }}"
                                 x-show="itemVisible({label: 'Pendataan'})">
                                 <span class="w-1.5 h-1.5 rounded-full bg-white/50 flex-shrink-0"></span>
@@ -992,7 +992,7 @@
                                 x-show="itemVisible({label: 'Stunting'})">
                                 <span class="w-1.5 h-1.5 rounded-full bg-white/50 flex-shrink-0"></span>
                                 <span class="menu-text whitespace-nowrap">Stunting</span>
-                            </a>
+                            </a> --}}
                         </div>
                     </div>
 
@@ -1020,7 +1020,7 @@
                                 'open': kehadiran || (isSearching &&
                                     groupVisible(menuGroups.find(gi=>gi.key==='kehadiran')))
                             }">
-                            <a href="{{ route('admin.kehadiran.jam-kerja.index') }}"
+                            {{-- <a href="{{ route('admin.kehadiran.jam-kerja.index') }}"
                                 class="menu-item flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-white/80 hover:bg-white/10 hover:text-white {{ request()->is('admin/kehadiran/jam-kerja*') ? 'bg-white/15 text-white' : '' }}"
                                 x-show="itemVisible({label: 'Jam Kerja'})">
                                 <span class="w-1.5 h-1.5 rounded-full bg-white/50 flex-shrink-0"></span>
@@ -1049,7 +1049,7 @@
                                 x-show="itemVisible({label: 'Input Kehadiran'})">
                                 <span class="w-1.5 h-1.5 rounded-full bg-white/50 flex-shrink-0"></span>
                                 <span class="menu-text whitespace-nowrap">Input Kehadiran</span>
-                            </a>
+                            </a> --}}
                         </div>
                     </div>
 
