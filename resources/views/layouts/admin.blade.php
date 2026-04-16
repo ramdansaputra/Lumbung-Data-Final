@@ -945,7 +945,7 @@
                         </div>
                     </div>
 
-                    <!-- KESEHATAN -->
+                    {{-- <!-- KESEHATAN -->
                     <div x-show="groupVisible(menuGroups.find(g=>g.key==='kesehatan'))">
                         <button @click="kesehatan = !kesehatan" data-tooltip="Kesehatan"
                             class="menu-header w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-semibold hover:bg-white/10"
@@ -969,7 +969,7 @@
                                 'open': kesehatan || (isSearching &&
                                     groupVisible(menuGroups.find(gi=>gi.key==='kesehatan')))
                             }">
-                            {{-- <a href="/admin/kesehatan/pendataan/posyandu"
+                            <a href="/admin/kesehatan/pendataan/posyandu"
                                 class="menu-item flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-white/80 hover:bg-white/10 hover:text-white {{ request()->is('admin/kesehatan/pendataan*') ? 'bg-white/15 text-white' : '' }}"
                                 x-show="itemVisible({label: 'Pendataan'})">
                                 <span class="w-1.5 h-1.5 rounded-full bg-white/50 flex-shrink-0"></span>
@@ -992,11 +992,11 @@
                                 x-show="itemVisible({label: 'Stunting'})">
                                 <span class="w-1.5 h-1.5 rounded-full bg-white/50 flex-shrink-0"></span>
                                 <span class="menu-text whitespace-nowrap">Stunting</span>
-                            </a> --}}
+                            </a>
                         </div>
-                    </div>
+                    </div> --}}
 
-                    <!-- KEHADIRAN -->
+                    {{-- <!-- KEHADIRAN -->
                     <div x-show="groupVisible(menuGroups.find(g=>g.key==='kehadiran'))">
                         <button @click="kehadiran = !kehadiran" data-tooltip="Kehadiran"
                             class="menu-header w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-semibold hover:bg-white/10"
@@ -1015,7 +1015,7 @@
                                     d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
-                        {{-- <div class="submenu mt-1 ml-4 space-y-1"
+                        <div class="submenu mt-1 ml-4 space-y-1"
                             :class="{
                                 'open': kehadiran || (isSearching &&
                                     groupVisible(menuGroups.find(gi=>gi.key==='kehadiran')))
@@ -1049,9 +1049,9 @@
                                 x-show="itemVisible({label: 'Input Kehadiran'})">
                                 <span class="w-1.5 h-1.5 rounded-full bg-white/50 flex-shrink-0"></span>
                                 <span class="menu-text whitespace-nowrap">Input Kehadiran</span>
-                            </a> --}}
-                        </div> --}}
-                    </div>
+                            </a>
+                        </div>
+                    </div> --}}
 
                     <!-- LAYANAN SURAT -->
                     <div x-show="groupVisible(menuGroups.find(g=>g.key==='layananSurat'))">
@@ -1385,8 +1385,8 @@
                         <span class="menu-text whitespace-nowrap">Lapak</span>
                     </a>
 
-                    <!-- OPENDK -->
-                    {{-- <div x-show="groupVisible(menuGroups.find(g=>g.key==='opendk'))">
+                    {{-- <!-- OPENDK -->
+                    <div x-show="groupVisible(menuGroups.find(g=>g.key==='opendk'))">
                         <button @click="opendk = !opendk" data-tooltip="OpenDK"
                             class="menu-header w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-semibold hover:bg-white/10"
                             :class="{ 'open': opendk, 'bg-white/15': opendk }">
