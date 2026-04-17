@@ -28,21 +28,15 @@
             this.selectAll = all.every(id => this.selectedIds.includes(id));
         },
     
-        // SESUDAH
         searchKepala() {
             clearTimeout(this.searchTimer);
             const q = (this.searchQuery || '').trim();
-            if (!q) {
-                this.kepalaResults = [];
-                this.searchLoading = false;
-                return;
-            }
             this.searchLoading = true;
             this.searchTimer = setTimeout(async () => {
                 const res = await fetch('{{ url('admin/rumah-tangga/cari-penduduk') }}?q=' + encodeURIComponent(q));
                 this.kepalaResults = await res.json();
                 this.searchLoading = false;
-            }, 300);
+            }, q ? 300 : 0); // langsung fetch jika query kosong
         },
         pilihKepala(item) {
             this.selectedId = item.id;
@@ -718,9 +712,7 @@
             </div>
         </div>
 
-        {{-- ══════════════════════════════════════════════════════════
-         MODAL TAMBAH RUMAH TANGGA (mirip OpenSID)
-    ══════════════════════════════════════════════════════════ --}}
+        {{-- MODAL TAMBAH RUMAH TANGGA --}}
         <div x-show="showTambah" x-transition:enter="transition ease-out duration-200"
             x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
             x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100"
@@ -734,7 +726,7 @@
                 {{-- Header --}}
                 <div
                     class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-slate-700 sticky top-0 bg-white dark:bg-slate-800 rounded-t-2xl z-10">
-                    <h3 class="font-semibold text-gray-900 dark:text-slate-100 text-base">Tambah</h3>
+                    <h3 class="font-semibold text-gray-900 dark:text-slate-100 text-base">Tambah Rumah Tangga</h3>
                     <button @click="showTambah = false"
                         class="w-7 h-7 flex items-center justify-center text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-all">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -745,7 +737,17 @@
                 </div>
 
                 {{-- Body --}}
-                <form action="{{ route('admin.rumah-tangga.store') }}" method="POST" class="p-6 space-y-5">
+                <form action="{{ route('admin.rumah-tangga.store') }}" method="POST" class="p-6 space-y-5"
+                    @submit.prevent="
+                if (!selectedId) {
+                    kepalaError = true;
+                    $refs.kepalaWrapper?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    return;
+                }
+                kepalaError = false;
+                $el.submit();
+            "
+                    x-data="{ kepalaError: false }">
                     @csrf
 
                     {{-- Nomor Rumah Tangga --}}
@@ -756,22 +758,36 @@
                         <input type="text" name="no_rumah_tangga" placeholder="Nomor Rumah Tangga"
                             value="{{ old('no_rumah_tangga') }}"
                             class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-colors">
-                        <p class="text-xs text-red-500 mt-1">Kosongkan untuk melanjutkan nomor rumah tangga terakhir</p>
+                        <p class="text-xs text-gray-400 dark:text-slate-500 mt-1">Kosongkan untuk melanjutkan nomor
+                            terakhir secara otomatis</p>
                     </div>
 
                     {{-- Kepala Rumah Tangga --}}
-                    <div>
+                    <div x-ref="kepalaWrapper">
                         <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
                             Kepala Rumah Tangga <span class="text-red-500">*</span>
                         </label>
+
                         <div class="relative" x-data="{ openDrop: false }" @click.away="openDrop = false">
-                            <div @click="openDrop = !openDrop; if (openDrop) { $nextTick(() => $refs.kepalaSearchInput?.focus()); }"
-                                class="flex items-center justify-between w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-700 cursor-pointer transition-colors"
-                                :class="openDrop ? 'border-emerald-500 ring-2 ring-emerald-500/20' :
+                            {{-- Trigger --}}
+                            <div @click="
+                            openDrop = !openDrop;
+                            if (openDrop) {
+                                $nextTick(() => $refs.kepalaSearchInput?.focus());
+                                if (kepalaResults.length === 0) searchKepala();
+                            }
+                        "
+                                class="flex items-center justify-between w-full px-3 py-2 border rounded-lg text-sm bg-white dark:bg-slate-700 cursor-pointer transition-colors"
+                                :class="kepalaError
+                                    ?
+                                    'border-red-400 ring-2 ring-red-400/20' :
+                                    openDrop ?
+                                    'border-emerald-500 ring-2 ring-emerald-500/20' :
                                     'border-gray-300 dark:border-slate-600 hover:border-emerald-400 dark:hover:border-emerald-500'">
                                 <span x-text="selectedNama || '-- Silakan Cari NIK / Nama Kepala Keluarga --'"
                                     :class="selectedNama ? 'text-gray-800 dark:text-slate-200' :
-                                        'text-gray-400 dark:text-slate-500'"></span>
+                                        'text-gray-400 dark:text-slate-500'">
+                                </span>
                                 <svg class="w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ml-2"
                                     :class="openDrop ? 'rotate-180' : ''" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
@@ -779,10 +795,11 @@
                                         d="M19 9l-7 7-7-7" />
                                 </svg>
                             </div>
+
                             <input type="hidden" name="kepala_penduduk_id" :value="selectedId">
 
-                            {{-- Loading --}}
-                            <div x-show="searchLoading" class="absolute right-3 top-2.5">
+                            {{-- Spinner --}}
+                            <div x-show="searchLoading" class="absolute right-9 top-2.5 pointer-events-none">
                                 <svg class="w-4 h-4 animate-spin text-emerald-500" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10"
                                         stroke="currentColor" stroke-width="4" />
@@ -790,7 +807,7 @@
                                 </svg>
                             </div>
 
-                            {{-- Dropdown pencarian kepala --}}
+                            {{-- Dropdown --}}
                             <div x-show="openDrop" x-transition:enter="transition ease-out duration-100"
                                 x-transition:enter-start="opacity-0 -translate-y-1"
                                 x-transition:enter-end="opacity-100 translate-y-0"
@@ -799,56 +816,96 @@
                                 x-transition:leave-end="opacity-0 -translate-y-1"
                                 class="absolute left-0 top-full mt-1 w-full z-[100] bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg overflow-hidden"
                                 style="display:none">
+
+                                {{-- Search input --}}
                                 <div class="p-2 border-b border-gray-100 dark:border-slate-700">
                                     <input type="text" x-ref="kepalaSearchInput" x-model="searchQuery"
                                         @input="searchKepala()" @keydown.escape="openDrop = false"
                                         placeholder="Cari NIK atau nama..." autocomplete="off"
                                         class="w-full px-2 py-1.5 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded text-gray-700 dark:text-slate-200 outline-none focus:border-emerald-500">
                                 </div>
-                                <ul class="max-h-48 overflow-y-auto py-1">
-                                    <template x-for="item in kepalaResults" :key="item.id">
-                                        <li @click="pilihKepala(item); openDrop = false"
-                                            class="px-3 py-2 text-sm cursor-pointer hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors"
-                                            :class="selectedId === item.id ? 'bg-emerald-500 text-white' : 'text-gray-700 dark:text-slate-200'">
-                                            <span class="font-medium" x-text="item.nama"></span>
-                                            <span class="text-xs font-mono ml-1 opacity-75" x-text="'(' + item.nik + ')'"></span>
+
+                                {{-- List --}}
+                                <ul class="max-h-52 overflow-y-auto py-1">
+                                    {{-- Loading state --}}
+                                    <template x-if="searchLoading && kepalaResults.length === 0">
+                                        <li class="px-3 py-3 text-sm text-gray-400 dark:text-slate-500 text-center">
+                                            <svg class="w-4 h-4 animate-spin inline mr-1 text-emerald-500" fill="none"
+                                                viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                    stroke="currentColor" stroke-width="4" />
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                                            </svg>
+                                            Memuat data...
                                         </li>
                                     </template>
-                                    <li x-show="searchQuery.length > 0 && !searchLoading && kepalaResults.length === 0"
-                                        class="px-3 py-2 text-sm text-gray-400 dark:text-slate-500 italic">
-                                        Data tidak ditemukan
-                                    </li>
+
+                                    {{-- Results --}}
+                                    <template x-for="item in kepalaResults" :key="item.id">
+                                        <li @click="pilihKepala(item); openDrop = false; kepalaError = false;"
+                                            class="px-3 py-2 text-sm cursor-pointer hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors"
+                                            :class="selectedId === item.id ? 'bg-emerald-500 text-white' :
+                                                'text-gray-700 dark:text-slate-200'">
+                                            <span class="font-medium" x-text="item.nama"></span>
+                                            <span class="text-xs font-mono ml-1 opacity-75"
+                                                x-text="'(' + item.nik + ')'"></span>
+                                        </li>
+                                    </template>
+
+                                    {{-- Empty state --}}
+                                    <template x-if="!searchLoading && kepalaResults.length === 0">
+                                        <li class="px-3 py-3 text-sm text-gray-400 dark:text-slate-500 text-center italic">
+                                            Data tidak ditemukan
+                                        </li>
+                                    </template>
                                 </ul>
                             </div>
                         </div>
 
+                        {{-- Error message --}}
+                        <p x-show="kepalaError" x-transition class="text-xs text-red-500 mt-1 flex items-center gap-1">
+                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            Kepala Rumah Tangga wajib dipilih
+                        </p>
+
                         {{-- Info box --}}
                         <div
                             class="mt-2 px-3 py-2.5 bg-gray-50 dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg text-xs text-gray-500 dark:text-slate-400">
-                            Silakan cari nama / NIK dari data penduduk yang sudah terinput.
-                            Penduduk yang dipilih otomatis berstatus sebagai Kepala Rumah Tangga baru tersebut.
+                            Pilih dari data penduduk yang sudah terinput. Penduduk yang dipilih otomatis berstatus sebagai
+                            Kepala Rumah Tangga baru.
                         </div>
                     </div>
 
                     {{-- BDT --}}
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">BDT</label>
-                        <input type="text" name="bdt" placeholder="BDT" value="{{ old('bdt') }}"
+                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
+                            BDT
+                            <span class="text-xs font-normal text-gray-400 dark:text-slate-500">(Basis Data Terpadu)</span>
+                        </label>
+                        <input type="text" name="bdt" placeholder="Nomor BDT jika ada"
+                            value="{{ old('bdt') }}"
                             class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-colors">
                     </div>
 
-                    {{-- Terdaftar di DTKS --}}
-                    <div class="flex items-center gap-2.5">
+                    {{-- DTKS --}}
+                    <div class="flex items-start gap-2.5">
                         <input type="checkbox" name="is_dtks" value="1" id="is_dtks"
                             {{ old('is_dtks') ? 'checked' : '' }}
-                            class="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer">
+                            class="w-4 h-4 mt-0.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer flex-shrink-0">
                         <label for="is_dtks"
-                            class="text-sm text-gray-700 dark:text-slate-300 cursor-pointer select-none">
+                            class="text-sm text-gray-700 dark:text-slate-300 cursor-pointer select-none leading-snug">
                             Terdaftar di DTKS
+                            <span class="block text-xs text-gray-400 dark:text-slate-500 font-normal mt-0.5">
+                                Data Terpadu Kesejahteraan Sosial — penerima bansos (PKH, BPNT, dll)
+                            </span>
                         </label>
                     </div>
 
-                    {{-- Footer Buttons --}}
+                    {{-- Footer --}}
                     <div class="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-slate-700">
                         <button type="button" @click="showTambah = false"
                             class="inline-flex items-center gap-2 px-5 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold rounded-lg transition-colors">
