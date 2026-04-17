@@ -13,6 +13,7 @@
         kepalaResults: [],
         selectedId: '',
         selectedNama: '',
+        selectedAnggota: [],
         searchLoading: false,
         searchTimer: null,
     
@@ -41,6 +42,7 @@
         pilihKepala(item) {
             this.selectedId = item.id;
             this.selectedNama = item.text;
+            this.selectedAnggota = Array.isArray(item.anggota) ? item.anggota : [];
             this.searchQuery = '';
             this.kepalaResults = [];
         },
@@ -49,6 +51,7 @@
             this.kepalaResults = [];
             this.selectedId = '';
             this.selectedNama = '';
+            this.selectedAnggota = [];
         }
     }">
 
@@ -878,6 +881,47 @@
                             Pilih dari data penduduk yang sudah terinput. Penduduk yang dipilih otomatis berstatus sebagai
                             Kepala Rumah Tangga baru.
                         </div>
+                    </div>
+
+                    {{-- Anggota Rumah Tangga (preview dari KK penduduk terpilih) --}}
+                    <div x-show="selectedId" x-transition>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
+                            Anggota Rumah Tangga
+                        </label>
+                        <div class="border border-gray-200 dark:border-slate-600 rounded-lg overflow-hidden">
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-xs">
+                                    <thead class="bg-gray-50 dark:bg-slate-700/60">
+                                        <tr>
+                                            <th class="px-3 py-2 text-left font-semibold text-gray-500 dark:text-slate-300 uppercase">No</th>
+                                            <th class="px-3 py-2 text-left font-semibold text-gray-500 dark:text-slate-300 uppercase">NIK</th>
+                                            <th class="px-3 py-2 text-left font-semibold text-gray-500 dark:text-slate-300 uppercase">Nama</th>
+                                            <th class="px-3 py-2 text-left font-semibold text-gray-500 dark:text-slate-300 uppercase">Hubungan</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-100 dark:divide-slate-700">
+                                        <template x-if="selectedAnggota.length === 0">
+                                            <tr>
+                                                <td colspan="4" class="px-3 py-3 text-center text-gray-400 dark:text-slate-500 italic">
+                                                    Belum ada anggota keluarga yang bisa ditampilkan.
+                                                </td>
+                                            </tr>
+                                        </template>
+                                        <template x-for="(anggota, idx) in selectedAnggota" :key="anggota.id">
+                                            <tr class="hover:bg-gray-50 dark:hover:bg-slate-700/30">
+                                                <td class="px-3 py-2 text-gray-500 dark:text-slate-400" x-text="idx + 1"></td>
+                                                <td class="px-3 py-2 font-mono text-gray-600 dark:text-slate-300" x-text="anggota.nik"></td>
+                                                <td class="px-3 py-2 text-gray-800 dark:text-slate-200" x-text="anggota.nama"></td>
+                                                <td class="px-3 py-2 text-gray-600 dark:text-slate-300" x-text="anggota.hubungan"></td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-400 dark:text-slate-500 mt-1">
+                            Daftar anggota mengikuti data KK dari penduduk yang dipilih.
+                        </p>
                     </div>
 
                     {{-- BDT --}}

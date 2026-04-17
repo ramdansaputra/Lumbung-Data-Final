@@ -80,7 +80,13 @@ class RumahTanggaController extends Controller {
             $query->where('nama', 'like', "%{$q}%")
                 ->orWhere('nik',  'like', "%{$q}%");
         })
-            ->select('id', 'nama', 'nik')
+            ->with([
+                'keluarga.anggota' => fn($q) => $q->select('id', 'keluarga_id', 'nik', 'nama', 'kk_level')
+                    ->with('shdk:id,nama')
+                    ->orderBy('kk_level')
+                    ->orderBy('nama'),
+            ])
+            ->select('id', 'nama', 'nik', 'keluarga_id')
             ->limit(15)
             ->get()
             ->map(fn($p) => [
@@ -88,6 +94,26 @@ class RumahTanggaController extends Controller {
                 'text' => "{$p->nama} ({$p->nik})",
                 'nama' => $p->nama,
                 'nik'  => $p->nik,
+                'keluarga_id' => $p->keluarga_id,
+                'anggota' => $p->keluarga
+                    ? $p->keluarga->anggota->map(fn($a) => [
+                        'id' => $a->id,
+                        'nik' => $a->nik,
+                        'nama' => $a->nama,
+                        'kk_level' => $a->kk_level,
+                        'hubungan' => $a->kk_level == Penduduk::SHDK_KEPALA_KELUARGA
+                            ? 'Kepala Keluarga'
+                            : ($a->shdk->nama ?? '-'),
+                    ])->values()
+                    : collect([
+                        [
+                            'id' => $p->id,
+                            'nik' => $p->nik,
+                            'nama' => $p->nama,
+                            'kk_level' => Penduduk::SHDK_KEPALA_KELUARGA,
+                            'hubungan' => 'Kepala Keluarga',
+                        ],
+                    ]),
             ]);
 
         return response()->json($results);
