@@ -1078,10 +1078,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
     Route::get('/keluarga/export/excel',  [KeluargaController::class, 'exportExcel'])->name('keluarga.export.excel');
     Route::get('/keluarga/export/pdf',    [KeluargaController::class, 'exportPdf'])->name('keluarga.export.pdf');
 
-    Route::get('/keluarga/generate-no-kk-sementara', [KeluargaController::class, 'generateNoKkSementara'])
-        ->name('keluarga.generate.no-kk-sementara');
-    Route::get('/keluarga/generate-nik-sementara', [KeluargaController::class, 'generateNikSementara'])
-        ->name('keluarga.generate.nik-sementara');
+    // NOTE: Dihapus (diganti Alpine inline di form) — tidak lagi butuh endpoint generate via AJAX.
+    // Route::get('/keluarga/generate-no-kk-sementara', [KeluargaController::class, 'generateNoKkSementara'])
+    //     ->name('keluarga.generate.no-kk-sementara');
+    // Route::get('/keluarga/generate-nik-sementara', [KeluargaController::class, 'generateNikSementara'])
+    //     ->name('keluarga.generate.nik-sementara');
 
     Route::get('/keluarga/create/masuk',          [KeluargaController::class, 'createMasuk'])->name('keluarga.create.masuk');
     Route::post('/keluarga/create/masuk',         [KeluargaController::class, 'storeMasuk'])->name('keluarga.store.masuk');

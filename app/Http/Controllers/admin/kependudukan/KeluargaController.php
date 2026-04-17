@@ -688,47 +688,6 @@ class KeluargaController extends Controller {
     }
 
     // =========================================================================
-    // GENERATE NO KK SEMENTARA
-    // =========================================================================
-
-    /**
-     * Generate No KK Sementara via AJAX.
-     * Format: '0' + kode_desa (10 digit) + urutan (5 digit) = 16 digit
-     */
-    public function generateNoKkSementara() {
-        $kodeDesa = config('app.kode_desa', '0000000000');
-        $kodeDesa = str_pad(substr($kodeDesa, 0, 10), 10, '0', STR_PAD_LEFT);
-        $prefix   = '0' . $kodeDesa; // 11 karakter
-
-        $lastKk = Keluarga::withTrashed()
-            ->where('no_kk', 'like', $prefix . '%')
-            ->orderByRaw('CAST(no_kk AS UNSIGNED) DESC')
-            ->value('no_kk');
-
-        $urutan = $lastKk ? ((int) substr($lastKk, 11, 5)) + 1 : 1;
-
-        if ($urutan > 99999) {
-            return response()->json(['error' => 'Batas No KK Sementara sudah tercapai.'], 422);
-        }
-
-        $noKkSementara = $prefix . str_pad($urutan, 5, '0', STR_PAD_LEFT);
-
-        return response()->json(['no_kk' => $noKkSementara]);
-    }
-    /**
-     * Generate NIK Sementara via AJAX.
-     */
-    public function generateNikSementara()
-    {
-        try {
-            $nik = Penduduk::generateNikSementara();
-            return response()->json(['nik' => $nik]);
-        } catch (\RuntimeException $e) {
-            return response()->json(['error' => $e->getMessage()], 422);
-        }
-    }
-
-    // =========================================================================
     // PINDAH WILAYAH KOLEKTIF
     // =========================================================================
 

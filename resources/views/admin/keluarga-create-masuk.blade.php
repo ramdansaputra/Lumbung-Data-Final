@@ -39,24 +39,61 @@
 
 {{-- NOMOR KK — checkbox sementara seperti OpenSID --}}
 <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 mb-4 p-4">
-    <label class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">
-        Nomor KK <span class="text-red-500">*</span>
-        <span id="label-kk-sementara" class="hidden ml-1 text-amber-500 font-normal normal-case">(Sementara)</span>
-    </label>
-    <div class="flex items-center gap-2">
-        <input type="checkbox" id="cb-kk-sementara"
-               class="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-400 cursor-pointer flex-shrink-0"
-               onchange="toggleKkSementara(this)"
-               title="Gunakan No. KK Sementara">
-        <input type="text" name="no_kk" id="no_kk" value="{{ old('no_kk') }}"
-               placeholder="Nomor KK (16 digit)" maxlength="16"
-               class="flex-1 px-3 py-2 border rounded-lg text-sm font-mono
-                      bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200
-                      placeholder-gray-300 dark:placeholder-slate-500
-                      focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none transition-all
-                      {{ $errors->has('no_kk') ? 'border-red-400 bg-red-50' : 'border-gray-300 dark:border-slate-600' }}">
+    <div x-data="{
+        sementara: {{ old('is_kk_sementara') ? 'true' : 'false' }},
+        kkVal: '{{ old('no_kk') }}',
+        generate() {
+            const now = new Date();
+            const dd = String(now.getDate()).padStart(2, '0');
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const yy = String(now.getFullYear()).slice(-2);
+            const urut = String(Math.floor(Math.random() * 9000) + 1000);
+            this.kkVal = '000000' + dd + mm + yy + urut;
+            document.getElementById('no_kk').value = this.kkVal;
+        }
+    }">
+        <div class="flex items-center gap-2 mb-1.5">
+            <span class="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">
+                Nomor KK <span class="text-red-500">*</span>
+            </span>
+            <label class="flex items-center gap-1.5 cursor-pointer select-none ml-1">
+                <input type="checkbox" name="is_kk_sementara" id="is_kk_sementara" value="1"
+                    x-model="sementara" @change="sementara && kkVal.trim() === '' && generate()"
+                    {{ old('is_kk_sementara') ? 'checked' : '' }}
+                    class="w-3.5 h-3.5 rounded border-gray-300 text-emerald-500 focus:ring-emerald-400 cursor-pointer">
+                <span class="text-xs font-normal normal-case transition-colors"
+                    :class="sementara ? 'text-red-500 font-semibold' : 'text-gray-400 dark:text-slate-500'">
+                    (Sementara)
+                </span>
+            </label>
+        </div>
+        <input type="text" name="no_kk" id="no_kk" x-model="kkVal"
+            placeholder="Nomor KK (16 digit)" maxlength="16"
+            :class="sementara
+                ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-400 ring-2 ring-emerald-300/30'
+                : '{{ $errors->has('no_kk') ? 'border-red-400 bg-red-50 dark:bg-red-900/10' : 'border-gray-300 dark:border-slate-600' }}'"
+            class="w-full px-3 py-2 border rounded-lg text-sm font-mono
+              bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200
+              placeholder-gray-300 dark:placeholder-slate-500
+              focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none transition-all">
+        <div x-show="sementara" class="mt-1 flex items-center gap-2">
+            <p class="text-xs text-red-500">No. KK sementara — wajib diganti dengan No. KK resmi</p>
+            <button type="button" @click="generate()"
+                class="text-xs text-emerald-600 hover:underline font-medium flex-shrink-0">↺
+                Generate</button>
+        </div>
+        <div x-show="!sementara">
+            @error('no_kk')
+                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+            @else
+                <p class="text-gray-400 dark:text-slate-500 text-xs mt-1">Wajib diisi</p>
+            @enderror
+        </div>
     </div>
-    @error('no_kk')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+</div>
+
+<div class="mb-3 text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-widest">
+    DATA KEPALA KELUARGA :
 </div>
 
 <div class="flex items-start gap-5">
@@ -138,26 +175,57 @@
             </div>
             <div class="p-5 grid grid-cols-2 gap-x-5 gap-y-4">
 
-                {{-- NIK — checkbox sementara seperti OpenSID --}}
-                <div>
-                    <label class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">
-                        NIK <span class="text-red-500">*</span>
-                        <span id="label-nik-sementara" class="hidden ml-1 text-amber-500 font-normal normal-case">(Sementara)</span>
-                    </label>
-                    <div class="flex items-center gap-2">
-                        <input type="checkbox" id="cb-nik-sementara"
-                               class="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-400 cursor-pointer flex-shrink-0"
-                               onchange="toggleNikSementara(this)"
-                               title="Gunakan NIK Sementara">
-                        <input type="text" name="nik" id="nik" value="{{ old('nik') }}"
-                               placeholder="16 digit NIK" maxlength="16"
-                               class="flex-1 px-3 py-2 border rounded-lg text-sm font-mono
-                                      bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200
-                                      placeholder-gray-300 dark:placeholder-slate-500
-                                      focus:ring-2 focus:ring-emerald-400 outline-none transition-all
-                                      {{ $errors->has('nik') ? 'border-red-400 bg-red-50' : 'border-gray-300 dark:border-slate-600' }}">
+                {{-- ✅ NIK + Checkbox NIK Sementara --}}
+                <div x-data="{
+                    sementara: {{ old('is_nik_sementara') ? 'true' : 'false' }},
+                    nikVal: '{{ old('nik') }}',
+                    generate() {
+                        const now = new Date();
+                        const dd = String(now.getDate()).padStart(2, '0');
+                        const mm = String(now.getMonth() + 1).padStart(2, '0');
+                        const yy = String(now.getFullYear()).slice(-2);
+                        const urut = String(Math.floor(Math.random() * 9000) + 1000);
+                        this.nikVal = '000000' + dd + mm + yy + urut;
+                        document.getElementById('nik').value = this.nikVal;
+                    }
+                }">
+                    <div class="flex items-center gap-2 mb-1.5">
+                        <span class="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">
+                            NIK <span class="text-red-500">*</span>
+                        </span>
+                        <label class="flex items-center gap-1.5 cursor-pointer select-none ml-1">
+                            <input type="checkbox" name="is_nik_sementara" id="is_nik_sementara" value="1"
+                                x-model="sementara" @change="sementara && nikVal.trim() === '' && generate()"
+                                {{ old('is_nik_sementara') ? 'checked' : '' }}
+                                class="w-3.5 h-3.5 rounded border-gray-300 text-emerald-500 focus:ring-emerald-400 cursor-pointer">
+                            <span class="text-xs font-normal normal-case transition-colors"
+                                :class="sementara ? 'text-red-500 font-semibold' : 'text-gray-400 dark:text-slate-500'">
+                                (Sementara)
+                            </span>
+                        </label>
                     </div>
-                    @error('nik')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@else<p class="text-gray-400 text-xs mt-1">Wajib diisi</p>@enderror
+                    <input type="text" name="nik" id="nik" x-model="nikVal"
+                        placeholder="16 digit NIK" maxlength="16"
+                        :class="sementara
+                            ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-400 ring-2 ring-emerald-300/30'
+                            : '{{ $errors->has('nik') ? 'border-red-400 bg-red-50 dark:bg-red-900/10' : 'border-gray-300 dark:border-slate-600' }}'"
+                        class="w-full px-3 py-2 border rounded-lg text-sm font-mono
+                          bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200
+                          placeholder-gray-300 dark:placeholder-slate-500
+                          focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none transition-all">
+                    <div x-show="sementara" class="mt-1 flex items-center gap-2">
+                        <p class="text-xs text-red-500">NIK sementara — wajib diganti dengan NIK resmi</p>
+                        <button type="button" @click="generate()"
+                            class="text-xs text-emerald-600 hover:underline font-medium flex-shrink-0">↺
+                            Generate</button>
+                    </div>
+                    <div x-show="!sementara">
+                        @error('nik')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @else
+                            <p class="text-gray-400 dark:text-slate-500 text-xs mt-1">Wajib diisi</p>
+                        @enderror
+                    </div>
                 </div>
 
                 {{-- Nama --}}
@@ -174,55 +242,6 @@
                                   focus:ring-2 focus:ring-emerald-400 outline-none transition-all
                                   {{ $errors->has('nama') ? 'border-red-400 bg-red-50' : 'border-gray-300 dark:border-slate-600' }}">
                     @error('nama')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@else<p class="text-gray-400 text-xs mt-1">Wajib diisi</p>@enderror
-                </div>
-
-                {{-- Status Kepemilikan Identitas --}}
-                <div class="col-span-2">
-                    <label class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">
-                        Status Kepemilikan Identitas
-                    </label>
-                    <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-slate-600">
-                        <table class="w-full text-xs">
-                            <thead>
-                                <tr class="bg-gray-50 dark:bg-slate-700">
-                                    <th class="px-3 py-2 text-left font-semibold text-gray-500 dark:text-slate-400 uppercase">Wajib Identitas</th>
-                                    <th class="px-3 py-2 text-left font-semibold text-gray-500 dark:text-slate-400 uppercase">Identitas Elektronik</th>
-                                    <th class="px-3 py-2 text-left font-semibold text-gray-500 dark:text-slate-400 uppercase">Status Rekam</th>
-                                    <th class="px-3 py-2 text-left font-semibold text-gray-500 dark:text-slate-400 uppercase">Tag ID Card</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr class="border-t border-gray-100 dark:border-slate-700">
-                                    <td class="px-3 py-2 text-gray-500 dark:text-slate-400 font-medium" id="label-wajib-ktp">
-                                        BELUM WAJIB
-                                    </td>
-                                    <td class="px-3 py-2">
-                                        <select name="ktp_el"
-                                            class="w-full px-2 py-1.5 border border-gray-300 dark:border-slate-600 rounded text-xs bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200 focus:ring-1 focus:ring-emerald-400 outline-none">
-                                            <option value="">Pilih Identitas-El</option>
-                                            <option value="0" {{ old('ktp_el') == '0' ? 'selected' : '' }}>Non-Elektronik</option>
-                                            <option value="1" {{ old('ktp_el') == '1' ? 'selected' : '' }}>Elektronik</option>
-                                        </select>
-                                    </td>
-                                    <td class="px-3 py-2">
-                                        <select name="status_rekam"
-                                            class="w-full px-2 py-1.5 border border-gray-300 dark:border-slate-600 rounded text-xs bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200 focus:ring-1 focus:ring-emerald-400 outline-none">
-                                            <option value="">Pilih Status Rekam</option>
-                                            <option value="1" {{ old('status_rekam') == '1' ? 'selected' : '' }}>Belum Rekam</option>
-                                            <option value="2" {{ old('status_rekam') == '2' ? 'selected' : '' }}>Sudah Rekam</option>
-                                            <option value="3" {{ old('status_rekam') == '3' ? 'selected' : '' }}>Rekam Sebagian</option>
-                                            <option value="4" {{ old('status_rekam') == '4' ? 'selected' : '' }}>Diterbitkan</option>
-                                        </select>
-                                    </td>
-                                    <td class="px-3 py-2">
-                                        <input type="text" name="tag_id_card" value="{{ old('tag_id_card') }}"
-                                               placeholder="Tag Id Card"
-                                               class="w-full px-2 py-1.5 border border-gray-300 dark:border-slate-600 rounded text-xs bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200 focus:ring-1 focus:ring-emerald-400 outline-none">
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
                 </div>
 
                 {{-- Nomor KK Sebelumnya --}}
@@ -295,6 +314,19 @@
                         <option value="2" {{ old('status') == '2' ? 'selected' : '' }}>Tidak Tetap</option>
                         <option value="3" {{ old('status') == '3' ? 'selected' : '' }}>Pendatang</option>
                     </select>
+                </div>
+
+                {{-- Tag ID Card --}}
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">
+                        Tag ID Card
+                    </label>
+                    <input type="text" name="tag_id_card" value="{{ old('tag_id_card') }}"
+                           placeholder="Tag ID Card"
+                           class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm
+                                  bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200
+                                  placeholder-gray-300 dark:placeholder-slate-500
+                                  focus:ring-2 focus:ring-emerald-400 outline-none transition-all">
                 </div>
 
             </div>
@@ -653,105 +685,6 @@
             </div>
         </div>
 
-        {{-- ═══ DATA KESEHATAN ═══ --}}
-        <div class="border-b border-gray-100 dark:border-slate-700">
-            <div class="bg-emerald-50 dark:bg-emerald-900/20 border-b border-emerald-100 dark:border-emerald-800/40 px-5 py-2">
-                <span class="text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-widest">Data Kesehatan</span>
-            </div>
-            <div class="p-5 grid grid-cols-3 gap-x-5 gap-y-4">
-
-                <div>
-                    <label class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Golongan Darah</label>
-                    <select name="golongan_darah_id"
-                        class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200 focus:ring-2 focus:ring-emerald-400 outline-none transition-all">
-                        <option value="">Pilih Golongan Darah</option>
-                        @foreach($refGolDarah as $gd)
-                            <option value="{{ $gd->id }}" {{ old('golongan_darah_id') == $gd->id ? 'selected' : '' }}>{{ $gd->nama }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Disabilitas</label>
-                    <select name="cacat_id"
-                        class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200 focus:ring-2 focus:ring-emerald-400 outline-none transition-all">
-                        <option value="">Pilih Jenis Disabilitas</option>
-                        @foreach($refCacat ?? [] as $cacat)
-                            <option value="{{ $cacat->id }}" {{ old('cacat_id') == $cacat->id ? 'selected' : '' }}>{{ $cacat->nama }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Sakit Menahun</label>
-                    <select name="sakit_menahun_id"
-                        class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200 focus:ring-2 focus:ring-emerald-400 outline-none transition-all">
-                        <option value="">Pilih Sakit Menahun</option>
-                        @foreach($refSakitMenahun ?? [] as $s)
-                            <option value="{{ $s->id }}" {{ old('sakit_menahun_id') == $s->id ? 'selected' : '' }}>{{ $s->nama }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Akseptor KB</label>
-                    <select name="cara_kb_id"
-                        class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200 focus:ring-2 focus:ring-emerald-400 outline-none transition-all">
-                        <option value="">Pilih Cara KB Saat Ini</option>
-                        @foreach($refCaraKb ?? [] as $kb)
-                            <option value="{{ $kb->id }}" {{ old('cara_kb_id') == $kb->id ? 'selected' : '' }}>{{ $kb->nama }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Asuransi Kesehatan</label>
-                    <select name="asuransi_id"
-                        class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200 focus:ring-2 focus:ring-emerald-400 outline-none transition-all">
-                        <option value="">Pilih Asuransi</option>
-                        @foreach($refAsuransi ?? [] as $a)
-                            <option value="{{ $a->id }}" {{ old('asuransi_id') == $a->id ? 'selected' : '' }}>{{ $a->nama }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Nomor BPJS Ketenagakerjaan</label>
-                    <input type="text" name="no_asuransi" value="{{ old('no_asuransi') }}"
-                           placeholder="Nomor BPJS Ketenagakerjaan"
-                           class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200 placeholder-gray-300 focus:ring-2 focus:ring-emerald-400 outline-none transition-all">
-                </div>
-
-            </div>
-        </div>
-
-        {{-- ═══ DATA LAINNYA ═══ --}}
-        <div class="border-b border-gray-100 dark:border-slate-700">
-            <div class="bg-emerald-50 dark:bg-emerald-900/20 border-b border-emerald-100 dark:border-emerald-800/40 px-5 py-2">
-                <span class="text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-widest">Data Lainnya</span>
-            </div>
-            <div class="p-5 grid grid-cols-2 gap-x-5 gap-y-4">
-
-                <div>
-                    <label class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Bahasa</label>
-                    <select name="bahasa_id"
-                        class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200 focus:ring-2 focus:ring-emerald-400 outline-none transition-all">
-                        <option value="">Pilih Isian</option>
-                        @foreach($refBahasa ?? [] as $b)
-                            <option value="{{ $b->id }}" {{ old('bahasa_id') == $b->id ? 'selected' : '' }}>{{ $b->nama }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5">Keterangan</label>
-                    <textarea name="keterangan" rows="3" placeholder="Keterangan"
-                           class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200 placeholder-gray-300 focus:ring-2 focus:ring-emerald-400 outline-none transition-all resize-none">{{ old('keterangan') }}</textarea>
-                </div>
-
-            </div>
-        </div>
-
         {{-- TOMBOL AKSI --}}
         <div class="flex items-center justify-between px-5 py-4 bg-gray-50 dark:bg-slate-800/60">
             <a href="{{ route('admin.keluarga') }}"
@@ -842,48 +775,6 @@
         label.className = umur >= 17
             ? 'px-3 py-2 text-emerald-600 dark:text-emerald-400 font-semibold'
             : 'px-3 py-2 text-gray-500 dark:text-slate-400 font-medium';
-    }
-
-    // Toggle No KK Sementara — sesuai pola OpenSID
-    async function toggleKkSementara(cb) {
-        const input = document.getElementById('no_kk');
-        const label = document.getElementById('label-kk-sementara');
-        if (cb.checked) {
-            input.setAttribute('readonly', true);
-            input.classList.add('bg-gray-50', 'dark:bg-slate-600', 'cursor-not-allowed');
-            label.classList.remove('hidden');
-            try {
-                const resp = await fetch('{{ route("admin.keluarga.generate.no-kk-sementara") }}');
-                const data = await resp.json();
-                if (data.no_kk) input.value = data.no_kk;
-            } catch { alert('Gagal generate No KK Sementara'); cb.checked = false; }
-        } else {
-            input.removeAttribute('readonly');
-            input.classList.remove('bg-gray-50', 'dark:bg-slate-600', 'cursor-not-allowed');
-            input.value = '';
-            label.classList.add('hidden');
-        }
-    }
-
-    // Toggle NIK Sementara — sesuai pola OpenSID
-    async function toggleNikSementara(cb) {
-        const input = document.getElementById('nik');
-        const label = document.getElementById('label-nik-sementara');
-        if (cb.checked) {
-            input.setAttribute('readonly', true);
-            input.classList.add('bg-gray-50', 'dark:bg-slate-600', 'cursor-not-allowed');
-            label.classList.remove('hidden');
-            try {
-                const resp = await fetch('{{ route("admin.keluarga.generate.nik-sementara") }}');
-                const data = await resp.json();
-                if (data.nik) input.value = data.nik;
-            } catch { /* silent */ }
-        } else {
-            input.removeAttribute('readonly');
-            input.classList.remove('bg-gray-50', 'dark:bg-slate-600', 'cursor-not-allowed');
-            input.value = '';
-            label.classList.add('hidden');
-        }
     }
 
     // Kamera

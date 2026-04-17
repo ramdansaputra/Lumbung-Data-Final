@@ -15,6 +15,14 @@
         selectedNama: '',
         noKk: '',
         cbSementara: false,
+        generate() {
+            const now = new Date();
+            const dd = String(now.getDate()).padStart(2, '0');
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const yy = String(now.getFullYear()).slice(-2);
+            const urut = String(Math.floor(Math.random() * 9000) + 1000);
+            this.noKk = '000000' + dd + mm + yy + urut;
+        },
         get filtered() {
             if (!this.searchQuery) return pendudukLepas;
             const q = this.searchQuery.toLowerCase();
@@ -24,13 +32,9 @@
         }
     }"
     x-init="
-        $watch('cbSementara', async (val) => {
+        $watch('cbSementara', (val) => {
             if (val) {
-                try {
-                    const r = await fetch('{{ route('admin.keluarga.generate.no-kk-sementara') }}');
-                    const d = await r.json();
-                    if (d.no_kk) noKk = d.no_kk;
-                } catch {}
+                if (!noKk || String(noKk).trim() === '') generate();
             } else {
                 noKk = '';
             }
