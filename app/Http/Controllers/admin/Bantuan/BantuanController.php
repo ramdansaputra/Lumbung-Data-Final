@@ -62,7 +62,21 @@ class BantuanController extends Controller
         $bantuan = Program::findOrFail($id);
         $peserta = $bantuan->peserta()->orderBy('created_at', 'desc')->paginate(10);
 
-        return view('admin.bantuan.show', compact('bantuan', 'peserta'));
+        // Data untuk dropdown modal tambah peserta
+        $dataPenduduk = \App\Models\Penduduk::select('id', 'nama', 'nik')
+            ->where('status_hidup', 'hidup')
+            ->orderBy('nama')
+            ->get();
+
+        $dataKeluarga = \App\Models\Keluarga::select('id', 'no_kk', 'nama_kepala as nama')
+            ->orderBy('no_kk')
+            ->get();
+
+        $dataRumahTangga = \App\Models\RumahTangga::select('id', 'no_kk', 'nama_kepala as nama')
+            ->orderBy('no_kk')
+            ->get();
+
+        return view('admin.bantuan.show', compact('bantuan', 'peserta', 'dataPenduduk', 'dataKeluarga', 'dataRumahTangga'));
     }
 
     public function edit($id)

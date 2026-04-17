@@ -48,7 +48,7 @@
 </div>
 
 {{-- Program Info --}}
-<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+<div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden mb-6">
 
     {{-- Header --}}
     <div class="px-6 py-5 border-b border-gray-100">
@@ -103,17 +103,17 @@
     {{-- Info Grid --}}
     <div class="p-6">
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div class="bg-gray-50 rounded-xl p-4">
-                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Asal Dana</p>
-                <p class="text-sm font-bold text-gray-800">{{ $bantuan->asal_dana ?? '-' }}</p>
+            <div class="bg-gray-50 dark:bg-slate-700/50 rounded-xl p-4">
+                <p class="text-xs font-semibold text-gray-400 dark:text-slate-400 uppercase tracking-wide mb-1">Asal Dana</p>
+                <p class="text-sm font-bold text-gray-800 dark:text-slate-200">{{ $bantuan->asal_dana ?? '-' }}</p>
             </div>
-            <div class="bg-gray-50 rounded-xl p-4">
-                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Tahun</p>
-                <p class="text-sm font-bold text-gray-800">{{ $bantuan->tahun ?? '-' }}</p>
+            <div class="bg-gray-50 dark:bg-slate-700/50 rounded-xl p-4">
+                <p class="text-xs font-semibold text-gray-400 dark:text-slate-400 uppercase tracking-wide mb-1">Tahun</p>
+                <p class="text-sm font-bold text-gray-800 dark:text-slate-200">{{ $bantuan->tahun ?? '-' }}</p>
             </div>
-            <div class="bg-gray-50 rounded-xl p-4">
-                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Nominal</p>
-                <p class="text-sm font-bold text-emerald-700">
+            <div class="bg-gray-50 dark:bg-slate-700/50 rounded-xl p-4">
+                <p class="text-xs font-semibold text-gray-400 dark:text-slate-400 uppercase tracking-wide mb-1">Nominal</p>
+                <p class="text-sm font-bold text-emerald-700 dark:text-emerald-400">
                     {{ $bantuan->nominal ? 'Rp ' . number_format($bantuan->nominal, 0, ',', '.') : '-' }}
                 </p>
             </div>
@@ -159,7 +159,7 @@
 </div>
 
 {{-- Peserta Table --}}
-<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+<div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden">
 
     <div class="px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
@@ -223,21 +223,21 @@
                     </a>
                 </div>
             </div>
-            <a href="{{ route('admin.bantuan.peserta.create', $bantuan->id) }}"
+            <button type="button" @click="$dispatch('buka-modal-tambah-peserta')"
                 class="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-sm font-semibold px-4 py-2 rounded-xl shadow-sm hover:shadow-md transition-all duration-200">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                 </svg>
                 Tambah Peserta
-            </a>
+            </button>
         </div>
     </div>
 
     <div class="overflow-x-auto">
         <table class="w-full">
             <thead>
-                <tr class="bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                <tr class="bg-gray-50 dark:bg-slate-700/50 text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide dark:divide-slate-700">
                     <th class="px-6 py-3 text-left">#</th>
                     <th class="px-6 py-3 text-left">Nama</th>
                     <th class="px-6 py-3 text-left">NIK</th>
@@ -248,8 +248,8 @@
             </thead>
             <tbody class="divide-y divide-gray-50">
                 @forelse($peserta as $i => $p)
-                <tr class="hover:bg-gray-50/70 transition-colors duration-150">
-                    <td class="px-6 py-4 text-sm text-gray-400">{{ $peserta->firstItem() + $i }}</td>
+                <tr class="hover:bg-gray-50/70 dark:hover:bg-slate-700/50 transition-colors duration-150 divide-gray-100 dark:divide-slate-700">
+                    <td class="px-6 py-4 text-sm text-gray-400 dark:text-slate-200">{{ $peserta->firstItem() + $i }}</td>
                     <td class="px-6 py-4">
                         <div class="flex items-center gap-3">
                             <div
