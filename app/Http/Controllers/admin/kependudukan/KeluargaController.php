@@ -46,6 +46,37 @@ class KeluargaController extends Controller {
             });
         }
 
+        if ($request->filled('selected_ids')) {
+            $selectedIds = preg_split('/[\s,;]+/', trim((string) $request->selected_ids), -1, PREG_SPLIT_NO_EMPTY);
+            if (!empty($selectedIds)) {
+                $query->whereIn('id', array_map('intval', $selectedIds));
+            }
+        }
+
+        if ($request->boolean('no_kk_sementara')) {
+            $query->where('no_kk', 'like', '0%');
+        }
+
+        if ($request->filled('kumpulan_kk')) {
+            $noKkList = preg_split('/[\s,;]+/', trim((string) $request->kumpulan_kk), -1, PREG_SPLIT_NO_EMPTY);
+            if (!empty($noKkList)) {
+                $query->whereIn('no_kk', $noKkList);
+            }
+        }
+
+        if ($request->has('program_bantuan')) {
+            $program = $request->program_bantuan;
+            if ($program === '') {
+                $query->whereNotNull('jenis_bantuan_aktif')->where('jenis_bantuan_aktif', '!=', '');
+            } elseif ($program === 'bukan') {
+                $query->where(function ($q) {
+                    $q->whereNull('jenis_bantuan_aktif')->orWhere('jenis_bantuan_aktif', '');
+                });
+            } elseif ($program !== null) {
+                $query->where('jenis_bantuan_aktif', $program);
+            }
+        }
+
         // Filter wilayah
         if ($request->filled('wilayah_id')) {
             $query->where('wilayah_id', $request->wilayah_id);
@@ -89,6 +120,13 @@ class KeluargaController extends Controller {
         // Dropdown
         $wilayahList = Wilayah::orderBy('dusun')->orderBy('rw')->orderBy('rt')->get();
         $dusunList   = $wilayahList->pluck('dusun')->filter()->unique()->values();
+        $programBantuanList = Keluarga::query()
+            ->whereNotNull('jenis_bantuan_aktif')
+            ->where('jenis_bantuan_aktif', '!=', '')
+            ->select('jenis_bantuan_aktif')
+            ->distinct()
+            ->orderBy('jenis_bantuan_aktif')
+            ->pluck('jenis_bantuan_aktif');
 
         $pendudukLepas = Penduduk::wargaAktif()
             ->whereNull('keluarga_id')
@@ -102,6 +140,7 @@ class KeluargaController extends Controller {
             'wilayahList',
             'dusunList',
             'pendudukLepas',
+            'programBantuanList',
         ));
     }
 
@@ -881,6 +920,43 @@ class KeluargaController extends Controller {
                         ->where('no_kk', 'like', "%{$request->search}%")
                         ->orWhereHas('kepalaKeluarga', fn($q3) => $q3->where('nama', 'like', "%{$request->search}%"))
                 )
+            )
+            ->when(
+                $request->filled('selected_ids'),
+                function ($q) use ($request) {
+                    $selectedIds = preg_split('/[\s,;]+/', trim((string) $request->selected_ids), -1, PREG_SPLIT_NO_EMPTY);
+                    if (!empty($selectedIds)) {
+                        $q->whereIn('id', array_map('intval', $selectedIds));
+                    }
+                }
+            )
+            ->when(
+                $request->boolean('no_kk_sementara'),
+                fn($q) => $q->where('no_kk', 'like', '0%')
+            )
+            ->when(
+                $request->filled('kumpulan_kk'),
+                function ($q) use ($request) {
+                    $noKkList = preg_split('/[\s,;]+/', trim((string) $request->kumpulan_kk), -1, PREG_SPLIT_NO_EMPTY);
+                    if (!empty($noKkList)) {
+                        $q->whereIn('no_kk', $noKkList);
+                    }
+                }
+            )
+            ->when(
+                $request->has('program_bantuan'),
+                function ($q) use ($request) {
+                    $program = $request->program_bantuan;
+                    if ($program === '') {
+                        $q->whereNotNull('jenis_bantuan_aktif')->where('jenis_bantuan_aktif', '!=', '');
+                    } elseif ($program === 'bukan') {
+                        $q->where(function ($q2) {
+                            $q2->whereNull('jenis_bantuan_aktif')->orWhere('jenis_bantuan_aktif', '');
+                        });
+                    } elseif ($program !== null) {
+                        $q->where('jenis_bantuan_aktif', $program);
+                    }
+                }
             )
             ->when($request->filled('wilayah_id'), fn($q) => $q->where('wilayah_id', $request->wilayah_id))
             ->when($request->filled('klasifikasi_ekonomi'), fn($q) => $q->where('klasifikasi_ekonomi', $request->klasifikasi_ekonomi))

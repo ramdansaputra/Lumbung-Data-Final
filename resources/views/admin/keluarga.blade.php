@@ -260,52 +260,49 @@
                         x-transition:enter-end="opacity-100 translate-y-0"
                         class="absolute left-0 top-full mt-1 w-64 z-[100] bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-xl shadow-xl overflow-hidden"
                         style="display:none">
+                        <button type="button"
+                            @click="selectedIds.length > 0 ? (open = false, $dispatch('buka-modal-cetak-keluarga', { selectedIds: selectedIds })) : null"
+                            :class="selectedIds.length > 0 ? 'text-gray-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 cursor-pointer' : 'text-gray-300 dark:text-slate-600 cursor-not-allowed'"
+                            class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors">
+                            <svg class="w-4 h-4 text-emerald-500 flex-shrink-0" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                            </svg>
+                            Cetak Data Terpilih
+                        </button>
 
-                        {{-- Cetak Kartu Keluarga --}}
-                        <template x-if="selectedIds.length > 0">
-                            <a href="{{ route('admin.keluarga.export.pdf', request()->query()) }}"
-                                class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-                                <svg class="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                                </svg>
-                                Cetak Kartu Keluarga
-                            </a>
-                        </template>
-                        <template x-if="selectedIds.length === 0">
-                            <span
-                                class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-300 dark:text-slate-600 cursor-not-allowed select-none">
+                        <button type="button"
+                            @click="selectedIds.length > 0 ? (open = false, $dispatch('buka-modal-unduh-keluarga', { selectedIds: selectedIds })) : null"
+                            :class="selectedIds.length > 0 ? 'text-gray-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 cursor-pointer' : 'text-gray-300 dark:text-slate-600 cursor-not-allowed'"
+                            class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors">
+                            <svg class="w-4 h-4 text-emerald-500 flex-shrink-0" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            Unduh Data Terpilih
+                        </button>
+
+                        <div class="border-t border-gray-100 dark:border-slate-700"></div>
+
+                        <form method="POST" action="{{ route('admin.keluarga.bulk-destroy') }}" id="form-bulk-hapus-kk">
+                            @csrf
+                            @method('DELETE')
+                            <template x-for="id in selectedIds" :key="'bulk-hapus-' + id">
+                                <input type="hidden" name="ids[]" :value="id">
+                            </template>
+                            <button type="button"
+                                @click="selectedIds.length > 0 ? (open = false, $dispatch('buka-modal-hapus', { bulkCount: selectedIds.length, onConfirm: () => document.getElementById('form-bulk-hapus-kk').submit() })) : null"
+                                :class="selectedIds.length > 0 ? 'text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer' : 'text-gray-300 dark:text-slate-600 cursor-not-allowed'"
+                                class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors">
                                 <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                 </svg>
-                                Cetak Kartu Keluarga
-                            </span>
-                        </template>
-
-                        {{-- Unduh Kartu Keluarga --}}
-                        <template x-if="selectedIds.length > 0">
-                            <a href="{{ route('admin.keluarga.export.excel', request()->query()) }}"
-                                class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-                                <svg class="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                </svg>
-                                Unduh Kartu Keluarga
-                            </a>
-                        </template>
-                        <template x-if="selectedIds.length === 0">
-                            <span
-                                class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-300 dark:text-slate-600 cursor-not-allowed select-none">
-                                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                </svg>
-                                Unduh Kartu Keluarga
-                            </span>
-                        </template>
+                                Hapus Data Terpilih
+                            </button>
+                        </form>
 
                         <div class="border-t border-gray-100 dark:border-slate-700"></div>
 
@@ -373,10 +370,10 @@
                 {{-- 3. Pilih Aksi Lainnya --}}
                 <div class="relative" x-data="{ open: false }" @click.away="open = false">
                     <button @click="open = !open"
-                        class="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold rounded-lg transition-colors">
+                        class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold rounded-lg transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
+                                d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 7a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
                         </svg>
                         Pilih Aksi Lainnya
                         <svg class="w-3.5 h-3.5 transition-transform" :class="open ? 'rotate-180' : ''" fill="none"
@@ -387,48 +384,56 @@
                     <div x-show="open" x-transition:enter="transition ease-out duration-100"
                         x-transition:enter-start="opacity-0 -translate-y-1"
                         x-transition:enter-end="opacity-100 translate-y-0"
-                        class="absolute left-0 top-full mt-1 w-56 z-[100] bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-xl shadow-xl overflow-hidden"
+                        class="absolute left-0 top-full mt-1 w-64 z-[100] bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-xl shadow-lg overflow-hidden"
                         style="display:none">
-                        <a href="#"
-                            class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                            Pencarian Program Bantuan
-                        </a>
-                        <a href="#"
-                            class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                            Pilihan Kumpulan KK
-                        </a>
-                        <a href="{{ route('admin.keluarga.generate.no-kk-sementara') }}"
-                            class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                            No KK Sementara
-                        </a>
-                        <div class="border-t border-gray-100 dark:border-slate-700"></div>
-                        <a href="{{ route('admin.keluarga.export.pdf', request()->query()) }}"
-                            class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-                            <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <button type="button" @click="open = false; $dispatch('buka-modal-cetak-keluarga')"
+                            class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 transition-colors">
+                            <svg class="w-4 h-4 text-emerald-500 flex-shrink-0" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                             </svg>
                             Cetak
-                        </a>
-                        <a href="{{ route('admin.keluarga.export.excel', request()->query()) }}"
-                            class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-                            <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        </button>
+                        <button type="button" @click="open = false; $dispatch('buka-modal-unduh-keluarga')"
+                            class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 transition-colors">
+                            <svg class="w-4 h-4 text-emerald-500 flex-shrink-0" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                             </svg>
                             Unduh
+                        </button>
+                        <button type="button" @click="open = false; $dispatch('open-program-bantuan-kk')"
+                            class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 transition-colors">
+                            <svg class="w-4 h-4 text-emerald-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zm-5 0H9m2-3v6" />
+                            </svg>
+                            Pencarian Program Bantuan
+                        </button>
+                        <button type="button" @click="open = false; $dispatch('open-kumpulan-kk')"
+                            class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 transition-colors">
+                            <svg class="w-4 h-4 text-emerald-500 flex-shrink-0" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                            </svg>
+                            Pilihan Kumpulan KK
+                        </button>
+                        @php $isNoKkSementara = request()->boolean('no_kk_sementara'); @endphp
+                        <a @click="open = false"
+                            href="{{ route('admin.keluarga', array_merge(request()->except('no_kk_sementara', 'page'), $isNoKkSementara ? [] : ['no_kk_sementara' => 1])) }}"
+                            class="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors {{ $isNoKkSementara ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400 font-semibold' : 'text-gray-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700' }}">
+                            <svg class="w-4 h-4 text-emerald-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            No KK Sementara
+                            @if ($isNoKkSementara)
+                                <span
+                                    class="ml-auto text-[10px] bg-emerald-500 text-white px-1.5 py-0.5 rounded-full">Aktif</span>
+                            @endif
                         </a>
                     </div>
                 </div>
@@ -944,6 +949,7 @@
 
         @include('admin.partials.modal-hapus')
         @include('admin.partials.keluarga-dari-penduduk-modal')
+        @include('admin.partials.modal-cetak-unduh-keluarga')
 
         {{-- ════ MODAL TAMBAH RUMAH TANGGA KOLEKTIF ════ --}}
         <div x-data="{ show: false }" @buka-modal-rumah-tangga-kolektif.window="show = true" x-show="show"
@@ -1010,6 +1016,185 @@
                             </svg>
                             Tambah
                         </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        {{-- MODAL: PENCARIAN PROGRAM BANTUAN --}}
+        <div x-data="{ show: false }" @open-program-bantuan-kk.window="show = true" @keydown.escape.window="show && (show = false)">
+            <div x-show="show" x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-150"
+                x-transition:leave-end="opacity-0" class="fixed inset-0 bg-black/50 dark:bg-black/70 z-[200]"
+                @click="show = false" style="display:none"></div>
+
+            <div x-show="show" x-transition:enter="ease-out duration-200"
+                x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                class="fixed inset-0 z-[201] flex items-center justify-center p-4" style="display:none">
+                <div class="bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-lg" @click.stop>
+                    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-slate-700">
+                        <h3 class="text-base font-bold text-gray-800 dark:text-slate-100">Pencarian Program Bantuan</h3>
+                        <button @click="show = false"
+                            class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <form method="GET" action="{{ route('admin.keluarga') }}">
+                        @foreach (request()->except('program_bantuan', 'page') as $k => $v)
+                            <input type="hidden" name="{{ $k }}" value="{{ $v }}">
+                        @endforeach
+                        <div class="px-6 py-5 space-y-4">
+                            <label class="block text-sm font-semibold text-gray-700 dark:text-slate-300">Program Bantuan</label>
+                            <select name="program_bantuan"
+                                class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+                                <option value="">Semua Penerima Bantuan</option>
+                                <option value="bukan" @selected(request('program_bantuan') === 'bukan')>Bukan Penerima Bantuan</option>
+                                @foreach ($programBantuanList as $program)
+                                    <option value="{{ $program }}" @selected(request('program_bantuan') === $program)>{{ $program }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="flex items-center justify-between px-6 py-4 border-t border-gray-200 dark:border-slate-700">
+                            <button type="button" @click="show = false"
+                                class="inline-flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold rounded-lg transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                                Batal
+                            </button>
+                            <button type="submit" @click="show = false"
+                                class="inline-flex items-center gap-2 px-5 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold rounded-lg transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                                Terapkan
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        {{-- MODAL: PILIHAN KUMPULAN KK --}}
+        <div x-data="{
+            show: false,
+            search: '',
+            selectedKk: [],
+            openDrop: false,
+            kkData: [
+                @foreach ($keluarga ?? [] as $kk)
+                    { no_kk: '{{ $kk->no_kk }}', kepala: '{{ addslashes($kk->kepalaKeluarga?->nama ?? '-') }}' },
+                @endforeach
+            ],
+            get filteredKk() {
+                return !this.search ? this.kkData :
+                    this.kkData.filter(k =>
+                        k.no_kk.toLowerCase().includes(this.search.toLowerCase()) ||
+                        k.kepala.toLowerCase().includes(this.search.toLowerCase())
+                    );
+            },
+            addKk(noKk) {
+                if (!this.selectedKk.includes(noKk)) this.selectedKk.push(noKk);
+            },
+            removeKk(noKk) {
+                this.selectedKk = this.selectedKk.filter(n => n !== noKk);
+            },
+            submitForm() {
+                document.getElementById('hidden-kumpulan-kk').value = this.selectedKk.join(',');
+                document.getElementById('form-kumpulan-kk').submit();
+            }
+        }" @open-kumpulan-kk.window="show = true" @keydown.escape.window="show && (show = false)">
+            <div x-show="show" x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-150"
+                x-transition:leave-end="opacity-0" class="fixed inset-0 bg-black/50 dark:bg-black/70 z-[200]"
+                @click="show = false" style="display:none"></div>
+
+            <div x-show="show" x-transition:enter="ease-out duration-200"
+                x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                class="fixed inset-0 z-[201] flex items-center justify-center p-4" style="display:none">
+                <div class="bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-lg" @click.stop>
+                    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-slate-700">
+                        <h3 class="text-base font-bold text-gray-800 dark:text-slate-100">Pilihan Kumpulan KK</h3>
+                        <button @click="show = false"
+                            class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    <form method="GET" action="{{ route('admin.keluarga') }}" id="form-kumpulan-kk">
+                        @foreach (request()->except('kumpulan_kk', 'page') as $k => $v)
+                            <input type="hidden" name="{{ $k }}" value="{{ $v }}">
+                        @endforeach
+                        <input type="hidden" id="hidden-kumpulan-kk" name="kumpulan_kk">
+
+                        <div class="px-6 py-5 space-y-4">
+                            <label class="block text-sm font-semibold text-gray-700 dark:text-slate-300">Kumpulan KK</label>
+                            <div class="relative mb-2" @click.away="openDrop = false">
+                                <button type="button" @click="openDrop = !openDrop"
+                                    class="w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm bg-white dark:bg-slate-700 transition-colors"
+                                    :class="openDrop ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-gray-300 dark:border-slate-600 hover:border-emerald-400'">
+                                    <span class="text-gray-400 dark:text-slate-500" x-text="openDrop ? 'Ketik untuk mencari...' : 'Cari No. KK / Kepala Keluarga...'"></span>
+                                    <svg class="w-4 h-4 text-gray-400 transition-transform" :class="openDrop ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                                    </svg>
+                                </button>
+                                <div x-show="openDrop"
+                                    class="absolute z-[300] top-full mt-1 w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg overflow-hidden"
+                                    style="display:none">
+                                    <div class="p-2 border-b border-gray-100 dark:border-slate-700">
+                                        <input type="text" x-model="search" placeholder="Cari No. KK atau nama..."
+                                            class="w-full px-2 py-1.5 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded outline-none focus:border-emerald-500">
+                                    </div>
+                                    <ul class="max-h-40 overflow-y-auto py-1">
+                                        <template x-for="opt in filteredKk" :key="opt.no_kk">
+                                            <li @click="addKk(opt.no_kk); search=''; openDrop=false"
+                                                class="px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 text-gray-700 dark:text-slate-200"
+                                                x-text="opt.no_kk + ' - ' + opt.kepala"></li>
+                                        </template>
+                                        <li x-show="filteredKk.length === 0" class="px-3 py-2 text-xs text-gray-400 italic">Tidak ada data</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="p-3 bg-gray-50 dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg min-h-10">
+                                <template x-if="selectedKk.length === 0">
+                                    <p class="text-xs text-gray-400 dark:text-slate-500 italic">Belum ada No. KK dipilih.</p>
+                                </template>
+                                <div class="flex flex-wrap gap-1.5">
+                                    <template x-for="noKk in selectedKk" :key="noKk">
+                                        <span class="inline-flex items-center gap-1 px-2 py-1 text-xs bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 rounded-full">
+                                            <span x-text="noKk"></span>
+                                            <button type="button" @click="removeKk(noKk)" class="hover:text-red-500">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                                </svg>
+                                            </button>
+                                        </span>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between px-6 py-4 border-t border-gray-200 dark:border-slate-700">
+                            <button type="button" @click="show = false"
+                                class="inline-flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold rounded-lg transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                                Batal
+                            </button>
+                            <button type="button" @click="submitForm(); show = false"
+                                class="inline-flex items-center gap-2 px-5 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold rounded-lg transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                Terapkan
+                            </button>
+                        </div>
                     </form>
                 </div>
             </div>
