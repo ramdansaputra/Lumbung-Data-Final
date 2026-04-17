@@ -266,10 +266,6 @@ class KeluargaController extends Controller {
             return back()->withErrors(['kepala_keluarga_id' => 'Penduduk tidak ditemukan.'])->withInput();
         }
         
-        if ($kepala->status_dasar != Penduduk::STATUS_DASAR_HIDUP) {
-            return back()->withErrors(['kepala_keluarga_id' => 'Penduduk tidak aktif.'])->withInput();
-        }
-        
         if (! is_null($kepala->keluarga_id)) {
             return back()->withErrors(['kepala_keluarga_id' => 'Penduduk sudah terdaftar di KK lain.'])->withInput();
         }
