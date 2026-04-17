@@ -122,7 +122,6 @@ class RumahTanggaController extends Controller {
 
         $rumahTangga = RumahTangga::create([
             'no_rumah_tangga'     => $validated['no_rumah_tangga'],
-            'kepala_penduduk_id'  => $validated['kepala_penduduk_id'],
             'bdt'                 => $validated['bdt'] ?? null,
             'is_dtks'             => !empty($validated['is_dtks']),
             'alamat'              => $validated['alamat'] ?? null,
