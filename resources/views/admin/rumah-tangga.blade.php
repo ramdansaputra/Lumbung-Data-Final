@@ -183,48 +183,69 @@
             <form method="GET" action="{{ route('admin.rumah-tangga.index') }}" id="form-filter"
                   class="flex flex-wrap items-center justify-between gap-3">
 
-                <input type="hidden" name="klasifikasi_ekonomi" id="val-klasifikasi" value="{{ request('klasifikasi_ekonomi') }}">
+                <input type="hidden" name="status" id="val-status" value="{{ request('status') }}">
                 <input type="hidden" name="dusun"               id="val-dusun"       value="{{ request('dusun') }}">
+                <input type="hidden" name="per_page" id="val-per-page-rt" value="{{ request('per_page', 10) }}">
 
                 <div class="flex flex-wrap items-center gap-2">
 
-                    {{-- Klasifikasi (Aktif/Semua) --}}
-                    <div class="relative w-36" x-data="{
+                    {{-- Status --}}
+                    <div class="relative w-52" x-data="{
                         open: false,
-                        selected: '{{ request('klasifikasi_ekonomi') }}',
+                        selected: '{{ request('status') }}',
+                        placeholder: 'Pilih Status',
                         options: [
-                            { value: '',       label: 'Aktif' },
-                            { value: 'miskin', label: 'Miskin' },
-                            { value: 'rentan', label: 'Rentan' },
-                            { value: 'mampu',  label: 'Mampu' },
+                            { value: 'aktif', label: 'Aktif' },
+                            { value: 'tidak_aktif', label: 'Tidak Aktif' },
+                            { value: 'tanpa_kepala', label: 'Tanpa Kepala Keluarga' },
                         ],
-                        get label() { return this.options.find(o => o.value === this.selected)?.label ?? 'Aktif'; },
+                        get label() { return this.options.find(o => o.value === this.selected)?.label ?? ''; },
                         choose(opt) {
                             this.selected = opt.value;
-                            document.getElementById('val-klasifikasi').value = opt.value;
+                            document.getElementById('val-status').value = opt.value;
+                            this.open = false;
+                            document.getElementById('form-filter').submit();
+                        },
+                        reset() {
+                            this.selected = '';
+                            document.getElementById('val-status').value = '';
                             this.open = false;
                             document.getElementById('form-filter').submit();
                         }
                     }" @click.away="open = false">
                         <button type="button" @click="open = !open"
-                            class="w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm cursor-pointer
-                                   bg-white dark:bg-slate-700 text-gray-700 dark:text-slate-200
-                                   border-gray-300 dark:border-slate-600 hover:border-emerald-400 transition-colors"
-                            :class="open ? 'border-emerald-500 ring-2 ring-emerald-500/20' : ''">
-                            <span x-text="label"></span>
-                            <svg class="w-4 h-4 text-gray-400 flex-shrink-0 transition-transform" :class="open ? 'rotate-180' : ''"
+                            class="w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm cursor-pointer bg-white dark:bg-slate-700 focus:outline-none transition-colors"
+                            :class="open ? 'border-emerald-500 ring-2 ring-emerald-500/20' :
+                                'border-gray-300 dark:border-slate-600 hover:border-emerald-400 dark:hover:border-emerald-500'">
+                            <span x-text="label || placeholder"
+                                :class="label ? 'text-gray-800 dark:text-slate-200' : 'text-gray-400 dark:text-slate-500'"></span>
+                            <svg class="w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ml-2" :class="open ? 'rotate-180' : ''"
                                  fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                             </svg>
                         </button>
-                        <div x-show="open" x-transition
+                        <div x-show="open" x-transition:enter="transition ease-out duration-100"
+                             x-transition:enter-start="opacity-0 -translate-y-1"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-75"
+                             x-transition:leave-start="opacity-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 -translate-y-1"
                              class="absolute left-0 top-full mt-1 w-full z-[100] bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg overflow-hidden"
                              style="display:none">
                             <ul class="py-1">
+                                <li @click="reset()"
+                                    class="px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 dark:hover:text-emerald-400"
+                                    :class="selected === '' ?
+                                        'bg-emerald-500 text-white hover:bg-emerald-600 hover:text-white' :
+                                        'text-gray-400 dark:text-slate-500 italic'">
+                                    Semua Status
+                                </li>
                                 <template x-for="opt in options" :key="opt.value">
                                     <li @click="choose(opt)"
-                                        class="px-3 py-2 text-sm cursor-pointer hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors"
-                                        :class="selected === opt.value ? 'bg-emerald-500 text-white' : 'text-gray-700 dark:text-slate-200'"
+                                        class="px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 dark:hover:text-emerald-400"
+                                        :class="selected === opt.value ?
+                                            'bg-emerald-500 text-white hover:bg-emerald-600 hover:text-white dark:hover:text-white' :
+                                            'text-gray-700 dark:text-slate-200'"
                                         x-text="opt.label"></li>
                                 </template>
                             </ul>
@@ -326,7 +347,61 @@
                         </div>
                     </div>
 
-                    @if(request()->hasAny(['klasifikasi_ekonomi', 'dusun', 'search', 'jenis_kelamin']))
+                    <div id="form-per-page-rt" class="flex items-center gap-2 text-sm text-gray-600 dark:text-slate-400">
+                        <span>Tampilkan</span>
+                        <div class="relative w-24" x-data="{
+                            open: false,
+                            selected: '{{ request('per_page', 10) }}',
+                            options: [
+                                { value: '10', label: '10' },
+                                { value: '25', label: '25' },
+                                { value: '50', label: '50' },
+                                { value: '100', label: '100' },
+                            ],
+                            get label() { return this.options.find(o => o.value === this.selected)?.label ?? '10'; },
+                            choose(opt) {
+                                this.selected = opt.value;
+                                document.getElementById('val-per-page-rt').value = opt.value;
+                                this.open = false;
+                                document.getElementById('form-filter').submit();
+                            }
+                        }" @click.away="open = false">
+                            <button type="button" @click="open = !open"
+                                class="w-full flex items-center justify-between px-3 py-1.5 border rounded-lg text-sm cursor-pointer bg-white dark:bg-slate-700 focus:outline-none transition-colors"
+                                :class="open ? 'border-emerald-500 ring-2 ring-emerald-500/20' :
+                                    'border-gray-300 dark:border-slate-600 hover:border-emerald-400 dark:hover:border-emerald-500'">
+                                <span x-text="label" class="text-gray-700 dark:text-slate-200"></span>
+                                <svg class="w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ml-1"
+                                    :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                            <div x-show="open" x-transition:enter="transition ease-out duration-100"
+                                x-transition:enter-start="opacity-0 -translate-y-1"
+                                x-transition:enter-end="opacity-100 translate-y-0"
+                                x-transition:leave="transition ease-in duration-75"
+                                x-transition:leave-start="opacity-100 translate-y-0"
+                                x-transition:leave-end="opacity-0 -translate-y-1"
+                                class="absolute left-0 top-full mt-1 w-full z-[100] bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg overflow-hidden"
+                                style="display:none">
+                                <ul class="py-1">
+                                    <template x-for="opt in options" :key="opt.value">
+                                        <li @click="choose(opt)"
+                                            class="px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 dark:hover:text-emerald-400"
+                                            :class="selected === opt.value ?
+                                                'bg-emerald-500 text-white hover:bg-emerald-600 hover:text-white dark:hover:text-white' :
+                                                'text-gray-700 dark:text-slate-200'"
+                                            x-text="opt.label"></li>
+                                    </template>
+                                </ul>
+                            </div>
+                        </div>
+                        <span>entri</span>
+                    </div>
+
+                    @if(request()->hasAny(['status', 'dusun', 'search', 'jenis_kelamin']))
                         <a href="{{ route('admin.rumah-tangga.index') }}"
                            class="inline-flex items-center gap-1.5 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800 transition-colors">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -336,24 +411,20 @@
                         </a>
                     @endif
                 </div>
-
-                {{-- Tampilkan X entri + Cari --}}
-                <div class="flex items-center gap-3 ml-auto">
-                    <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-slate-400">
-                        <span>Tampilkan</span>
-                        <select name="per_page" x-model="perPage" @change="$el.form.submit()"
-                            class="border border-gray-300 dark:border-slate-600 rounded-lg px-2 py-1.5 text-sm bg-white dark:bg-slate-700 text-gray-700 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
-                            @foreach([10, 25, 50, 100] as $n)
-                                <option value="{{ $n }}" {{ request('per_page', 10) == $n ? 'selected' : '' }}>{{ $n }}</option>
-                            @endforeach
-                        </select>
-                        <span>entri</span>
-                    </div>
-                    <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-slate-400">
-                        <span>Cari:</span>
+                <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-slate-400 ml-auto">
+                    <span>Cari:</span>
+                    <div class="relative group">
                         <input type="text" name="search" value="{{ request('search') }}"
-                               placeholder="kata kunci pencarian"
+                               placeholder="kata kunci pencarian" maxlength="50"
+                               title="Masukkan kata kunci untuk mencari (maksimal 50 karakter)"
+                               @input.debounce.400ms="$el.form.submit()"
                                class="px-3 py-1.5 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none text-sm w-48">
+                        <div class="absolute bottom-full right-0 mb-2 hidden group-focus-within:block z-50 pointer-events-none">
+                            <div class="bg-gray-800 dark:bg-slate-700 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-lg">
+                                Masukkan kata kunci untuk mencari (maksimal 50 karakter)
+                                <div class="absolute top-full right-4 border-4 border-transparent border-t-gray-800 dark:border-t-slate-700"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -607,13 +678,17 @@
                     <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
                         Kepala Rumah Tangga <span class="text-red-500">*</span>
                     </label>
-                    <div class="relative">
-                        <input type="text"
-                               x-model="kepalaSearch"
-                               @input="searchKepala()"
-                               placeholder="-- Silakan Cari NIK / Nama Penduduk--"
-                               autocomplete="off"
-                               class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-colors">
+                    <div class="relative" x-data="{ open: false }" @click.away="open = false">
+                        <button type="button" @click="open = !open; if (open) { $nextTick(() => $refs.kepalaSearchInput?.focus()); }"
+                            class="w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm cursor-pointer bg-white dark:bg-slate-700 focus:outline-none transition-colors"
+                            :class="open ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-gray-300 dark:border-slate-600 hover:border-emerald-400 dark:hover:border-emerald-500'">
+                            <span x-text="kepalaSelected?.text || '-- Silakan Cari NIK / Nama Penduduk --'"
+                                :class="kepalaSelected ? 'text-gray-800 dark:text-slate-200' : 'text-gray-400 dark:text-slate-500'"></span>
+                            <svg class="w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ml-2" :class="open ? 'rotate-180' : ''"
+                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </button>
                         <input type="hidden" name="kepala_penduduk_id" :value="kepalaSelected?.id ?? ''">
 
                         {{-- Loading --}}
@@ -624,16 +699,35 @@
                             </svg>
                         </div>
 
-                        {{-- Dropdown hasil pencarian --}}
-                        <div x-show="kepalaResults.length > 0"
-                             class="absolute left-0 top-full mt-1 w-full z-[200] bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg overflow-hidden"
+                        {{-- Dropdown pencarian kepala --}}
+                        <div x-show="open" x-transition:enter="transition ease-out duration-100"
+                             x-transition:enter-start="opacity-0 -translate-y-1"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-75"
+                             x-transition:leave-start="opacity-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 -translate-y-1"
+                             class="absolute left-0 top-full mt-1 w-full z-[100] bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg overflow-hidden"
                              style="display:none">
+                            <div class="p-2 border-b border-gray-100 dark:border-slate-700">
+                                <input type="text"
+                                       x-ref="kepalaSearchInput"
+                                       x-model="kepalaSearch"
+                                       @input="searchKepala()"
+                                       @keydown.escape="open = false"
+                                       placeholder="-- Silakan Cari NIK / Nama Penduduk --"
+                                       autocomplete="off"
+                                       class="w-full px-2 py-1.5 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded text-gray-700 dark:text-slate-200 outline-none focus:border-emerald-500">
+                            </div>
                             <ul class="max-h-48 overflow-y-auto py-1">
                                 <template x-for="item in kepalaResults" :key="item.id">
-                                    <li @click="pilihKepala(item)"
-                                        class="px-3 py-2.5 text-sm cursor-pointer hover:bg-emerald-50 dark:hover:bg-emerald-900/20 text-gray-700 dark:text-slate-200 transition-colors"
+                                    <li @click="pilihKepala(item); open = false"
+                                        class="px-3 py-2.5 text-sm cursor-pointer hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 dark:hover:text-emerald-400 text-gray-700 dark:text-slate-200 transition-colors"
                                         x-text="item.text"></li>
                                 </template>
+                                <li x-show="kepalaSearch.length >= 2 && !searchLoading && kepalaResults.length === 0"
+                                    class="px-3 py-2 text-sm text-gray-400 dark:text-slate-500 italic">
+                                    Data tidak ditemukan
+                                </li>
                             </ul>
                         </div>
                     </div>
@@ -674,7 +768,7 @@
                         Batal
                     </button>
                     <button type="submit"
-                            class="inline-flex items-center gap-2 px-5 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold rounded-lg transition-colors">
+                            class="inline-flex items-center gap-2 px-5 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold rounded-lg transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                         </svg>
