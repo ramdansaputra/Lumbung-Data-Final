@@ -33,6 +33,7 @@
                 opacity: 0;
                 transform: translateY(-6px) scale(0.97);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0) scale(1);
@@ -76,25 +77,63 @@
             color: #6ee7b7;
         }
 
-        .aksi-dropdown-portal .aksi-item-amber:hover  { background: #fffbeb; color: #92400e; }
-        .aksi-dropdown-portal .aksi-item-blue:hover   { background: #eff6ff; color: #1e40af; }
-        .aksi-dropdown-portal .aksi-item-indigo:hover { background: #eef2ff; color: #3730a3; }
+        .aksi-dropdown-portal .aksi-item-amber:hover {
+            background: #fffbeb;
+            color: #92400e;
+        }
 
-        .aksi-dropdown-portal .aksi-item-red             { color: #dc2626 !important; }
-        .aksi-dropdown-portal .aksi-item-red:hover       { background: #fef2f2 !important; color: #991b1b !important; }
+        .aksi-dropdown-portal .aksi-item-blue:hover {
+            background: #eff6ff;
+            color: #1e40af;
+        }
 
-        .dark .aksi-dropdown-portal .aksi-item-amber:hover  { background: rgba(245,158,11,.12); color: #fcd34d; }
-        .dark .aksi-dropdown-portal .aksi-item-blue:hover   { background: rgba(59,130,246,.12);  color: #93c5fd; }
-        .dark .aksi-dropdown-portal .aksi-item-indigo:hover { background: rgba(99,102,241,.12);  color: #a5b4fc; }
-        .dark .aksi-dropdown-portal .aksi-item-red          { color: #f87171 !important; }
-        .dark .aksi-dropdown-portal .aksi-item-red:hover    { background: rgba(239,68,68,.12) !important; color: #fca5a5 !important; }
+        .aksi-dropdown-portal .aksi-item-indigo:hover {
+            background: #eef2ff;
+            color: #3730a3;
+        }
+
+        .aksi-dropdown-portal .aksi-item-red {
+            color: #dc2626 !important;
+        }
+
+        .aksi-dropdown-portal .aksi-item-red:hover {
+            background: #fef2f2 !important;
+            color: #991b1b !important;
+        }
+
+        .dark .aksi-dropdown-portal .aksi-item-amber:hover {
+            background: rgba(245, 158, 11, .12);
+            color: #fcd34d;
+        }
+
+        .dark .aksi-dropdown-portal .aksi-item-blue:hover {
+            background: rgba(59, 130, 246, .12);
+            color: #93c5fd;
+        }
+
+        .dark .aksi-dropdown-portal .aksi-item-indigo:hover {
+            background: rgba(99, 102, 241, .12);
+            color: #a5b4fc;
+        }
+
+        .dark .aksi-dropdown-portal .aksi-item-red {
+            color: #f87171 !important;
+        }
+
+        .dark .aksi-dropdown-portal .aksi-item-red:hover {
+            background: rgba(239, 68, 68, .12) !important;
+            color: #fca5a5 !important;
+        }
 
         .aksi-dropdown-portal .aksi-item-disabled {
             color: #d1d5db !important;
             cursor: not-allowed !important;
             pointer-events: none;
         }
-        .dark .aksi-dropdown-portal .aksi-item-disabled { color: #475569 !important; }
+
+        .dark .aksi-dropdown-portal .aksi-item-disabled {
+            color: #475569 !important;
+        }
 
         .aksi-dropdown-portal .aksi-divider {
             height: 1px;
@@ -102,29 +141,55 @@
             margin: 2px 0;
         }
 
-        .dark .aksi-dropdown-portal .aksi-divider { background: #334155; }
+        .dark .aksi-dropdown-portal .aksi-divider {
+            background: #334155;
+        }
 
         /* Tombol Pilih Aksi di tabel */
         .btn-aksi {
             display: inline-flex;
             align-items: center;
-            gap: 5px;
-            padding: 5px 12px;
-            background: #10b981;
-            color: #fff;
-            font-size: 12px;
-            font-weight: 700;
-            border: none;
-            border-radius: 8px;
+            justify-content: center;
+            gap: 0.375rem;
+            padding: 0.375rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #059669;
+            background-color: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            border-radius: 0.375rem;
             cursor: pointer;
+            transition: all 0.2s ease-in-out;
             white-space: nowrap;
-            transition: background 0.15s, transform 0.1s;
-            user-select: none;
         }
 
-        .btn-aksi:hover  { background: #059669; transform: translateY(-1px); }
-        .btn-aksi:active { transform: translateY(0); }
-        .btn-aksi.active { background: #065f46; }
+        .btn-aksi:hover {
+            background-color: #d1fae5;
+            border-color: #6ee7b7;
+            color: #047857;
+        }
+
+        .btn-aksi.active {
+            background-color: #10b981;
+            border-color: #10b981;
+            color: #ffffff;
+        }
+
+        .dark .btn-aksi {
+            background-color: rgba(16, 185, 129, 0.1);
+            border-color: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+        }
+
+        .dark .btn-aksi:hover {
+            background-color: rgba(16, 185, 129, 0.2);
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .dark .btn-aksi.active {
+            background-color: #10b981;
+            color: #ffffff;
+        }
     </style>
 
     <div x-data="{
@@ -243,7 +308,7 @@
                         class="inline-flex items-center gap-1.5 px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold rounded-lg transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 9v2m0 4h.01M12 3a9 9 0 100 18A9 9 0 0012 3z" />
+                                d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 7a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
                         </svg>
                         Aksi Data Terpilih
                         <span x-show="selectedIds.length > 0"
@@ -262,7 +327,9 @@
                         style="display:none">
                         <button type="button"
                             @click="selectedIds.length > 0 ? (open = false, $dispatch('buka-modal-cetak-keluarga', { selectedIds: selectedIds })) : null"
-                            :class="selectedIds.length > 0 ? 'text-gray-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 cursor-pointer' : 'text-gray-300 dark:text-slate-600 cursor-not-allowed'"
+                            :class="selectedIds.length > 0 ?
+                                'text-gray-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 cursor-pointer' :
+                                'text-gray-300 dark:text-slate-600 cursor-not-allowed'"
                             class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors">
                             <svg class="w-4 h-4 text-emerald-500 flex-shrink-0" fill="none" stroke="currentColor"
                                 viewBox="0 0 24 24">
@@ -274,7 +341,9 @@
 
                         <button type="button"
                             @click="selectedIds.length > 0 ? (open = false, $dispatch('buka-modal-unduh-keluarga', { selectedIds: selectedIds })) : null"
-                            :class="selectedIds.length > 0 ? 'text-gray-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 cursor-pointer' : 'text-gray-300 dark:text-slate-600 cursor-not-allowed'"
+                            :class="selectedIds.length > 0 ?
+                                'text-gray-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 cursor-pointer' :
+                                'text-gray-300 dark:text-slate-600 cursor-not-allowed'"
                             class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors">
                             <svg class="w-4 h-4 text-emerald-500 flex-shrink-0" fill="none" stroke="currentColor"
                                 viewBox="0 0 24 24">
@@ -294,9 +363,12 @@
                             </template>
                             <button type="button"
                                 @click="selectedIds.length > 0 ? (open = false, $dispatch('buka-modal-hapus', { bulkCount: selectedIds.length, onConfirm: () => document.getElementById('form-bulk-hapus-kk').submit() })) : null"
-                                :class="selectedIds.length > 0 ? 'text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer' : 'text-gray-300 dark:text-slate-600 cursor-not-allowed'"
+                                :class="selectedIds.length > 0 ?
+                                    'text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer' :
+                                    'text-gray-300 dark:text-slate-600 cursor-not-allowed'"
                                 class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors">
-                                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-4 h-4 text-red-500 flex-shrink-0" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                 </svg>
@@ -313,7 +385,8 @@
                                 'text-gray-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer' :
                                 'text-gray-300 dark:text-slate-600 cursor-not-allowed'"
                             class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors">
-                            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-4 h-4 text-slate-500 flex-shrink-0" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                             </svg>
@@ -327,7 +400,8 @@
                                     'text-gray-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer' :
                                     'text-gray-300 dark:text-slate-600 cursor-not-allowed'"
                                 class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors">
-                                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-4 h-4 text-slate-500 flex-shrink-0" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
                                 </svg>
@@ -406,7 +480,8 @@
                         </button>
                         <button type="button" @click="open = false; $dispatch('open-program-bantuan-kk')"
                             class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 transition-colors">
-                            <svg class="w-4 h-4 text-emerald-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-4 h-4 text-emerald-500 flex-shrink-0" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zm-5 0H9m2-3v6" />
                             </svg>
@@ -425,7 +500,8 @@
                         <a @click="open = false"
                             href="{{ route('admin.keluarga', array_merge(request()->except('no_kk_sementara', 'page'), $isNoKkSementara ? [] : ['no_kk_sementara' => 1])) }}"
                             class="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors {{ $isNoKkSementara ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400 font-semibold' : 'text-gray-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700' }}">
-                            <svg class="w-4 h-4 text-emerald-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-4 h-4 text-emerald-500 flex-shrink-0" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                             </svg>
@@ -444,9 +520,10 @@
                 <form method="GET" action="{{ route('admin.keluarga') }}" id="form-filter"
                     class="flex flex-wrap items-center gap-2">
 
-                    <input type="hidden" name="status_kk"    id="val-status_kk"    value="{{ request('status_kk') }}">
-                    <input type="hidden" name="jenis_kelamin" id="val-jenis_kelamin" value="{{ request('jenis_kelamin') }}">
-                    <input type="hidden" name="dusun"         id="val-dusun"         value="{{ request('dusun') }}">
+                    <input type="hidden" name="status_kk" id="val-status_kk" value="{{ request('status_kk') }}">
+                    <input type="hidden" name="jenis_kelamin" id="val-jenis_kelamin"
+                        value="{{ request('jenis_kelamin') }}">
+                    <input type="hidden" name="dusun" id="val-dusun" value="{{ request('dusun') }}">
 
                     {{-- 1. Status KK --}}
                     <div class="relative w-52" x-data="{
@@ -454,9 +531,9 @@
                         selected: '{{ request('status_kk') }}',
                         placeholder: 'Pilih Status KK',
                         options: [
-                            { value: 'aktif',    label: 'KK Aktif' },
+                            { value: 'aktif', label: 'KK Aktif' },
                             { value: 'nonaktif', label: 'KK Hilang/Pindah/Mati' },
-                            { value: 'kosong',   label: 'KK Kosong' },
+                            { value: 'kosong', label: 'KK Kosong' },
                         ],
                         get label() { return this.options.find(o => o.value === this.selected)?.label ?? ''; },
                         choose(opt) {
@@ -474,30 +551,39 @@
                     }" @click.away="open = false">
                         <button type="button" @click="open = !open"
                             class="w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm cursor-pointer bg-white dark:bg-slate-700 focus:outline-none transition-colors"
-                            :class="open ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-gray-300 dark:border-slate-600 hover:border-emerald-400 dark:hover:border-emerald-500'">
+                            :class="open ? 'border-emerald-500 ring-2 ring-emerald-500/20' :
+                                'border-gray-300 dark:border-slate-600 hover:border-emerald-400 dark:hover:border-emerald-500'">
                             <span x-text="label || placeholder"
                                 :class="label ? 'text-gray-800 dark:text-slate-200' : 'text-gray-400 dark:text-slate-500'"></span>
                             <svg class="w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ml-2"
-                                :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
                         <div x-show="open" x-transition:enter="transition ease-out duration-100"
-                            x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0"
+                            x-transition:enter-start="opacity-0 -translate-y-1"
+                            x-transition:enter-end="opacity-100 translate-y-0"
                             x-transition:leave="transition ease-in duration-75"
-                            x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-1"
+                            x-transition:leave-start="opacity-100 translate-y-0"
+                            x-transition:leave-end="opacity-0 -translate-y-1"
                             class="absolute left-0 top-full mt-1 w-full z-[100] bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg overflow-hidden"
                             style="display:none">
                             <ul class="py-1">
                                 <li @click="reset()"
                                     class="px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 dark:hover:text-emerald-400"
-                                    :class="selected === '' ? 'bg-emerald-500 text-white hover:bg-emerald-600 hover:text-white' : 'text-gray-400 dark:text-slate-500 italic'">
+                                    :class="selected === '' ?
+                                        'bg-emerald-500 text-white hover:bg-emerald-600 hover:text-white' :
+                                        'text-gray-400 dark:text-slate-500 italic'">
                                     Semua Status
                                 </li>
                                 <template x-for="opt in options" :key="opt.value">
                                     <li @click="choose(opt)"
                                         class="px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 dark:hover:text-emerald-400"
-                                        :class="selected === opt.value ? 'bg-emerald-500 text-white hover:bg-emerald-600 hover:text-white dark:hover:text-white' : 'text-gray-700 dark:text-slate-200'"
+                                        :class="selected === opt.value ?
+                                            'bg-emerald-500 text-white hover:bg-emerald-600 hover:text-white dark:hover:text-white' :
+                                            'text-gray-700 dark:text-slate-200'"
                                         x-text="opt.label"></li>
                                 </template>
                             </ul>
@@ -529,30 +615,39 @@
                     }" @click.away="open = false">
                         <button type="button" @click="open = !open"
                             class="w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm cursor-pointer bg-white dark:bg-slate-700 focus:outline-none transition-colors"
-                            :class="open ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-gray-300 dark:border-slate-600 hover:border-emerald-400 dark:hover:border-emerald-500'">
+                            :class="open ? 'border-emerald-500 ring-2 ring-emerald-500/20' :
+                                'border-gray-300 dark:border-slate-600 hover:border-emerald-400 dark:hover:border-emerald-500'">
                             <span x-text="label || placeholder"
                                 :class="label ? 'text-gray-800 dark:text-slate-200' : 'text-gray-400 dark:text-slate-500'"></span>
                             <svg class="w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ml-2"
-                                :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
                         <div x-show="open" x-transition:enter="transition ease-out duration-100"
-                            x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0"
+                            x-transition:enter-start="opacity-0 -translate-y-1"
+                            x-transition:enter-end="opacity-100 translate-y-0"
                             x-transition:leave="transition ease-in duration-75"
-                            x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-1"
+                            x-transition:leave-start="opacity-100 translate-y-0"
+                            x-transition:leave-end="opacity-0 -translate-y-1"
                             class="absolute left-0 top-full mt-1 w-full z-[100] bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg overflow-hidden"
                             style="display:none">
                             <ul class="py-1">
                                 <li @click="reset()"
                                     class="px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 dark:hover:text-emerald-400"
-                                    :class="selected === '' ? 'bg-emerald-500 text-white hover:bg-emerald-600 hover:text-white' : 'text-gray-400 dark:text-slate-500 italic'">
+                                    :class="selected === '' ?
+                                        'bg-emerald-500 text-white hover:bg-emerald-600 hover:text-white' :
+                                        'text-gray-400 dark:text-slate-500 italic'">
                                     Semua
                                 </li>
                                 <template x-for="opt in options" :key="opt.value">
                                     <li @click="choose(opt)"
                                         class="px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 dark:hover:text-emerald-400"
-                                        :class="selected === opt.value ? 'bg-emerald-500 text-white hover:bg-emerald-600 hover:text-white dark:hover:text-white' : 'text-gray-700 dark:text-slate-200'"
+                                        :class="selected === opt.value ?
+                                            'bg-emerald-500 text-white hover:bg-emerald-600 hover:text-white dark:hover:text-white' :
+                                            'text-gray-700 dark:text-slate-200'"
                                         x-text="opt.label"></li>
                                 </template>
                             </ul>
@@ -567,8 +662,7 @@
                         placeholder: 'Pilih Dusun',
                         options: [
                             @foreach ($dusunList as $dusun)
-                                { value: '{{ addslashes($dusun) }}', label: '{{ addslashes($dusun) }}' },
-                            @endforeach
+                                { value: '{{ addslashes($dusun) }}', label: '{{ addslashes($dusun) }}' }, @endforeach
                         ],
                         get label() { return this.options.find(o => o.value === this.selected)?.label ?? ''; },
                         get filtered() { return !this.search ? this.options : this.options.filter(o => o.label.toLowerCase().includes(this.search.toLowerCase())); },
@@ -589,18 +683,23 @@
                     }" @click.away="open = false">
                         <button type="button" @click="open = !open"
                             class="w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm cursor-pointer bg-white dark:bg-slate-700 focus:outline-none transition-colors"
-                            :class="open ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-gray-300 dark:border-slate-600 hover:border-emerald-400 dark:hover:border-emerald-500'">
+                            :class="open ? 'border-emerald-500 ring-2 ring-emerald-500/20' :
+                                'border-gray-300 dark:border-slate-600 hover:border-emerald-400 dark:hover:border-emerald-500'">
                             <span x-text="label || placeholder"
                                 :class="label ? 'text-gray-800 dark:text-slate-200' : 'text-gray-400 dark:text-slate-500'"></span>
                             <svg class="w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ml-2"
-                                :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
                         <div x-show="open" x-transition:enter="transition ease-out duration-100"
-                            x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0"
+                            x-transition:enter-start="opacity-0 -translate-y-1"
+                            x-transition:enter-end="opacity-100 translate-y-0"
                             x-transition:leave="transition ease-in duration-75"
-                            x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-1"
+                            x-transition:leave-start="opacity-100 translate-y-0"
+                            x-transition:leave-end="opacity-0 -translate-y-1"
                             class="absolute left-0 top-full mt-1 w-full z-[100] bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg overflow-hidden"
                             style="display:none">
                             <div class="p-2 border-b border-gray-100 dark:border-slate-700">
@@ -611,13 +710,17 @@
                             <ul class="max-h-48 overflow-y-auto py-1">
                                 <li @click="reset()"
                                     class="px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 dark:hover:text-emerald-400"
-                                    :class="selected === '' ? 'bg-emerald-500 text-white hover:bg-emerald-600 hover:text-white' : 'text-gray-400 dark:text-slate-500 italic'">
+                                    :class="selected === '' ?
+                                        'bg-emerald-500 text-white hover:bg-emerald-600 hover:text-white' :
+                                        'text-gray-400 dark:text-slate-500 italic'">
                                     Semua Dusun
                                 </li>
                                 <template x-for="opt in filtered" :key="opt.value">
                                     <li @click="choose(opt)"
                                         class="px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 dark:hover:text-emerald-400"
-                                        :class="selected === opt.value ? 'bg-emerald-500 text-white hover:bg-emerald-600 hover:text-white dark:hover:text-white' : 'text-gray-700 dark:text-slate-200'"
+                                        :class="selected === opt.value ?
+                                            'bg-emerald-500 text-white hover:bg-emerald-600 hover:text-white dark:hover:text-white' :
+                                            'text-gray-700 dark:text-slate-200'"
                                         x-text="opt.label"></li>
                                 </template>
                             </ul>
@@ -639,7 +742,8 @@
             </div>
 
             {{-- ════ TOOLBAR: Tampilkan X entri + Search ════ --}}
-            <div class="flex flex-wrap items-center justify-between gap-3 px-5 py-3 border-b border-gray-100 dark:border-slate-700">
+            <div
+                class="flex flex-wrap items-center justify-between gap-3 px-5 py-3 border-b border-gray-100 dark:border-slate-700">
 
                 {{-- Tampilkan X entri --}}
                 <form method="GET" action="{{ route('admin.keluarga') }}" id="form-per-page-kk"
@@ -654,9 +758,9 @@
                         open: false,
                         selected: '{{ request('per_page', 10) }}',
                         options: [
-                            { value: '10',  label: '10' },
-                            { value: '25',  label: '25' },
-                            { value: '50',  label: '50' },
+                            { value: '10', label: '10' },
+                            { value: '25', label: '25' },
+                            { value: '50', label: '50' },
                             { value: '100', label: '100' },
                         ],
                         get label() { return this.options.find(o => o.value === this.selected)?.label ?? '10'; },
@@ -669,24 +773,31 @@
                     }" @click.away="open = false">
                         <button type="button" @click="open = !open"
                             class="w-full flex items-center justify-between px-3 py-1.5 border rounded-lg text-sm cursor-pointer bg-white dark:bg-slate-700 focus:outline-none transition-colors"
-                            :class="open ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-gray-300 dark:border-slate-600 hover:border-emerald-400 dark:hover:border-emerald-500'">
+                            :class="open ? 'border-emerald-500 ring-2 ring-emerald-500/20' :
+                                'border-gray-300 dark:border-slate-600 hover:border-emerald-400 dark:hover:border-emerald-500'">
                             <span x-text="label" class="text-gray-700 dark:text-slate-200"></span>
                             <svg class="w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ml-1"
-                                :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
                         <div x-show="open" x-transition:enter="transition ease-out duration-100"
-                            x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0"
+                            x-transition:enter-start="opacity-0 -translate-y-1"
+                            x-transition:enter-end="opacity-100 translate-y-0"
                             x-transition:leave="transition ease-in duration-75"
-                            x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-1"
+                            x-transition:leave-start="opacity-100 translate-y-0"
+                            x-transition:leave-end="opacity-0 -translate-y-1"
                             class="absolute left-0 top-full mt-1 w-full z-[100] bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg overflow-hidden"
                             style="display:none">
                             <ul class="py-1">
                                 <template x-for="opt in options" :key="opt.value">
                                     <li @click="choose(opt)"
                                         class="px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 dark:hover:text-emerald-400"
-                                        :class="selected === opt.value ? 'bg-emerald-500 text-white hover:bg-emerald-600 hover:text-white dark:hover:text-white' : 'text-gray-700 dark:text-slate-200'"
+                                        :class="selected === opt.value ?
+                                            'bg-emerald-500 text-white hover:bg-emerald-600 hover:text-white dark:hover:text-white' :
+                                            'text-gray-700 dark:text-slate-200'"
                                         x-text="opt.label"></li>
                                 </template>
                             </ul>
@@ -704,8 +815,19 @@
                     <div class="relative group">
                         <input type="text" name="search" value="{{ request('search') }}"
                             placeholder="kata kunci pencarian" maxlength="50"
+                            title="Masukkan kata kunci untuk mencari (maksimal 50 karakter)"
                             @input.debounce.400ms="$el.form.submit()"
                             class="px-3 py-1.5 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none text-sm w-52">
+                        <div
+                            class="absolute bottom-full right-0 mb-2 hidden group-focus-within:block z-50 pointer-events-none">
+                            <div
+                                class="bg-gray-800 dark:bg-slate-700 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-lg">
+                                Masukkan kata kunci untuk mencari (maksimal 50 karakter)
+                                <div
+                                    class="absolute top-full right-4 border-4 border-transparent border-t-gray-800 dark:border-t-slate-700">
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -719,27 +841,58 @@
                                 <input type="checkbox" x-model="selectAll" @change="toggleAll()"
                                     class="w-4 h-4 rounded border-gray-300 dark:border-slate-600 text-emerald-600 focus:ring-emerald-500 cursor-pointer">
                             </th>
-                            <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider w-10">NO</th>
-                            <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider w-36">AKSI</th>
-                            <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider w-12">FOTO</th>
-                            <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">NOMOR KK</th>
-                            <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">KEPALA KELUARGA</th>
-                            <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">NIK</th>
-                            <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">TAG ID CARD</th>
-                            <th class="px-3 py-3 text-center text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">JML ANGGOTA</th>
-                            <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">JENIS KELAMIN</th>
-                            <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">ALAMAT</th>
-                            <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">DUSUN</th>
-                            <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">RW</th>
-                            <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">RT</th>
-                            <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">TGL DAFTAR</th>
-                            <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">TGL CETAK KK</th>
+                            <th
+                                class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider w-10">
+                                NO</th>
+                            <th
+                                class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider w-36">
+                                AKSI</th>
+                            <th
+                                class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider w-12">
+                                FOTO</th>
+                            <th
+                                class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                                NOMOR KK</th>
+                            <th
+                                class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                                KEPALA KELUARGA</th>
+                            <th
+                                class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                                NIK</th>
+                            <th
+                                class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                                TAG ID CARD</th>
+                            <th
+                                class="px-3 py-3 text-center text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                                JML ANGGOTA</th>
+                            <th
+                                class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                                JENIS KELAMIN</th>
+                            <th
+                                class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                                ALAMAT</th>
+                            <th
+                                class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                                DUSUN</th>
+                            <th
+                                class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                                RW</th>
+                            <th
+                                class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                                RT</th>
+                            <th
+                                class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">
+                                TGL DAFTAR</th>
+                            <th
+                                class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">
+                                TGL CETAK KK</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100 dark:divide-slate-700">
                         @forelse($keluarga as $index => $kk)
                             <tr class="hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors"
-                                :class="selectedIds.includes('{{ $kk->id }}') ? 'bg-emerald-50 dark:bg-emerald-900/10' : ''">
+                                :class="selectedIds.includes('{{ $kk->id }}') ? 'bg-emerald-50 dark:bg-emerald-900/10' :
+                                    ''">
 
                                 {{-- Checkbox --}}
                                 <td class="px-3 py-3 text-center">
@@ -794,12 +947,11 @@
                                 {{-- NOMOR KK --}}
                                 <td class="px-3 py-3 whitespace-nowrap">
                                     <a href="{{ route('admin.keluarga.show', $kk) }}"
-                                        class="font-mono font-semibold text-emerald-600 dark:text-emerald-400 hover:underline text-xs">
+                                        class="font-mono font-semibold hover:underline text-xs {{ str_starts_with($kk->no_kk, '0') ? 'text-red-500' : 'text-emerald-600 dark:text-emerald-400' }}">
                                         {{ $kk->no_kk }}
                                     </a>
                                     @if (str_starts_with($kk->no_kk, '0'))
-                                        <span
-                                            class="block mt-0.5 px-1.5 py-0.5 text-[10px] font-semibold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 rounded w-fit">Sementara</span>
+                                        <span class="ml-1 text-xs text-red-400">(sementara)</span>
                                     @endif
                                 </td>
 
@@ -818,7 +970,8 @@
                                 {{-- NIK --}}
                                 <td class="px-3 py-3 whitespace-nowrap">
                                     @if ($kk->nik_kepala)
-                                        <span class="font-mono text-xs text-gray-600 dark:text-slate-300">{{ $kk->nik_kepala }}</span>
+                                        <span
+                                            class="font-mono text-xs text-gray-600 dark:text-slate-300">{{ $kk->nik_kepala }}</span>
                                     @else
                                         <span class="text-gray-400 dark:text-slate-500">—</span>
                                     @endif
@@ -887,7 +1040,8 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                                 d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                         </svg>
-                                        <p class="text-gray-500 dark:text-slate-400 font-medium">Tidak ada data keluarga</p>
+                                        <p class="text-gray-500 dark:text-slate-400 font-medium">Tidak ada data keluarga
+                                        </p>
                                     </div>
                                 </td>
                             </tr>
@@ -897,7 +1051,8 @@
             </div>
 
             {{-- ════ PAGINATION ════ --}}
-            <div class="px-6 py-4 border-t border-gray-200 dark:border-slate-700 flex items-center justify-between flex-wrap gap-3">
+            <div
+                class="px-6 py-4 border-t border-gray-200 dark:border-slate-700 flex items-center justify-between flex-wrap gap-3">
                 <p class="text-sm text-gray-500 dark:text-slate-400">
                     @if ($keluarga->total() > 0)
                         Menampilkan {{ $keluarga->firstItem() }}–{{ $keluarga->lastItem() }} dari
@@ -908,7 +1063,8 @@
                 </p>
                 <div class="flex items-center gap-1">
                     @if ($keluarga->onFirstPage())
-                        <span class="px-3 py-1.5 text-sm text-gray-400 border border-gray-200 dark:border-slate-600 rounded-lg bg-gray-50 dark:bg-slate-700/50 cursor-not-allowed">Sebelumnya</span>
+                        <span
+                            class="px-3 py-1.5 text-sm text-gray-400 border border-gray-200 dark:border-slate-600 rounded-lg bg-gray-50 dark:bg-slate-700/50 cursor-not-allowed">Sebelumnya</span>
                     @else
                         <a href="{{ $keluarga->appends(request()->query())->previousPageUrl() }}"
                             class="px-3 py-1.5 text-sm text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 hover:bg-gray-50 transition-colors">Sebelumnya</a>
@@ -916,24 +1072,29 @@
                     @php
                         $cp = $keluarga->currentPage();
                         $lp = $keluarga->lastPage();
-                        $s  = max(1, $cp - 2);
-                        $e  = min($lp, $cp + 2);
+                        $s = max(1, $cp - 2);
+                        $e = min($lp, $cp + 2);
                     @endphp
                     @if ($s > 1)
                         <a href="{{ $keluarga->appends(request()->query())->url(1) }}"
                             class="px-3 py-1.5 text-sm text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 hover:bg-gray-50 transition-colors">1</a>
-                        @if ($s > 2)<span class="px-1 text-gray-400">…</span>@endif
+                        @if ($s > 2)
+                            <span class="px-1 text-gray-400">…</span>
+                        @endif
                     @endif
                     @for ($pg = $s; $pg <= $e; $pg++)
                         @if ($pg == $cp)
-                            <span class="px-3 py-1.5 text-sm font-semibold text-white bg-emerald-600 border border-emerald-600 rounded-lg">{{ $pg }}</span>
+                            <span
+                                class="px-3 py-1.5 text-sm font-semibold text-white bg-emerald-600 border border-emerald-600 rounded-lg">{{ $pg }}</span>
                         @else
                             <a href="{{ $keluarga->appends(request()->query())->url($pg) }}"
                                 class="px-3 py-1.5 text-sm text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 hover:bg-gray-50 transition-colors">{{ $pg }}</a>
                         @endif
                     @endfor
                     @if ($e < $lp)
-                        @if ($e < $lp - 1)<span class="px-1 text-gray-400">…</span>@endif
+                        @if ($e < $lp - 1)
+                            <span class="px-1 text-gray-400">…</span>
+                        @endif
                         <a href="{{ $keluarga->appends(request()->query())->url($lp) }}"
                             class="px-3 py-1.5 text-sm text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 hover:bg-gray-50 transition-colors">{{ $lp }}</a>
                     @endif
@@ -941,7 +1102,8 @@
                         <a href="{{ $keluarga->appends(request()->query())->nextPageUrl() }}"
                             class="px-3 py-1.5 text-sm text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 hover:bg-gray-50 transition-colors">Selanjutnya</a>
                     @else
-                        <span class="px-3 py-1.5 text-sm text-gray-400 border border-gray-200 dark:border-slate-600 rounded-lg bg-gray-50 dark:bg-slate-700/50 cursor-not-allowed">Selanjutnya</span>
+                        <span
+                            class="px-3 py-1.5 text-sm text-gray-400 border border-gray-200 dark:border-slate-600 rounded-lg bg-gray-50 dark:bg-slate-700/50 cursor-not-allowed">Selanjutnya</span>
                     @endif
                 </div>
             </div>
@@ -1022,22 +1184,25 @@
         </div>
 
         {{-- MODAL: PENCARIAN PROGRAM BANTUAN --}}
-        <div x-data="{ show: false }" @open-program-bantuan-kk.window="show = true" @keydown.escape.window="show && (show = false)">
+        <div x-data="{ show: false }" @open-program-bantuan-kk.window="show = true"
+            @keydown.escape.window="show && (show = false)">
             <div x-show="show" x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0"
                 x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-150"
                 x-transition:leave-end="opacity-0" class="fixed inset-0 bg-black/50 dark:bg-black/70 z-[200]"
                 @click="show = false" style="display:none"></div>
 
-            <div x-show="show" x-transition:enter="ease-out duration-200"
-                x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+            <div x-show="show" x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0 scale-95"
+                x-transition:enter-end="opacity-100 scale-100"
                 class="fixed inset-0 z-[201] flex items-center justify-center p-4" style="display:none">
                 <div class="bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-lg" @click.stop>
-                    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-slate-700">
+                    <div
+                        class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-slate-700">
                         <h3 class="text-base font-bold text-gray-800 dark:text-slate-100">Pencarian Program Bantuan</h3>
                         <button @click="show = false"
                             class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </button>
                     </div>
@@ -1047,28 +1212,33 @@
                             <input type="hidden" name="{{ $k }}" value="{{ $v }}">
                         @endforeach
                         <div class="px-6 py-5 space-y-4">
-                            <label class="block text-sm font-semibold text-gray-700 dark:text-slate-300">Program Bantuan</label>
+                            <label class="block text-sm font-semibold text-gray-700 dark:text-slate-300">Program
+                                Bantuan</label>
                             <select name="program_bantuan"
                                 class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
                                 <option value="">Semua Penerima Bantuan</option>
                                 <option value="bukan" @selected(request('program_bantuan') === 'bukan')>Bukan Penerima Bantuan</option>
                                 @foreach ($programBantuanList as $program)
-                                    <option value="{{ $program }}" @selected(request('program_bantuan') === $program)>{{ $program }}</option>
+                                    <option value="{{ $program }}" @selected(request('program_bantuan') === $program)>{{ $program }}
+                                    </option>
                                 @endforeach
                             </select>
                         </div>
-                        <div class="flex items-center justify-between px-6 py-4 border-t border-gray-200 dark:border-slate-700">
+                        <div
+                            class="flex items-center justify-between px-6 py-4 border-t border-gray-200 dark:border-slate-700">
                             <button type="button" @click="show = false"
                                 class="inline-flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold rounded-lg transition-colors">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                                 Batal
                             </button>
                             <button type="submit" @click="show = false"
                                 class="inline-flex items-center gap-2 px-5 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold rounded-lg transition-colors">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M5 13l4 4L19 7" />
                                 </svg>
                                 Terapkan
                             </button>
@@ -1086,8 +1256,7 @@
             openDrop: false,
             kkData: [
                 @foreach ($keluarga ?? [] as $kk)
-                    { no_kk: '{{ $kk->no_kk }}', kepala: '{{ addslashes($kk->kepalaKeluarga?->nama ?? '-') }}' },
-                @endforeach
+                    { no_kk: '{{ $kk->no_kk }}', kepala: '{{ addslashes($kk->kepalaKeluarga?->nama ?? '-') }}' }, @endforeach
             ],
             get filteredKk() {
                 return !this.search ? this.kkData :
@@ -1106,22 +1275,25 @@
                 document.getElementById('hidden-kumpulan-kk').value = this.selectedKk.join(',');
                 document.getElementById('form-kumpulan-kk').submit();
             }
-        }" @open-kumpulan-kk.window="show = true" @keydown.escape.window="show && (show = false)">
+        }" @open-kumpulan-kk.window="show = true"
+            @keydown.escape.window="show && (show = false)">
             <div x-show="show" x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0"
                 x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-150"
                 x-transition:leave-end="opacity-0" class="fixed inset-0 bg-black/50 dark:bg-black/70 z-[200]"
                 @click="show = false" style="display:none"></div>
 
-            <div x-show="show" x-transition:enter="ease-out duration-200"
-                x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+            <div x-show="show" x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0 scale-95"
+                x-transition:enter-end="opacity-100 scale-100"
                 class="fixed inset-0 z-[201] flex items-center justify-center p-4" style="display:none">
                 <div class="bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-lg" @click.stop>
-                    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-slate-700">
+                    <div
+                        class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-slate-700">
                         <h3 class="text-base font-bold text-gray-800 dark:text-slate-100">Pilihan Kumpulan KK</h3>
                         <button @click="show = false"
                             class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </button>
                     </div>
@@ -1132,14 +1304,20 @@
                         <input type="hidden" id="hidden-kumpulan-kk" name="kumpulan_kk">
 
                         <div class="px-6 py-5 space-y-4">
-                            <label class="block text-sm font-semibold text-gray-700 dark:text-slate-300">Kumpulan KK</label>
+                            <label class="block text-sm font-semibold text-gray-700 dark:text-slate-300">Kumpulan
+                                KK</label>
                             <div class="relative mb-2" @click.away="openDrop = false">
                                 <button type="button" @click="openDrop = !openDrop"
                                     class="w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm bg-white dark:bg-slate-700 transition-colors"
-                                    :class="openDrop ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-gray-300 dark:border-slate-600 hover:border-emerald-400'">
-                                    <span class="text-gray-400 dark:text-slate-500" x-text="openDrop ? 'Ketik untuk mencari...' : 'Cari No. KK / Kepala Keluarga...'"></span>
-                                    <svg class="w-4 h-4 text-gray-400 transition-transform" :class="openDrop ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                                    :class="openDrop ? 'border-emerald-500 ring-2 ring-emerald-500/20' :
+                                        'border-gray-300 dark:border-slate-600 hover:border-emerald-400'">
+                                    <span class="text-gray-400 dark:text-slate-500"
+                                        x-text="openDrop ? 'Ketik untuk mencari...' : 'Cari No. KK / Kepala Keluarga...'"></span>
+                                    <svg class="w-4 h-4 text-gray-400 transition-transform"
+                                        :class="openDrop ? 'rotate-180' : ''" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
                                     </svg>
                                 </button>
                                 <div x-show="openDrop"
@@ -1155,22 +1333,28 @@
                                                 class="px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 text-gray-700 dark:text-slate-200"
                                                 x-text="opt.no_kk + ' - ' + opt.kepala"></li>
                                         </template>
-                                        <li x-show="filteredKk.length === 0" class="px-3 py-2 text-xs text-gray-400 italic">Tidak ada data</li>
+                                        <li x-show="filteredKk.length === 0"
+                                            class="px-3 py-2 text-xs text-gray-400 italic">Tidak ada data</li>
                                     </ul>
                                 </div>
                             </div>
 
-                            <div class="p-3 bg-gray-50 dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg min-h-10">
+                            <div
+                                class="p-3 bg-gray-50 dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-lg min-h-10">
                                 <template x-if="selectedKk.length === 0">
-                                    <p class="text-xs text-gray-400 dark:text-slate-500 italic">Belum ada No. KK dipilih.</p>
+                                    <p class="text-xs text-gray-400 dark:text-slate-500 italic">Belum ada No. KK dipilih.
+                                    </p>
                                 </template>
                                 <div class="flex flex-wrap gap-1.5">
                                     <template x-for="noKk in selectedKk" :key="noKk">
-                                        <span class="inline-flex items-center gap-1 px-2 py-1 text-xs bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 rounded-full">
+                                        <span
+                                            class="inline-flex items-center gap-1 px-2 py-1 text-xs bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 rounded-full">
                                             <span x-text="noKk"></span>
                                             <button type="button" @click="removeKk(noKk)" class="hover:text-red-500">
-                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M6 18L18 6M6 6l12 12"></path>
                                                 </svg>
                                             </button>
                                         </span>
@@ -1179,18 +1363,21 @@
                             </div>
                         </div>
 
-                        <div class="flex items-center justify-between px-6 py-4 border-t border-gray-200 dark:border-slate-700">
+                        <div
+                            class="flex items-center justify-between px-6 py-4 border-t border-gray-200 dark:border-slate-700">
                             <button type="button" @click="show = false"
                                 class="inline-flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold rounded-lg transition-colors">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12"></path>
                                 </svg>
                                 Batal
                             </button>
                             <button type="button" @click="submitForm(); show = false"
                                 class="inline-flex items-center gap-2 px-5 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold rounded-lg transition-colors">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M5 13l4 4L19 7"></path>
                                 </svg>
                                 Terapkan
                             </button>
@@ -1214,14 +1401,18 @@
         var kkAksiMap = {
             @foreach ($keluarga as $kk)
                 "{{ $kk->id }}": {
-                    noKk:          "{{ addslashes($kk->no_kk) }}",
-                    urlRincian:    "{{ route('admin.keluarga.show', $kk) }}",
-                    urlLahir:      "{{ route('admin.keluarga.show', $kk) }}#tambah-lahir",
-                    urlMasuk:      "{{ route('admin.keluarga.show', $kk) }}#tambah-masuk",
+                    noKk: "{{ addslashes($kk->no_kk) }}",
+                    urlRincian: "{{ route('admin.keluarga.show', $kk) }}",
+                    urlLahir: "{{ route('admin.keluarga.show', $kk) }}#tambah-lahir",
+                    urlMasuk: "{{ route('admin.keluarga.show', $kk) }}#tambah-masuk",
                     urlDariPenduduk: "{{ route('admin.keluarga.show', $kk) }}#tambah-dari-penduduk",
-                    urlEdit:       "{{ route('admin.keluarga.edit', $kk) }}",
-                    urlLokasi:     @if ($kk->kepalaKeluarga) "{{ route('admin.penduduk.lokasi', $kk->kepalaKeluarga) }}" @else null @endif,
-                    urlHapus:      "{{ route('admin.keluarga.destroy', $kk) }}",
+                    urlEdit: "{{ route('admin.keluarga.edit', $kk) }}",
+                    urlLokasi: @if ($kk->kepalaKeluarga)
+                        "{{ route('admin.penduduk.lokasi', $kk->kepalaKeluarga) }}"
+                    @else
+                        null
+                    @endif ,
+                    urlHapus: "{{ route('admin.keluarga.destroy', $kk) }}",
                 },
             @endforeach
         };
@@ -1231,10 +1422,10 @@
          JAVASCRIPT — Dropdown Portal Engine (KK)
     ══════════════════════════════════════════════════════════════ --}}
     <script>
-        (function () {
+        (function() {
             'use strict';
 
-            var portal    = document.getElementById('kk-aksi-dropdown-portal');
+            var portal = document.getElementById('kk-aksi-dropdown-portal');
             var activeBtn = null;
 
             /* ─── Build HTML isi dropdown ─── */
@@ -1265,17 +1456,23 @@
 
                 // Ubah Data
                 html += '<a href="' + data.urlEdit + '" class="aksi-item aksi-item-amber">' +
-                    icon('M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z', '#f59e0b') +
+                    icon(
+                        'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z',
+                        '#f59e0b') +
                     'Ubah Data</a>';
 
                 // Lokasi Tempat Tinggal
                 if (data.urlLokasi) {
                     html += '<a href="' + data.urlLokasi + '" class="aksi-item aksi-item-blue">' +
-                        icon('M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z', '#3b82f6') +
+                        icon(
+                            'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z',
+                            '#3b82f6') +
                         'Lokasi Tempat Tinggal</a>';
                 } else {
                     html += '<span class="aksi-item aksi-item-disabled">' +
-                        icon('M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z', '#d1d5db') +
+                        icon(
+                            'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z',
+                            '#d1d5db') +
                         'Lokasi Tempat Tinggal</span>';
                 }
 
@@ -1286,7 +1483,9 @@
                     ' data-hapus-action="' + data.urlHapus + '"' +
                     ' data-hapus-nama="KK ' + escHtml(data.noKk) + '"' +
                     ' onclick="triggerKkHapus(this)">' +
-                    icon('M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16', '#ef4444') +
+                    icon(
+                        'M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16',
+                        '#ef4444') +
                     'Hapus/Keluar Dari Daftar Keluarga</button>';
 
                 return html;
@@ -1307,28 +1506,28 @@
             /* ─── Posisikan portal ─── */
             function positionPortal(btn) {
                 var rect = btn.getBoundingClientRect();
-                var vpW  = window.innerWidth;
-                var vpH  = window.innerHeight;
+                var vpW = window.innerWidth;
+                var vpH = window.innerHeight;
 
                 portal.style.visibility = 'hidden';
-                portal.style.display    = 'block';
+                portal.style.display = 'block';
 
-                var ddW  = portal.offsetWidth;
-                var ddH  = portal.offsetHeight;
-                var top  = rect.bottom + 4;
+                var ddW = portal.offsetWidth;
+                var ddH = portal.offsetHeight;
+                var top = rect.bottom + 4;
                 var left = rect.left;
 
                 if (left + ddW > vpW - 8) left = rect.right - ddW;
-                if (top + ddH > vpH - 8)  top  = rect.top - ddH - 4;
-                if (left < 4)              left = 4;
+                if (top + ddH > vpH - 8) top = rect.top - ddH - 4;
+                if (left < 4) left = 4;
 
-                portal.style.top        = top  + 'px';
-                portal.style.left       = left + 'px';
+                portal.style.top = top + 'px';
+                portal.style.left = left + 'px';
                 portal.style.visibility = 'visible';
             }
 
             /* ─── Toggle dropdown ─── */
-            window.toggleKkDropdown = function (btn, event) {
+            window.toggleKkDropdown = function(btn, event) {
                 event.stopPropagation();
 
                 if (activeBtn === btn && portal.style.display === 'block') {
@@ -1350,13 +1549,16 @@
             };
 
             /* ─── Trigger modal hapus ─── */
-            window.triggerKkHapus = function (btnEl) {
+            window.triggerKkHapus = function(btnEl) {
                 var action = btnEl.dataset.hapusAction;
-                var nama   = btnEl.dataset.hapusNama;
+                var nama = btnEl.dataset.hapusNama;
                 closePortal();
 
                 window.dispatchEvent(new CustomEvent('buka-modal-hapus', {
-                    detail: { action: action, nama: nama }
+                    detail: {
+                        action: action,
+                        nama: nama
+                    }
                 }));
             };
 
@@ -1369,12 +1571,12 @@
                 }
             }
 
-            document.addEventListener('click', function (e) {
+            document.addEventListener('click', function(e) {
                 if (!portal.contains(e.target)) closePortal();
             });
             window.addEventListener('scroll', closePortal, true);
             window.addEventListener('resize', closePortal);
-            document.addEventListener('keydown', function (e) {
+            document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape') closePortal();
             });
         })();
