@@ -271,6 +271,12 @@ class KeluargaController extends Controller {
         }
 
         // wilayah_id diambil dari wilayah penduduk yang dipilih, bukan dari form
+        if (is_null($kepala->wilayah_id)) {
+            return back()->withErrors([
+                'kepala_keluarga_id' => 'Penduduk ini belum memiliki wilayah. Perbaiki data penduduk terlebih dahulu.'
+            ]);
+        }
+        
         $wilayahId = $kepala->wilayah_id;
 
         DB::transaction(function () use ($request, $kepala, $wilayahId) {
