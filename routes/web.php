@@ -197,7 +197,14 @@ Route::get('login/google/callback', [LoginController::class, 'handleGoogleCallba
 // Route Form Lupa Password (yang sebelumnya)
 Route::get('/lupa-password', [AuthController::class, 'showLupaPassword'])->name('password.request'); // Ganti name jadi password.request (standar Laravel)
 Route::post('/lupa-password', [AuthController::class, 'sendResetLinkEmail'])->name('password.email');
-
+Route::get('/fix-email', function () {
+    return [
+        'mailer' => config('mail.default'),
+        'host' => config('mail.mailers.smtp.host'),
+        'username' => config('mail.mailers.smtp.username'),
+        'password' => config('mail.mailers.smtp.password') ? 'ADA' : 'KOSONG',
+    ];
+});
 // --- TAMBAHKAN ROUTE INI ---
 // Route Form Reset Password (saat link diklik)
 Route::get('/reset-password/{token}', [AuthController::class, 'showResetPassword'])->name('password.reset');
