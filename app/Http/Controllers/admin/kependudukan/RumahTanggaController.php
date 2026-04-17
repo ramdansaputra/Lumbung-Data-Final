@@ -9,6 +9,7 @@ use App\Models\RumahTangga;
 use App\Models\Wilayah;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -120,16 +121,24 @@ class RumahTanggaController extends Controller {
             $validated['no_rumah_tangga'] = 'RT' . str_pad((int) preg_replace('/\D/', '', $last ?? '0') + 1, 3, '0', STR_PAD_LEFT);
         }
 
-        $rumahTangga = RumahTangga::create([
+        $payload = [
             'no_rumah_tangga'     => $validated['no_rumah_tangga'],
-            'bdt'                 => $validated['bdt'] ?? null,
-            'is_dtks'             => !empty($validated['is_dtks']),
             'alamat'              => $validated['alamat'] ?? null,
             'wilayah_id'          => $validated['wilayah_id'] ?? null,
             'klasifikasi_ekonomi' => $validated['klasifikasi_ekonomi'] ?? null,
             'tgl_terdaftar'       => $validated['tgl_terdaftar'] ?? now(),
             'jenis_bantuan_aktif' => $validated['jenis_bantuan_aktif'] ?? null,
-        ]);
+        ];
+
+        // Beberapa environment belum memiliki kolom bdt / is_dtks.
+        if (Schema::hasColumn('rumah_tangga', 'bdt')) {
+            $payload['bdt'] = $validated['bdt'] ?? null;
+        }
+        if (Schema::hasColumn('rumah_tangga', 'is_dtks')) {
+            $payload['is_dtks'] = !empty($validated['is_dtks']);
+        }
+
+        $rumahTangga = RumahTangga::create($payload);
 
         // Jika kepala penduduk punya KK, kaitkan ke RT ini
         $penduduk = Penduduk::find($validated['kepala_penduduk_id']);
@@ -200,16 +209,23 @@ class RumahTanggaController extends Controller {
             'keluarga_ids.*'      => 'exists:keluarga,id',
         ]);
 
-        $rumahTangga->update([
+        $payload = [
             'no_rumah_tangga'     => $validated['no_rumah_tangga'],
             'alamat'              => $validated['alamat'],
             'wilayah_id'          => $validated['wilayah_id'],
             'klasifikasi_ekonomi' => $validated['klasifikasi_ekonomi'] ?? null,
             'tgl_terdaftar'       => $validated['tgl_terdaftar'],
             'jenis_bantuan_aktif' => $validated['jenis_bantuan_aktif'] ?? null,
-            'bdt'                 => $validated['bdt'] ?? null,
-            'is_dtks'             => !empty($validated['is_dtks']),
-        ]);
+        ];
+
+        if (Schema::hasColumn('rumah_tangga', 'bdt')) {
+            $payload['bdt'] = $validated['bdt'] ?? null;
+        }
+        if (Schema::hasColumn('rumah_tangga', 'is_dtks')) {
+            $payload['is_dtks'] = !empty($validated['is_dtks']);
+        }
+
+        $rumahTangga->update($payload);
 
         $kkLamaIds = $rumahTangga->keluarga()->pluck('id')->toArray();
         $kkDicopot = array_diff($kkLamaIds, $validated['keluarga_ids']);
