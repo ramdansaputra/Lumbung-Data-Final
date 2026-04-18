@@ -259,7 +259,6 @@
                             ? 'bg-slate-50 font-medium'
                             : 'hover:bg-gray-50';
 
-                        {{-- emerald menggantikan cyan --}}
                         $numClass = 'text-emerald-600 font-semibold';
                         $zeroClass = 'text-slate-400';
 
