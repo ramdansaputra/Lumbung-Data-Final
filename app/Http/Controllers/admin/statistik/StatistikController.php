@@ -268,8 +268,9 @@ class StatistikController extends Controller {
         // ── Daftar perangkat untuk modal cetak/unduh ──────────────────────
         $perangkatList = DB::table('perangkat_desa')
             ->leftJoin('jabatan_perangkat', 'perangkat_desa.jabatan_id', '=', 'jabatan_perangkat.id')
-            ->select('perangkat_desa.nama', 'jabatan_perangkat.nama as jabatan')
+            ->select('perangkat_desa.id', 'perangkat_desa.nama', 'jabatan_perangkat.nama as jabatan')
             ->whereNull('perangkat_desa.deleted_at')
+            ->where('perangkat_desa.status', '1')  // ✓ hanya yang aktif
             ->orderBy('perangkat_desa.urutan')
             ->get();
 
@@ -306,40 +307,207 @@ class StatistikController extends Controller {
 
     // ─────────────────────────────────────────────────────────────────────────
     public function laporanBulanan(Request $request) {
-        $month = $request->query('month');
-        $year  = $request->query('year');
+        $selectedMonth = max(1, min(12, (int)($request->query('month', now()->month))));
+        $selectedYear  = (int)($request->query('year', now()->year));
 
-        $now = Carbon::now();
-        if ($month && $year) {
-            try {
-                $start = Carbon::createFromDate((int)$year, (int)$month, 1)->startOfDay();
-            } catch (\Exception $e) {
-                $start = $now->copy()->startOfMonth();
-            }
-        } else {
-            $start = $now->copy()->startOfMonth();
-        }
+        $start = Carbon::createFromDate($selectedYear, $selectedMonth, 1)->startOfDay();
         $end   = $start->copy()->endOfMonth()->endOfDay();
-        $year  = $start->year;
-        $month = $start->month;
 
-        $total_penduduk = Penduduk::where('status_hidup', 'hidup')->count();
-        $lahir   = Penduduk::whereYear('tanggal_lahir', $year)->whereMonth('tanggal_lahir', $month)->whereBetween('created_at', [$start, $end])->count();
-        $created = Penduduk::whereBetween('created_at', [$start, $end])->count();
-        $datang  = max(0, $created - $lahir);
-        $meninggal = Penduduk::where('status_hidup', 'meninggal')->whereBetween('updated_at', [$start, $end])->count();
-        $pindah  = 0;
-        $mutasi  = compact('lahir', 'meninggal', 'datang', 'pindah');
+        // ── Identitas Desa ────────────────────────────────────────────────────────
+        $identitas = DB::table('identitas_desa')->first();
 
-        $makePercent = fn($count) => ($total_penduduk > 0 ? '+' . round($count / $total_penduduk * 100, 2) : '+0') . '%';
-        $laporan = [
-            ['kategori' => 'Kelahiran', 'jumlah' => $lahir,    'persen' => $makePercent($lahir)],
-            ['kategori' => 'Kematian', 'jumlah' => $meninggal, 'persen' => $makePercent($meninggal)],
-            ['kategori' => 'Pendatang', 'jumlah' => $datang,   'persen' => $makePercent($datang)],
-            ['kategori' => 'Pindah',   'jumlah' => $pindah,   'persen' => $makePercent($pindah)],
+        // ── Perangkat untuk modal cetak ───────────────────────────────────────────
+        $perangkatList = DB::table('perangkat_desa')
+            ->leftJoin('jabatan_perangkat', 'perangkat_desa.jabatan_id', '=', 'jabatan_perangkat.id')
+            ->select('perangkat_desa.id', 'perangkat_desa.nama', 'jabatan_perangkat.nama as jabatan')
+            ->whereNull('perangkat_desa.deleted_at')
+            ->orderBy('perangkat_desa.urutan')
+            ->get();
+
+        if ($perangkatList->isEmpty()) {
+            $perangkatList = collect([(object)[
+                'id'      => 0,
+                'nama'    => $identitas->kepala_desa ?? $identitas->nama_kepala_desa ?? 'Kepala Desa',
+                'jabatan' => 'Kepala Desa',
+            ]]);
+        }
+
+        // ── Cek apakah kolom warganegara_id ada ───────────────────────────────────
+        $hasWna = \Illuminate\Support\Facades\Schema::hasColumn('penduduk', 'warganegara_id');
+
+        /**
+         * Helper: hitung L/P untuk WNI dan WNA dari satu base query.
+         * $filter = fn($query) => $query->where(...) — tambahkan kondisi spesifik
+         */
+        $countBreakdown = function (callable $filter) use ($hasWna) {
+            $base = fn() => DB::table('penduduk')->whereNull('deleted_at');
+
+            $applyWni = fn($q) => $hasWna
+                ? $q->where(fn($r) => $r->where('warganegara_id', 1)->orWhereNull('warganegara_id'))
+                : $q;
+            $applyWna = fn($q) => $hasWna
+                ? $q->where('warganegara_id', 2)
+                : $q->whereRaw('0 = 1'); // tidak ada WNA jika kolom tidak ada
+
+            $wni_l = $filter($applyWni($base())->where('jenis_kelamin', 'L'))->count();
+            $wni_p = $filter($applyWni($base())->where('jenis_kelamin', 'P'))->count();
+            $wna_l = $filter($applyWna($base())->where('jenis_kelamin', 'L'))->count();
+            $wna_p = $filter($applyWna($base())->where('jenis_kelamin', 'P'))->count();
+
+            return [
+                'wni_l'     => $wni_l,
+                'wni_p'     => $wni_p,
+                'wna_l'     => $wna_l,
+                'wna_p'     => $wna_p,
+                'jml_l'     => $wni_l + $wna_l,
+                'jml_p'     => $wni_p + $wna_p,
+                'jml_total' => $wni_l + $wna_l + $wni_p + $wna_p,
+            ];
+        };
+
+        /** Helper: hitung KK (berdasarkan jenis kelamin kepala keluarga) */
+        $countKk = function (callable $filter) {
+            $base = fn($jk) => DB::table('keluarga')
+                ->join('penduduk as p', 'keluarga.kepala_keluarga_id', '=', 'p.id')
+                ->whereNull('keluarga.deleted_at')
+                ->where('p.jenis_kelamin', $jk);
+
+            $l = $filter($base('L'))->count();
+            $p = $filter($base('P'))->count();
+
+            return ['kk_l' => $l, 'kk_p' => $p, 'kk_total' => $l + $p];
+        };
+
+        /** Gabungkan breakdown penduduk + KK menjadi satu baris */
+        $makeRow = fn(array $penduduk, array $kk) => array_merge($penduduk, $kk);
+
+        // ── ROW 2: Kelahiran bulan ini ────────────────────────────────────────────
+        $row_lahir = $makeRow(
+            $countBreakdown(
+                fn($q) => $q
+                    ->whereYear('tanggal_lahir', $selectedYear)
+                    ->whereMonth('tanggal_lahir', $selectedMonth)
+                    ->whereBetween('created_at', [$start, $end])
+            ),
+            $countKk(fn($q) => $q->whereBetween('keluarga.tgl_terdaftar', [$start, $end]))  // ✓
+        );
+
+        // ── ROW 3: Kematian bulan ini ─────────────────────────────────────────────
+        $row_meninggal = $makeRow(
+            $countBreakdown(
+                fn($q) => $q
+                    ->where('status_hidup', 'meninggal')
+                    ->whereBetween('updated_at', [$start, $end])
+            ),
+            ['kk_l' => 0, 'kk_p' => 0, 'kk_total' => 0]
+        );
+
+        // ── ROW 4: Pendatang bulan ini ────────────────────────────────────────────
+        // Pendatang = masuk bulan ini TAPI bukan karena kelahiran bulan ini
+        $row_datang = $makeRow(
+            $countBreakdown(
+                fn($q) => $q
+                    ->whereBetween('created_at', [$start, $end])
+                    ->where(
+                        fn($r) => $r
+                            ->whereNull('tanggal_lahir')
+                            ->orWhereYear('tanggal_lahir', '!=', $selectedYear)
+                            ->orWhereMonth('tanggal_lahir', '!=', $selectedMonth)
+                    )
+            ),
+            ['kk_l' => 0, 'kk_p' => 0, 'kk_total' => 0]
+        );
+
+        // ── ROW 5: Pindah bulan ini ───────────────────────────────────────────────
+        $row_pindah = $makeRow(
+            $countBreakdown(
+                fn($q) => $q
+                    ->where('status_hidup', 'pindah')
+                    ->whereBetween('updated_at', [$start, $end])
+            ),
+            ['kk_l' => 0, 'kk_p' => 0, 'kk_total' => 0]
+        );
+
+        // ── ROW 6: Hilang bulan ini ───────────────────────────────────────────────
+        // Belum ada tracking khusus, default 0
+        $row_hilang = [
+            'wni_l' => 0,
+            'wni_p' => 0,
+            'wna_l' => 0,
+            'wna_p' => 0,
+            'jml_l' => 0,
+            'jml_p' => 0,
+            'jml_total' => 0,
+            'kk_l'  => 0,
+            'kk_p'  => 0,
+            'kk_total'  => 0,
         ];
 
-        $data = ['bulan' => $start->translatedFormat('F Y'), 'total_penduduk' => $total_penduduk, 'mutasi' => $mutasi, 'laporan' => $laporan];
+        // ── ROW 7: Akhir bulan (= data hidup saat ini) ────────────────────────────
+        $row_akhir = $makeRow(
+            $countBreakdown(fn($q) => $q->where('status_hidup', 'hidup')),
+            $countKk(fn($q) => $q) // semua KK aktif
+        );
+
+        // ── ROW 1: Awal bulan (dihitung mundur dari akhir) ────────────────────────
+        // Awal = Akhir - Lahir - Datang + Meninggal + Pindah + Hilang
+        $calcAwal = fn(string $key) => max(
+            0,
+            $row_akhir[$key]
+                - $row_lahir[$key]
+                - $row_datang[$key]
+                + $row_meninggal[$key]
+                + $row_pindah[$key]
+                + $row_hilang[$key]
+        );
+
+        $row_awal = [
+            'wni_l'     => $calcAwal('wni_l'),
+            'wni_p'     => $calcAwal('wni_p'),
+            'wna_l'     => $calcAwal('wna_l'),
+            'wna_p'     => $calcAwal('wna_p'),
+            'jml_l'     => $calcAwal('jml_l'),
+            'jml_p'     => $calcAwal('jml_p'),
+            'jml_total' => $calcAwal('jml_total'),
+            'kk_l'      => max(0, $row_akhir['kk_l']    - $row_lahir['kk_l']),
+            'kk_p'      => max(0, $row_akhir['kk_p']    - $row_lahir['kk_p']),
+            'kk_total'  => max(0, $row_akhir['kk_total'] - $row_lahir['kk_total']),
+        ];
+
+        // ── List Bulan & Tahun untuk dropdown ─────────────────────────────────────
+        $bulanList = [
+            1 => 'Januari',
+            2 => 'Februari',
+            3  => 'Maret',
+            4  => 'April',
+            5 => 'Mei',
+            6 => 'Juni',
+            7  => 'Juli',
+            8  => 'Agustus',
+            9 => 'September',
+            10 => 'Oktober',
+            11 => 'November',
+            12 => 'Desember',
+        ];
+
+        $data = [
+            'identitas'     => $identitas,
+            'perangkatList' => $perangkatList,
+            'selectedMonth' => $selectedMonth,
+            'selectedYear'  => $selectedYear,
+            'bulanList'     => $bulanList,
+            'yearsList'     => range(now()->year - 5, now()->year),
+            'rows'          => [
+                ['no' => 1, 'label' => 'Penduduk/Keluarga awal bulan ini',   'data' => $row_awal],
+                ['no' => 2, 'label' => 'Kelahiran/Keluarga baru bulan ini',   'data' => $row_lahir],
+                ['no' => 3, 'label' => 'Kematian bulan ini',                  'data' => $row_meninggal],
+                ['no' => 4, 'label' => 'Pendatang bulan ini',                 'data' => $row_datang],
+                ['no' => 5, 'label' => 'Pindah/Keluarga pergi bulan ini',     'data' => $row_pindah],
+                ['no' => 6, 'label' => 'Penduduk hilang bulan ini',           'data' => $row_hilang],
+                ['no' => 7, 'label' => 'Penduduk/Keluarga akhir bulan ini',   'data' => $row_akhir],
+            ],
+        ];
+
         return view('admin.statistik.laporan-bulanan', compact('data'));
     }
 
