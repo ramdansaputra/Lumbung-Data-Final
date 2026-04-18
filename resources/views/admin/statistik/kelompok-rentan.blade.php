@@ -35,18 +35,18 @@
 }
 .lr-table td.td-left { text-align: left; }
 
-/* ── Header warna grup ── */
-.th-dusun { background: #1e3a8a; color: #fff; }
-.th-kk    { background: #3730a3; color: #fff; }
-.th-umur  { background: #1d4ed8; color: #fff; }
-.th-disab { background: #7c2d12; color: #fff; }
-.th-sakit { background: #14532d; color: #fff; }
-.th-hamil { background: #701a75; color: #fff; }
+/* ── Header warna grup — emerald/teal palette ── */
+.th-dusun { background: #064e3b; color: #fff; } /* emerald-900 */
+.th-kk    { background: #065f46; color: #fff; } /* emerald-800 */
+.th-umur  { background: #0f766e; color: #fff; } /* teal-700    */
+.th-disab { background: #334155; color: #fff; } /* slate-700   */
+.th-sakit { background: #166534; color: #fff; } /* green-800   */
+.th-hamil { background: #115e59; color: #fff; } /* teal-800    */
 
 /* ── Body: zebra striping ── */
 .lr-table tbody tr:nth-child(odd)  td { background: #ffffff; }
 .lr-table tbody tr:nth-child(even) td { background: #f1f5f9; }
-.lr-table tbody tr:hover td { background: #dbeafe !important; }
+.lr-table tbody tr:hover td { background: #d1fae5 !important; } /* emerald-100 */
 
 .lr-table tbody td { color: #1e293b; }
 .lr-table tbody td.td-left {
@@ -55,20 +55,20 @@
     background: #f8fafc !important;
 }
 
-/* ── Kolom angka: biru agar mudah dibedakan dari label ── */
-.lr-table tbody td:not(.td-left) { color: #1d4ed8; font-weight: 500; }
+/* ── Kolom angka: emerald agar mudah dibedakan dari label ── */
+.lr-table tbody td:not(.td-left) { color: #059669; font-weight: 500; } /* emerald-600 */
 
 /* ── Dark body ── */
 .dark .lr-table tbody tr:nth-child(odd)  td { background: #1e293b; }
 .dark .lr-table tbody tr:nth-child(even) td { background: #162032; }
-.dark .lr-table tbody tr:hover td { background: #1e3a5f !important; }
+.dark .lr-table tbody tr:hover td { background: #064e3b !important; } /* emerald-900 */
 .dark .lr-table tbody td { color: #cbd5e1; }
 .dark .lr-table tbody td.td-left {
     color: #e2e8f0;
     font-weight: 600;
     background: #243447 !important;
 }
-.dark .lr-table tbody td:not(.td-left) { color: #93c5fd; }
+.dark .lr-table tbody td:not(.td-left) { color: #6ee7b7; } /* emerald-300 */
 
 /* ── Footer total ── */
 .lr-table tfoot td {
@@ -110,7 +110,7 @@
 {{-- ══ PAGE HEADER ════════════════════════════════════════════════════ --}}
 <div class="flex items-center justify-between mb-6 no-print">
     <div>
-        <h2 class="text-lg font-bold text-gray-700 dark:text-slate-200">Laporan Kelompok Rentan</h2>
+        <h2 class="text-lg font-bold text-gray-800 dark:text-slate-100">Laporan Kelompok Rentan</h2>
         <p class="text-sm text-gray-400 dark:text-slate-500 mt-0.5">
             Data pilah kependudukan menurut umur dan faktor kerentanan (Lampiran A-9)
         </p>
@@ -127,7 +127,7 @@
         <svg class="w-3.5 h-3.5 text-gray-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
         </svg>
-        <span class="text-gray-500 dark:text-slate-400">Statistik</span>
+        <span class="text-gray-400 dark:text-slate-500">Statistik</span>
         <svg class="w-3.5 h-3.5 text-gray-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
         </svg>
@@ -141,7 +141,7 @@
     {{-- ── FILTER + AKSI ── --}}
     <div class="flex flex-wrap items-center justify-between gap-3 px-5 py-4 border-b border-gray-100 dark:border-slate-700 no-print">
 
-        {{-- Dropdown Dusun: auto-submit saat pilih, tanpa tombol Tampilkan --}}
+        {{-- Dropdown Dusun --}}
         <form method="GET" action="{{ route('admin.statistik.kelompok-rentan') }}" id="form-filter">
             <input type="hidden" name="dusun" id="val-dusun" value="{{ $data['dusunFilter'] }}">
 
@@ -165,15 +165,14 @@
                  @click.away="open = false"
                  class="relative flex items-center gap-2">
 
-                <label class="text-xs font-semibold text-gray-500 dark:text-slate-400 whitespace-nowrap">Dusun</label>
+                <label class="text-xs font-semibold text-slate-600 dark:text-slate-400 whitespace-nowrap uppercase tracking-wide">Dusun</label>
 
                 <div class="relative w-52">
                     <button type="button" @click="open = !open"
                             class="w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm
-                                   bg-white dark:bg-slate-700 text-gray-700 dark:text-slate-200
-                                   border-gray-300 dark:border-slate-600
-                                   hover:border-emerald-400 dark:hover:border-emerald-500 transition-colors"
-                            :class="open ? 'border-emerald-500 ring-2 ring-emerald-500/20' : ''">
+                                   bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200
+                                   border-gray-300 dark:border-slate-600 transition-colors focus:outline-none"
+                            :class="open ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'hover:border-emerald-400'">
                         <span x-text="label || placeholder"
                               :class="label ? '' : 'text-gray-400 dark:text-slate-500'"
                               class="truncate"></span>
@@ -216,10 +215,10 @@
         {{-- Tombol Cetak & Unduh Excel --}}
         <div class="flex items-center gap-2">
             <button onclick="window.print()"
-                    class="h-9 px-4 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600
+                    class="px-4 py-2 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600
                            hover:bg-gray-50 dark:hover:bg-slate-600
-                           text-gray-700 dark:text-slate-200 text-sm font-semibold rounded-lg
-                           flex items-center gap-1.5 transition-colors">
+                           text-gray-700 dark:text-slate-200 text-sm font-medium rounded-lg
+                           flex items-center gap-2 transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
@@ -227,8 +226,8 @@
                 Cetak
             </button>
             <button onclick="unduhExcel()"
-                    class="h-9 px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold
-                           rounded-lg flex items-center gap-1.5 transition-colors">
+                    class="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium
+                           rounded-lg flex items-center gap-2 transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
@@ -247,21 +246,37 @@
     @endphp
 
     <div class="px-5 pt-5 pb-2 text-center">
-        <p class="text-sm font-extrabold text-gray-800 dark:text-slate-100 uppercase tracking-wide">
+        <p class="text-sm font-bold uppercase text-gray-800 dark:text-slate-100">
             PEMERINTAH KABUPATEN/KOTA {{ strtoupper($kabupaten) }}
         </p>
-        <p class="text-xs font-bold text-gray-600 dark:text-slate-300 mt-0.5">
+        <p class="text-xs font-bold text-gray-600 dark:text-slate-300 mt-1 uppercase">
             DATA PILAH KEPENDUDUKAN MENURUT UMUR DAN FAKTOR KERENTANAN (LAMPIRAN A - 9)
         </p>
     </div>
 
-    {{-- Info Row --}}
-    <div class="flex flex-wrap gap-x-8 gap-y-1 text-xs text-gray-600 dark:text-slate-400 px-5 py-3
-                border-b border-gray-100 dark:border-slate-700">
-        <span>Desa/Kel &nbsp;: <strong class="text-gray-800 dark:text-slate-200">{{ $namaDesa }}</strong></span>
-        <span>Kecamatan : <strong class="text-gray-800 dark:text-slate-200">{{ $kecamatan }}</strong></span>
-        <span>Lap. Bulan : <strong class="text-gray-800 dark:text-slate-200">{{ $data['bulanList'][$data['bulan']] ?? '-' }} {{ $data['tahun'] }}</strong></span>
-        <span>Dusun &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <strong class="text-gray-800 dark:text-slate-200">{{ $data['dusunFilter'] ?: 'Semua' }}</strong></span>
+    {{-- Info Row — sama persis strukturnya dengan laporan-bulanan --}}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1 px-5 py-4
+                border-b border-gray-100 dark:border-slate-700 text-sm">
+        <div class="flex gap-2">
+            <span class="w-32 text-slate-500">Desa/Kelurahan</span>
+            <span class="font-semibold">: {{ $namaDesa }}</span>
+        </div>
+        <div class="flex gap-2">
+            <span class="w-32 text-slate-500">Kecamatan</span>
+            <span class="font-semibold">: {{ $kecamatan }}</span>
+        </div>
+        <div class="flex gap-2">
+            <span class="w-32 text-slate-500">Tahun</span>
+            <span class="font-semibold">: {{ $data['tahun'] }}</span>
+        </div>
+        <div class="flex gap-2">
+            <span class="w-32 text-slate-500">Bulan</span>
+            <span class="font-semibold">: {{ $data['bulanList'][$data['bulan']] ?? '-' }}</span>
+        </div>
+        <div class="flex gap-2">
+            <span class="w-32 text-slate-500">Dusun</span>
+            <span class="font-semibold">: {{ $data['dusunFilter'] ?: 'Semua' }}</span>
+        </div>
     </div>
 
     {{-- ── TABEL ── --}}
