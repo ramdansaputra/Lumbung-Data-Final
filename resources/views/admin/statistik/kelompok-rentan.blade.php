@@ -183,7 +183,7 @@
                              selected: '{{ $data['dusunFilter'] }}',
                              label: '{{ $data['dusunFilter'] ?: '' }}',
                              placeholder: '— Pilih Dusun —',
-                             options: {{ json_encode(array_merge([['value'=>'','label'=>'Semua Dusun']], array_map(fn($d)=>['value'=>$d,'label'=>$d], $data['dusunList']))) }},
+                             options: {{ json_encode(array_merge([['value'=>'','label'=>'Semua Dusun']], collect($data['dusunList'])->map(fn($d)=>['value'=>$d,'label'=>$d])->toArray())) }},
                              get filtered() { return this.options; },
                              choose(opt) {
                                  this.selected = opt.value;
