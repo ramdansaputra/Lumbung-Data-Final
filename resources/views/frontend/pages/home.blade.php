@@ -122,66 +122,112 @@
     </div>
 </div>
 
-{{-- STATS SECTION - Fix: responsive negative margin --}}
+{{-- STATS SECTION --}}
 <div class="relative z-20 container mx-auto px-4 -mt-10 sm:-mt-14 lg:-mt-24 mb-16 lg:mb-24">
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
         
-        @forelse($statistik as $index => $stat)
-            @php
-                $colors = ['emerald', 'blue', 'amber', 'purple'];
-                $currentColor = $colors[$index % 4]; 
-                
-                $unitLabel = match(strtolower($stat['label'])) {
-                    'total penduduk' => 'Jiwa',
-                    'laki-laki' => 'Jiwa',
-                    'perempuan' => 'Jiwa',
-                    'total keluarga' => 'KK',
-                    default => ''
-                };
+        {{-- 
+            FIX: Daripada mengandalkan $statistik dari controller yang mungkin formatnya tidak konsisten,
+            kita langsung gunakan variabel $pendudukCount, $keluargaCount, dll. 
+            seperti yang sudah tersedia di dashboard admin.
+            
+            Pastikan HomeController mengirimkan variabel-variabel ini:
+            - $totalPenduduk  (int)
+            - $lakiLaki       (int)
+            - $perempuan      (int)
+            - $totalKeluarga  (int)
+        --}}
 
-                $iconSvg = match($stat['icon']) {
-                    'users' => '<svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>',
-                    'user' => '<svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>',
-                    'home' => '<svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>',
-                    default => '<svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>'
-                };
-            @endphp
-
-            <x-stat-card 
-                :label="$stat['label']"
-                :value="$stat['value']"
-                :icon="$iconSvg"
-                :color="$currentColor"
-                :unit="$unitLabel"
-            />
-        @empty
-            <div class="col-span-2 lg:col-span-4 text-center py-6 text-slate-400 font-medium bg-white rounded-3xl shadow-sm">
-                Data statistik belum tersedia.
+        {{-- Card: Total Penduduk --}}
+        <div class="bg-white rounded-2xl sm:rounded-3xl shadow-lg border border-gray-100 p-4 sm:p-6 flex flex-col gap-3 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+            <div class="flex items-center justify-between">
+                <div class="p-2.5 sm:p-3 bg-emerald-50 rounded-xl sm:rounded-2xl text-emerald-600 flex-shrink-0">
+                    <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                </div>
+                <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">Jiwa</span>
             </div>
-        @endforelse
+            <div>
+                <p class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-gray-900 leading-none">
+                    {{ number_format($totalPenduduk ?? 0, 0, ',', '.') }}
+                </p>
+                <p class="text-xs sm:text-sm text-gray-500 font-medium mt-1.5">Total Penduduk</p>
+            </div>
+        </div>
+
+        {{-- Card: Laki-laki --}}
+        <div class="bg-white rounded-2xl sm:rounded-3xl shadow-lg border border-gray-100 p-4 sm:p-6 flex flex-col gap-3 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+            <div class="flex items-center justify-between">
+                <div class="p-2.5 sm:p-3 bg-blue-50 rounded-xl sm:rounded-2xl text-blue-600 flex-shrink-0">
+                    <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                </div>
+                <span class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-full">Jiwa</span>
+            </div>
+            <div>
+                <p class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-gray-900 leading-none">
+                    {{ number_format($lakiLaki ?? 0, 0, ',', '.') }}
+                </p>
+                <p class="text-xs sm:text-sm text-gray-500 font-medium mt-1.5">Laki-laki</p>
+            </div>
+        </div>
+
+        {{-- Card: Perempuan --}}
+        <div class="bg-white rounded-2xl sm:rounded-3xl shadow-lg border border-gray-100 p-4 sm:p-6 flex flex-col gap-3 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+            <div class="flex items-center justify-between">
+                <div class="p-2.5 sm:p-3 bg-amber-50 rounded-xl sm:rounded-2xl text-amber-600 flex-shrink-0">
+                    <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                </div>
+                <span class="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded-full">Jiwa</span>
+            </div>
+            <div>
+                <p class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-gray-900 leading-none">
+                    {{ number_format($perempuan ?? 0, 0, ',', '.') }}
+                </p>
+                <p class="text-xs sm:text-sm text-gray-500 font-medium mt-1.5">Perempuan</p>
+            </div>
+        </div>
+
+        {{-- Card: Total Keluarga --}}
+        <div class="bg-white rounded-2xl sm:rounded-3xl shadow-lg border border-gray-100 p-4 sm:p-6 flex flex-col gap-3 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+            <div class="flex items-center justify-between">
+                <div class="p-2.5 sm:p-3 bg-purple-50 rounded-xl sm:rounded-2xl text-purple-600 flex-shrink-0">
+                    <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                    </svg>
+                </div>
+                <span class="text-xs font-bold text-purple-600 bg-purple-50 px-2 py-1 rounded-full">KK</span>
+            </div>
+            <div>
+                <p class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-gray-900 leading-none">
+                    {{ number_format($totalKeluarga ?? 0, 0, ',', '.') }}
+                </p>
+                <p class="text-xs sm:text-sm text-gray-500 font-medium mt-1.5">Total Keluarga</p>
+            </div>
+        </div>
 
     </div>
 </div>
 
-{{-- TENTANG KAMI - Fix: overflow hidden pada wrapper blob, mobile image height --}}
+{{-- TENTANG KAMI --}}
 <section class="py-16 lg:py-24 bg-gray-50">
     <div class="container mx-auto px-4">
         <div class="flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
 
-            {{-- Gambar dengan blob - Fix: overflow-hidden pada wrapper --}}
+            {{-- Gambar dengan blob --}}
             <div class="lg:w-1/2 relative w-full">
-                {{-- Wrapper overflow-hidden agar blob tidak bikin horizontal scroll --}}
                 <div class="relative overflow-hidden rounded-3xl">
-                    {{-- Blob dekorasi (dibatasi di dalam wrapper) --}}
                     <div class="absolute -top-4 -left-4 w-24 h-24 bg-emerald-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob pointer-events-none"></div>
                     <div class="absolute -bottom-4 -right-4 w-24 h-24 bg-teal-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000 pointer-events-none"></div>
 
-                    {{-- Gambar --}}
                     <div class="relative rounded-3xl overflow-hidden shadow-2xl">
                         <img src="{{ $desaInfo['gambar_kantor'] }}" alt="Kantor Desa" class="w-full h-64 sm:h-80 lg:h-[400px] object-cover hover:scale-105 transition duration-700">
                         <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
                         
-                        {{-- Info Lokasi di bawah gambar - Fix: padding lebih kecil di mobile --}}
                         <div class="absolute bottom-0 left-0 right-0 p-4 sm:p-6 text-white">
                             <div class="flex items-start gap-3">
                                 <div class="p-2 bg-emerald-600 rounded-lg flex-shrink-0">
