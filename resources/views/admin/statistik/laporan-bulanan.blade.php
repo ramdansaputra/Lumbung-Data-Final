@@ -36,8 +36,9 @@
      TOMBOL CETAK & UNDUH
 ═══════════════════════════════════════════════════════ --}}
 <div class="flex gap-3 mb-5">
+    {{-- Tombol Cetak → emerald (bukan biru) --}}
     <button onclick="openCetakModal()"
-        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2 text-sm font-medium">
+        class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition flex items-center gap-2 text-sm font-medium">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
@@ -46,7 +47,7 @@
     </button>
 
     <button onclick="openUnduhModal()"
-        class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center gap-2 text-sm font-medium">
+        class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition flex items-center gap-2 text-sm font-medium">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
@@ -82,7 +83,7 @@
             <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1 uppercase tracking-wide">Tahun</label>
             <button type="button" @click="open = !open"
                 class="w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm cursor-pointer bg-white dark:bg-slate-700 focus:outline-none transition-colors"
-                :class="open ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-gray-300 dark:border-slate-600 hover:border-blue-400'">
+                :class="open ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-gray-300 dark:border-slate-600 hover:border-emerald-400'">
                 <span x-text="selected" class="text-gray-800 dark:text-slate-200"></span>
                 <svg class="w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ml-2" :class="open ? 'rotate-180' : ''"
                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -101,13 +102,13 @@
                 <div class="p-2 border-b border-gray-100 dark:border-slate-700">
                     <input type="text" x-model="search" @keydown.escape="open = false"
                         placeholder="Cari tahun..."
-                        class="w-full px-2 py-1.5 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded text-gray-700 dark:text-slate-200 outline-none focus:border-blue-500">
+                        class="w-full px-2 py-1.5 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded text-gray-700 dark:text-slate-200 outline-none focus:border-emerald-500">
                 </div>
                 <ul class="max-h-48 overflow-y-auto py-1">
                     <template x-for="opt in filtered" :key="opt.value">
                         <li @click="choose(opt)"
-                            class="px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-400"
-                            :class="selected == opt.value ? 'bg-blue-500 text-white hover:bg-blue-600 hover:text-white' : 'text-gray-700 dark:text-slate-200'"
+                            class="px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 dark:hover:text-emerald-400"
+                            :class="selected == opt.value ? 'bg-emerald-500 text-white hover:bg-emerald-600 hover:text-white' : 'text-gray-700 dark:text-slate-200'"
                             x-text="opt.label"></li>
                     </template>
                     <li x-show="filtered.length === 0" class="px-3 py-2 text-xs text-gray-400 italic">Tidak ditemukan</li>
@@ -139,7 +140,7 @@
             <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1 uppercase tracking-wide">Bulan</label>
             <button type="button" @click="open = !open"
                 class="w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm cursor-pointer bg-white dark:bg-slate-700 focus:outline-none transition-colors"
-                :class="open ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-gray-300 dark:border-slate-600 hover:border-blue-400'">
+                :class="open ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-gray-300 dark:border-slate-600 hover:border-emerald-400'">
                 <span x-text="label" class="text-gray-800 dark:text-slate-200"></span>
                 <svg class="w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ml-2" :class="open ? 'rotate-180' : ''"
                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -158,13 +159,13 @@
                 <div class="p-2 border-b border-gray-100 dark:border-slate-700">
                     <input type="text" x-model="search" @keydown.escape="open = false"
                         placeholder="Cari bulan..."
-                        class="w-full px-2 py-1.5 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded text-gray-700 dark:text-slate-200 outline-none focus:border-blue-500">
+                        class="w-full px-2 py-1.5 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded text-gray-700 dark:text-slate-200 outline-none focus:border-emerald-500">
                 </div>
                 <ul class="max-h-48 overflow-y-auto py-1">
                     <template x-for="opt in filtered" :key="opt.value">
                         <li @click="choose(opt)"
-                            class="px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-400"
-                            :class="selected == opt.value ? 'bg-blue-500 text-white hover:bg-blue-600 hover:text-white' : 'text-gray-700 dark:text-slate-200'"
+                            class="px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 dark:hover:text-emerald-400"
+                            :class="selected == opt.value ? 'bg-emerald-500 text-white hover:bg-emerald-600 hover:text-white' : 'text-gray-700 dark:text-slate-200'"
                             x-text="opt.label"></li>
                     </template>
                     <li x-show="filtered.length === 0" class="px-3 py-2 text-xs text-gray-400 italic">Tidak ditemukan</li>
@@ -258,7 +259,8 @@
                             ? 'bg-slate-50 font-medium'
                             : 'hover:bg-gray-50';
 
-                        $numClass = 'text-cyan-600 font-semibold';
+                        {{-- emerald menggantikan cyan --}}
+                        $numClass = 'text-emerald-600 font-semibold';
                         $zeroClass = 'text-slate-400';
 
                         $fmt = fn($val) => $val ? $val : '-';
@@ -312,7 +314,7 @@
 
 
 {{-- ═══════════════════════════════════════════════════════
-     MODAL CETAK
+     MODAL CETAK  →  emerald theme
 ═══════════════════════════════════════════════════════ --}}
 <div id="cetakModal"
     class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
@@ -352,7 +354,7 @@
                 <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Laporan Ditandatangani</label>
                 <button type="button" @click="open = !open"
                     class="w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm cursor-pointer bg-white dark:bg-slate-700 focus:outline-none transition-colors"
-                    :class="open ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-gray-300 dark:border-slate-600 hover:border-blue-400'">
+                    :class="open ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-gray-300 dark:border-slate-600 hover:border-emerald-400'">
                     <span :class="selectedLabel ? 'text-gray-800 dark:text-slate-200' : 'text-gray-400 dark:text-slate-500'"
                           x-text="selectedLabel || 'Pilih Staf Pemerintah Desa'"></span>
                     <svg class="w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ml-2" :class="open ? 'rotate-180' : ''"
@@ -372,17 +374,17 @@
                     <div class="p-2 border-b border-gray-100 dark:border-slate-700">
                         <input type="text" x-model="search" @keydown.escape="open = false"
                             placeholder="Cari nama..."
-                            class="w-full px-2 py-1.5 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded text-gray-700 dark:text-slate-200 outline-none focus:border-blue-500">
+                            class="w-full px-2 py-1.5 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded text-gray-700 dark:text-slate-200 outline-none focus:border-emerald-500">
                     </div>
                     <ul class="max-h-48 overflow-y-auto py-1">
                         <li @click="selected=''; selectedLabel=''; document.getElementById('select_ttd').value=''; open=false; search='';"
-                            class="px-3 py-2 text-sm cursor-pointer text-gray-400 dark:text-slate-500 italic hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
+                            class="px-3 py-2 text-sm cursor-pointer text-gray-400 dark:text-slate-500 italic hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors">
                             Pilih Staf Pemerintah Desa
                         </li>
                         <template x-for="opt in filtered" :key="opt.value">
                             <li @click="choose(opt)"
-                                class="px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-400"
-                                :class="selected == opt.value ? 'bg-blue-500 text-white hover:bg-blue-600 hover:text-white' : 'text-gray-700 dark:text-slate-200'"
+                                class="px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 dark:hover:text-emerald-400"
+                                :class="selected == opt.value ? 'bg-emerald-500 text-white hover:bg-emerald-600 hover:text-white' : 'text-gray-700 dark:text-slate-200'"
                                 x-text="opt.label"></li>
                         </template>
                         <li x-show="filtered.length === 0" class="px-3 py-2 text-xs text-gray-400 italic">Tidak ditemukan</li>
@@ -414,7 +416,7 @@
                 <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Laporan Diketahui</label>
                 <button type="button" @click="open = !open"
                     class="w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm cursor-pointer bg-white dark:bg-slate-700 focus:outline-none transition-colors"
-                    :class="open ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-gray-300 dark:border-slate-600 hover:border-blue-400'">
+                    :class="open ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-gray-300 dark:border-slate-600 hover:border-emerald-400'">
                     <span :class="selectedLabel ? 'text-gray-800 dark:text-slate-200' : 'text-gray-400 dark:text-slate-500'"
                           x-text="selectedLabel || 'Pilih Staf Pemerintah Desa'"></span>
                     <svg class="w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ml-2" :class="open ? 'rotate-180' : ''"
@@ -434,17 +436,17 @@
                     <div class="p-2 border-b border-gray-100 dark:border-slate-700">
                         <input type="text" x-model="search" @keydown.escape="open = false"
                             placeholder="Cari nama..."
-                            class="w-full px-2 py-1.5 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded text-gray-700 dark:text-slate-200 outline-none focus:border-blue-500">
+                            class="w-full px-2 py-1.5 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded text-gray-700 dark:text-slate-200 outline-none focus:border-emerald-500">
                     </div>
                     <ul class="max-h-48 overflow-y-auto py-1">
                         <li @click="selected=''; selectedLabel=''; document.getElementById('select_diketahui').value=''; open=false; search='';"
-                            class="px-3 py-2 text-sm cursor-pointer text-gray-400 dark:text-slate-500 italic hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
+                            class="px-3 py-2 text-sm cursor-pointer text-gray-400 dark:text-slate-500 italic hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors">
                             Pilih Staf Pemerintah Desa
                         </li>
                         <template x-for="opt in filtered" :key="opt.value">
                             <li @click="choose(opt)"
-                                class="px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-400"
-                                :class="selected == opt.value ? 'bg-blue-500 text-white hover:bg-blue-600 hover:text-white' : 'text-gray-700 dark:text-slate-200'"
+                                class="px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 dark:hover:text-emerald-400"
+                                :class="selected == opt.value ? 'bg-emerald-500 text-white hover:bg-emerald-600 hover:text-white' : 'text-gray-700 dark:text-slate-200'"
                                 x-text="opt.label"></li>
                         </template>
                         <li x-show="filtered.length === 0" class="px-3 py-2 text-xs text-gray-400 italic">Tidak ditemukan</li>
@@ -462,7 +464,7 @@
                 Batal
             </button>
             <button onclick="doCetak()"
-                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium flex items-center gap-2">
+                class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition text-sm font-medium flex items-center gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
@@ -474,7 +476,7 @@
 </div>
 
 {{-- ═══════════════════════════════════════════════════════
-     MODAL UNDUH (sama persis seperti modal cetak)
+     MODAL UNDUH  →  teal theme (tetap hijau, sedikit lebih gelap)
 ═══════════════════════════════════════════════════════ --}}
 <div id="unduhModal"
     class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
@@ -514,7 +516,7 @@
                 <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Laporan Ditandatangani</label>
                 <button type="button" @click="open = !open"
                     class="w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm cursor-pointer bg-white dark:bg-slate-700 focus:outline-none transition-colors"
-                    :class="open ? 'border-green-500 ring-2 ring-green-500/20' : 'border-gray-300 dark:border-slate-600 hover:border-green-400'">
+                    :class="open ? 'border-teal-500 ring-2 ring-teal-500/20' : 'border-gray-300 dark:border-slate-600 hover:border-teal-400'">
                     <span :class="selectedLabel ? 'text-gray-800 dark:text-slate-200' : 'text-gray-400 dark:text-slate-500'"
                           x-text="selectedLabel || 'Pilih Staf Pemerintah Desa'"></span>
                     <svg class="w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ml-2" :class="open ? 'rotate-180' : ''"
@@ -534,17 +536,17 @@
                     <div class="p-2 border-b border-gray-100 dark:border-slate-700">
                         <input type="text" x-model="search" @keydown.escape="open = false"
                             placeholder="Cari nama..."
-                            class="w-full px-2 py-1.5 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded text-gray-700 dark:text-slate-200 outline-none focus:border-green-500">
+                            class="w-full px-2 py-1.5 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded text-gray-700 dark:text-slate-200 outline-none focus:border-teal-500">
                     </div>
                     <ul class="max-h-48 overflow-y-auto py-1">
                         <li @click="selected=''; selectedLabel=''; document.getElementById('select_ttd_unduh').value=''; open=false; search='';"
-                            class="px-3 py-2 text-sm cursor-pointer text-gray-400 dark:text-slate-500 italic hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors">
+                            class="px-3 py-2 text-sm cursor-pointer text-gray-400 dark:text-slate-500 italic hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-colors">
                             Pilih Staf Pemerintah Desa
                         </li>
                         <template x-for="opt in filtered" :key="opt.value">
                             <li @click="choose(opt)"
-                                class="px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-700 dark:hover:text-green-400"
-                                :class="selected == opt.value ? 'bg-green-500 text-white hover:bg-green-600 hover:text-white' : 'text-gray-700 dark:text-slate-200'"
+                                class="px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-teal-50 dark:hover:bg-teal-900/20 hover:text-teal-700 dark:hover:text-teal-400"
+                                :class="selected == opt.value ? 'bg-teal-500 text-white hover:bg-teal-600 hover:text-white' : 'text-gray-700 dark:text-slate-200'"
                                 x-text="opt.label"></li>
                         </template>
                         <li x-show="filtered.length === 0" class="px-3 py-2 text-xs text-gray-400 italic">Tidak ditemukan</li>
@@ -576,7 +578,7 @@
                 <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Laporan Diketahui</label>
                 <button type="button" @click="open = !open"
                     class="w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm cursor-pointer bg-white dark:bg-slate-700 focus:outline-none transition-colors"
-                    :class="open ? 'border-green-500 ring-2 ring-green-500/20' : 'border-gray-300 dark:border-slate-600 hover:border-green-400'">
+                    :class="open ? 'border-teal-500 ring-2 ring-teal-500/20' : 'border-gray-300 dark:border-slate-600 hover:border-teal-400'">
                     <span :class="selectedLabel ? 'text-gray-800 dark:text-slate-200' : 'text-gray-400 dark:text-slate-500'"
                           x-text="selectedLabel || 'Pilih Staf Pemerintah Desa'"></span>
                     <svg class="w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ml-2" :class="open ? 'rotate-180' : ''"
@@ -596,17 +598,17 @@
                     <div class="p-2 border-b border-gray-100 dark:border-slate-700">
                         <input type="text" x-model="search" @keydown.escape="open = false"
                             placeholder="Cari nama..."
-                            class="w-full px-2 py-1.5 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded text-gray-700 dark:text-slate-200 outline-none focus:border-green-500">
+                            class="w-full px-2 py-1.5 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded text-gray-700 dark:text-slate-200 outline-none focus:border-teal-500">
                     </div>
                     <ul class="max-h-48 overflow-y-auto py-1">
                         <li @click="selected=''; selectedLabel=''; document.getElementById('select_diketahui_unduh').value=''; open=false; search='';"
-                            class="px-3 py-2 text-sm cursor-pointer text-gray-400 dark:text-slate-500 italic hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors">
+                            class="px-3 py-2 text-sm cursor-pointer text-gray-400 dark:text-slate-500 italic hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-colors">
                             Pilih Staf Pemerintah Desa
                         </li>
                         <template x-for="opt in filtered" :key="opt.value">
                             <li @click="choose(opt)"
-                                class="px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-700 dark:hover:text-green-400"
-                                :class="selected == opt.value ? 'bg-green-500 text-white hover:bg-green-600 hover:text-white' : 'text-gray-700 dark:text-slate-200'"
+                                class="px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-teal-50 dark:hover:bg-teal-900/20 hover:text-teal-700 dark:hover:text-teal-400"
+                                :class="selected == opt.value ? 'bg-teal-500 text-white hover:bg-teal-600 hover:text-white' : 'text-gray-700 dark:text-slate-200'"
                                 x-text="opt.label"></li>
                         </template>
                         <li x-show="filtered.length === 0" class="px-3 py-2 text-xs text-gray-400 italic">Tidak ditemukan</li>
@@ -624,7 +626,7 @@
                 Batal
             </button>
             <button onclick="doUnduh()"
-                class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm font-medium flex items-center gap-2">
+                class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition text-sm font-medium flex items-center gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
