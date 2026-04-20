@@ -268,8 +268,9 @@ class StatistikController extends Controller {
         // ── Daftar perangkat untuk modal cetak/unduh ──────────────────────
         $perangkatList = DB::table('perangkat_desa')
             ->leftJoin('jabatan_perangkat', 'perangkat_desa.jabatan_id', '=', 'jabatan_perangkat.id')
-            ->select('perangkat_desa.nama', 'jabatan_perangkat.nama as jabatan')
+            ->select('perangkat_desa.id', 'perangkat_desa.nama', 'jabatan_perangkat.nama as jabatan')
             ->whereNull('perangkat_desa.deleted_at')
+            ->where('perangkat_desa.status', '1')  // ✓ hanya yang aktif
             ->orderBy('perangkat_desa.urutan')
             ->get();
 
@@ -306,116 +307,536 @@ class StatistikController extends Controller {
 
     // ─────────────────────────────────────────────────────────────────────────
     public function laporanBulanan(Request $request) {
-        $month = $request->query('month');
-        $year  = $request->query('year');
+        $selectedMonth = max(1, min(12, (int)($request->query('month', now()->month))));
+        $selectedYear  = (int)($request->query('year', now()->year));
 
-        $now = Carbon::now();
-        if ($month && $year) {
-            try {
-                $start = Carbon::createFromDate((int)$year, (int)$month, 1)->startOfDay();
-            } catch (\Exception $e) {
-                $start = $now->copy()->startOfMonth();
-            }
-        } else {
-            $start = $now->copy()->startOfMonth();
-        }
+        $start = Carbon::createFromDate($selectedYear, $selectedMonth, 1)->startOfDay();
         $end   = $start->copy()->endOfMonth()->endOfDay();
-        $year  = $start->year;
-        $month = $start->month;
 
-        $total_penduduk = Penduduk::where('status_hidup', 'hidup')->count();
-        $lahir   = Penduduk::whereYear('tanggal_lahir', $year)->whereMonth('tanggal_lahir', $month)->whereBetween('created_at', [$start, $end])->count();
-        $created = Penduduk::whereBetween('created_at', [$start, $end])->count();
-        $datang  = max(0, $created - $lahir);
-        $meninggal = Penduduk::where('status_hidup', 'meninggal')->whereBetween('updated_at', [$start, $end])->count();
-        $pindah  = 0;
-        $mutasi  = compact('lahir', 'meninggal', 'datang', 'pindah');
+        // ── Identitas Desa ────────────────────────────────────────────────────────
+        $identitas = DB::table('identitas_desa')->first();
 
-        $makePercent = fn($count) => ($total_penduduk > 0 ? '+' . round($count / $total_penduduk * 100, 2) : '+0') . '%';
-        $laporan = [
-            ['kategori' => 'Kelahiran', 'jumlah' => $lahir,    'persen' => $makePercent($lahir)],
-            ['kategori' => 'Kematian', 'jumlah' => $meninggal, 'persen' => $makePercent($meninggal)],
-            ['kategori' => 'Pendatang', 'jumlah' => $datang,   'persen' => $makePercent($datang)],
-            ['kategori' => 'Pindah',   'jumlah' => $pindah,   'persen' => $makePercent($pindah)],
+        // ── Perangkat untuk modal cetak ───────────────────────────────────────────
+        $perangkatList = DB::table('perangkat_desa')
+            ->leftJoin('jabatan_perangkat', 'perangkat_desa.jabatan_id', '=', 'jabatan_perangkat.id')
+            ->select('perangkat_desa.id', 'perangkat_desa.nama', 'jabatan_perangkat.nama as jabatan')
+            ->whereNull('perangkat_desa.deleted_at')
+            ->orderBy('perangkat_desa.urutan')
+            ->get();
+
+        if ($perangkatList->isEmpty()) {
+            $perangkatList = collect([(object)[
+                'id'      => 0,
+                'nama'    => $identitas->kepala_desa ?? $identitas->nama_kepala_desa ?? 'Kepala Desa',
+                'jabatan' => 'Kepala Desa',
+            ]]);
+        }
+
+        // ── Cek apakah kolom warganegara_id ada ───────────────────────────────────
+        $hasWna = \Illuminate\Support\Facades\Schema::hasColumn('penduduk', 'warganegara_id');
+
+        /**
+         * Helper: hitung L/P untuk WNI dan WNA dari satu base query.
+         * $filter = fn($query) => $query->where(...) — tambahkan kondisi spesifik
+         */
+        $countBreakdown = function (callable $filter) use ($hasWna) {
+            $base = fn() => DB::table('penduduk')->whereNull('deleted_at');
+
+            $applyWni = fn($q) => $hasWna
+                ? $q->where(fn($r) => $r->where('warganegara_id', 1)->orWhereNull('warganegara_id'))
+                : $q;
+            $applyWna = fn($q) => $hasWna
+                ? $q->where('warganegara_id', 2)
+                : $q->whereRaw('0 = 1'); // tidak ada WNA jika kolom tidak ada
+
+            $wni_l = $filter($applyWni($base())->where('jenis_kelamin', 'L'))->count();
+            $wni_p = $filter($applyWni($base())->where('jenis_kelamin', 'P'))->count();
+            $wna_l = $filter($applyWna($base())->where('jenis_kelamin', 'L'))->count();
+            $wna_p = $filter($applyWna($base())->where('jenis_kelamin', 'P'))->count();
+
+            return [
+                'wni_l'     => $wni_l,
+                'wni_p'     => $wni_p,
+                'wna_l'     => $wna_l,
+                'wna_p'     => $wna_p,
+                'jml_l'     => $wni_l + $wna_l,
+                'jml_p'     => $wni_p + $wna_p,
+                'jml_total' => $wni_l + $wna_l + $wni_p + $wna_p,
+            ];
+        };
+
+        /** Helper: hitung KK (berdasarkan jenis kelamin kepala keluarga) */
+        $countKk = function (callable $filter) {
+            $base = fn($jk) => DB::table('keluarga')
+                ->join('penduduk as p', 'keluarga.kepala_keluarga_id', '=', 'p.id')
+                ->whereNull('keluarga.deleted_at')
+                ->where('p.jenis_kelamin', $jk);
+
+            $l = $filter($base('L'))->count();
+            $p = $filter($base('P'))->count();
+
+            return ['kk_l' => $l, 'kk_p' => $p, 'kk_total' => $l + $p];
+        };
+
+        /** Gabungkan breakdown penduduk + KK menjadi satu baris */
+        $makeRow = fn(array $penduduk, array $kk) => array_merge($penduduk, $kk);
+
+        // ── ROW 2: Kelahiran bulan ini ────────────────────────────────────────────
+        $row_lahir = $makeRow(
+            $countBreakdown(
+                fn($q) => $q
+                    ->whereYear('tanggal_lahir', $selectedYear)
+                    ->whereMonth('tanggal_lahir', $selectedMonth)
+                    ->whereBetween('created_at', [$start, $end])
+            ),
+            $countKk(fn($q) => $q->whereBetween('keluarga.tgl_terdaftar', [$start, $end]))  // ✓
+        );
+
+        // ── ROW 3: Kematian bulan ini ─────────────────────────────────────────────
+        $row_meninggal = $makeRow(
+            $countBreakdown(
+                fn($q) => $q
+                    ->where('status_hidup', 'meninggal')
+                    ->whereBetween('updated_at', [$start, $end])
+            ),
+            ['kk_l' => 0, 'kk_p' => 0, 'kk_total' => 0]
+        );
+
+        // ── ROW 4: Pendatang bulan ini ────────────────────────────────────────────
+        // Pendatang = masuk bulan ini TAPI bukan karena kelahiran bulan ini
+        $row_datang = $makeRow(
+            $countBreakdown(
+                fn($q) => $q
+                    ->whereBetween('created_at', [$start, $end])
+                    ->where(
+                        fn($r) => $r
+                            ->whereNull('tanggal_lahir')
+                            ->orWhereYear('tanggal_lahir', '!=', $selectedYear)
+                            ->orWhereMonth('tanggal_lahir', '!=', $selectedMonth)
+                    )
+            ),
+            ['kk_l' => 0, 'kk_p' => 0, 'kk_total' => 0]
+        );
+
+        // ── ROW 5: Pindah bulan ini ───────────────────────────────────────────────
+        $row_pindah = $makeRow(
+            $countBreakdown(
+                fn($q) => $q
+                    ->where('status_hidup', 'pindah')
+                    ->whereBetween('updated_at', [$start, $end])
+            ),
+            ['kk_l' => 0, 'kk_p' => 0, 'kk_total' => 0]
+        );
+
+        // ── ROW 6: Hilang bulan ini ───────────────────────────────────────────────
+        // Belum ada tracking khusus, default 0
+        $row_hilang = [
+            'wni_l' => 0,
+            'wni_p' => 0,
+            'wna_l' => 0,
+            'wna_p' => 0,
+            'jml_l' => 0,
+            'jml_p' => 0,
+            'jml_total' => 0,
+            'kk_l'  => 0,
+            'kk_p'  => 0,
+            'kk_total'  => 0,
         ];
 
-        $data = ['bulan' => $start->translatedFormat('F Y'), 'total_penduduk' => $total_penduduk, 'mutasi' => $mutasi, 'laporan' => $laporan];
+        // ── ROW 7: Akhir bulan (= data hidup saat ini) ────────────────────────────
+        $row_akhir = $makeRow(
+            $countBreakdown(fn($q) => $q->where('status_hidup', 'hidup')),
+            $countKk(fn($q) => $q) // semua KK aktif
+        );
+
+        // ── ROW 1: Awal bulan (dihitung mundur dari akhir) ────────────────────────
+        // Awal = Akhir - Lahir - Datang + Meninggal + Pindah + Hilang
+        $calcAwal = fn(string $key) => max(
+            0,
+            $row_akhir[$key]
+                - $row_lahir[$key]
+                - $row_datang[$key]
+                + $row_meninggal[$key]
+                + $row_pindah[$key]
+                + $row_hilang[$key]
+        );
+
+        $row_awal = [
+            'wni_l'     => $calcAwal('wni_l'),
+            'wni_p'     => $calcAwal('wni_p'),
+            'wna_l'     => $calcAwal('wna_l'),
+            'wna_p'     => $calcAwal('wna_p'),
+            'jml_l'     => $calcAwal('jml_l'),
+            'jml_p'     => $calcAwal('jml_p'),
+            'jml_total' => $calcAwal('jml_total'),
+            'kk_l'      => max(0, $row_akhir['kk_l']    - $row_lahir['kk_l']),
+            'kk_p'      => max(0, $row_akhir['kk_p']    - $row_lahir['kk_p']),
+            'kk_total'  => max(0, $row_akhir['kk_total'] - $row_lahir['kk_total']),
+        ];
+
+        // ── List Bulan & Tahun untuk dropdown ─────────────────────────────────────
+        $bulanList = [
+            1 => 'Januari',
+            2 => 'Februari',
+            3  => 'Maret',
+            4  => 'April',
+            5 => 'Mei',
+            6 => 'Juni',
+            7  => 'Juli',
+            8  => 'Agustus',
+            9 => 'September',
+            10 => 'Oktober',
+            11 => 'November',
+            12 => 'Desember',
+        ];
+
+        $data = [
+            'identitas'     => $identitas,
+            'perangkatList' => $perangkatList,
+            'selectedMonth' => $selectedMonth,
+            'selectedYear'  => $selectedYear,
+            'bulanList'     => $bulanList,
+            'yearsList'     => range(now()->year - 5, now()->year),
+            'rows'          => [
+                ['no' => 1, 'label' => 'Penduduk/Keluarga awal bulan ini',   'data' => $row_awal],
+                ['no' => 2, 'label' => 'Kelahiran/Keluarga baru bulan ini',   'data' => $row_lahir],
+                ['no' => 3, 'label' => 'Kematian bulan ini',                  'data' => $row_meninggal],
+                ['no' => 4, 'label' => 'Pendatang bulan ini',                 'data' => $row_datang],
+                ['no' => 5, 'label' => 'Pindah/Keluarga pergi bulan ini',     'data' => $row_pindah],
+                ['no' => 6, 'label' => 'Penduduk hilang bulan ini',           'data' => $row_hilang],
+                ['no' => 7, 'label' => 'Penduduk/Keluarga akhir bulan ini',   'data' => $row_akhir],
+            ],
+        ];
+
         return view('admin.statistik.laporan-bulanan', compact('data'));
     }
 
     // ─────────────────────────────────────────────────────────────────────────
     public function kelompokRentan(Request $request) {
-        $wilayahId = $request->get('wilayah_id');
-        $base = Penduduk::where('status_hidup', 'hidup');
-        if ($wilayahId) $base->where('wilayah_id', $wilayahId);
-        $total_penduduk = (clone $base)->count();
+        $bulan = (int) now()->month;
+        $tahun = (int) now()->year;
+        $dusunFilter = $request->get('dusun');
 
-        $balitaL = (clone $base)->where('jenis_kelamin', 'L')->whereRaw('TIMESTAMPDIFF(YEAR,tanggal_lahir,CURDATE()) BETWEEN 0 AND 5')->count();
-        $balitaP = (clone $base)->where('jenis_kelamin', 'P')->whereRaw('TIMESTAMPDIFF(YEAR,tanggal_lahir,CURDATE()) BETWEEN 0 AND 5')->count();
-        $balita = $balitaL + $balitaP;
+        $identitas = DB::table('identitas_desa')->first();
 
-        $anakL = (clone $base)->where('jenis_kelamin', 'L')->whereRaw('TIMESTAMPDIFF(YEAR,tanggal_lahir,CURDATE()) BETWEEN 6 AND 12')->count();
-        $anakP = (clone $base)->where('jenis_kelamin', 'P')->whereRaw('TIMESTAMPDIFF(YEAR,tanggal_lahir,CURDATE()) BETWEEN 6 AND 12')->count();
-        $anak = $anakL + $anakP;
+        $dusunList = Wilayah::whereNotNull('dusun')
+            ->where('dusun', '!=', '')
+            ->whereNull('deleted_at')
+            ->distinct()
+            ->orderBy('dusun')
+            ->pluck('dusun');
 
-        $remajaL = (clone $base)->where('jenis_kelamin', 'L')->whereRaw('TIMESTAMPDIFF(YEAR,tanggal_lahir,CURDATE()) BETWEEN 13 AND 17')->count();
-        $remajaP = (clone $base)->where('jenis_kelamin', 'P')->whereRaw('TIMESTAMPDIFF(YEAR,tanggal_lahir,CURDATE()) BETWEEN 13 AND 17')->count();
-        $remaja = $remajaL + $remajaP;
-
-        $lansiaL = (clone $base)->where('jenis_kelamin', 'L')->whereRaw('TIMESTAMPDIFF(YEAR,tanggal_lahir,CURDATE()) >= 60')->count();
-        $lansiaP = (clone $base)->where('jenis_kelamin', 'P')->whereRaw('TIMESTAMPDIFF(YEAR,tanggal_lahir,CURDATE()) >= 60')->count();
-        $lansia = $lansiaL + $lansiaP;
-
-        $pusP = (clone $base)->where('jenis_kelamin', 'P')->whereRaw('TIMESTAMPDIFF(YEAR,tanggal_lahir,CURDATE()) BETWEEN 15 AND 49')->count();
-        $pus = $pusP;
-
-        $janda = (clone $base)->where('jenis_kelamin', 'P')->whereHas('statusKawin', fn($q) => $q->whereRaw('LOWER(nama) LIKE ?', ['%cerai mati%']))->count();
-        $duda = (clone $base)->where('jenis_kelamin', 'L')->whereHas('statusKawin', fn($q) => $q->whereRaw('LOWER(nama) LIKE ?', ['%cerai mati%']))->count();
-        $jandaDuda = $janda + $duda;
-
-        $ceraiHidupP = (clone $base)->where('jenis_kelamin', 'P')->whereHas('statusKawin', fn($q) => $q->whereRaw('LOWER(nama) LIKE ?', ['%cerai hidup%']))->count();
-        $ceraiHidupL = (clone $base)->where('jenis_kelamin', 'L')->whereHas('statusKawin', fn($q) => $q->whereRaw('LOWER(nama) LIKE ?', ['%cerai hidup%']))->count();
-        $ceraiHidup = $ceraiHidupP + $ceraiHidupL;
-
-        $dewasaMudaL = (clone $base)->where('jenis_kelamin', 'L')->whereHas('statusKawin', fn($q) => $q->whereRaw('LOWER(nama) LIKE ?', ['%belum kawin%']))->whereRaw('TIMESTAMPDIFF(YEAR,tanggal_lahir,CURDATE()) BETWEEN 18 AND 30')->count();
-        $dewasaMudaP = (clone $base)->where('jenis_kelamin', 'P')->whereHas('statusKawin', fn($q) => $q->whereRaw('LOWER(nama) LIKE ?', ['%belum kawin%']))->whereRaw('TIMESTAMPDIFF(YEAR,tanggal_lahir,CURDATE()) BETWEEN 18 AND 30')->count();
-        $dewasaMuda = $dewasaMudaL + $dewasaMudaP;
-
-        $pct = fn($n) => $total_penduduk > 0 ? round($n / $total_penduduk * 100, 1) : 0;
-
-        $kelompokRentan = [
-            ['nama' => 'Balita',             'deskripsi' => 'Usia 0–5 tahun',            'icon' => 'baby', 'color' => 'rose',  'total' => $balita,    'laki' => $balitaL,    'perempuan' => $balitaP,    'persen' => $pct($balita)],
-            ['nama' => 'Anak-anak',          'deskripsi' => 'Usia 6–12 tahun',           'icon' => 'child', 'color' => 'orange', 'total' => $anak,      'laki' => $anakL,      'perempuan' => $anakP,      'persen' => $pct($anak)],
-            ['nama' => 'Remaja',             'deskripsi' => 'Usia 13–17 tahun',          'icon' => 'teen', 'color' => 'amber', 'total' => $remaja,    'laki' => $remajaL,    'perempuan' => $remajaP,    'persen' => $pct($remaja)],
-            ['nama' => 'Lansia',             'deskripsi' => 'Usia 60 tahun ke atas',     'icon' => 'elder', 'color' => 'purple', 'total' => $lansia,    'laki' => $lansiaL,    'perempuan' => $lansiaP,    'persen' => $pct($lansia)],
-            ['nama' => 'Perempuan Usia Subur', 'deskripsi' => 'Perempuan usia 15–49',     'icon' => 'woman', 'color' => 'pink',  'total' => $pus,       'laki' => 0,           'perempuan' => $pusP,       'persen' => $pct($pus)],
-            ['nama' => 'Janda / Duda',       'deskripsi' => 'Status kawin: cerai mati',  'icon' => 'alone', 'color' => 'slate', 'total' => $jandaDuda, 'laki' => $duda,       'perempuan' => $janda,      'persen' => $pct($jandaDuda)],
-            ['nama' => 'Cerai Hidup',        'deskripsi' => 'Status kawin: cerai hidup', 'icon' => 'split', 'color' => 'cyan',  'total' => $ceraiHidup, 'laki' => $ceraiHidupL, 'perempuan' => $ceraiHidupP, 'persen' => $pct($ceraiHidup)],
-            ['nama' => 'Dewasa Muda Lajang', 'deskripsi' => 'Usia 18–30 belum menikah', 'icon' => 'youth', 'color' => 'teal',  'total' => $dewasaMuda, 'laki' => $dewasaMudaL, 'perempuan' => $dewasaMudaP, 'persen' => $pct($dewasaMuda)],
+        $bulanList = [
+            1  => 'Januari',
+            2  => 'Februari',
+            3  => 'Maret',
+            4  => 'April',
+            5  => 'Mei',
+            6  => 'Juni',
+            7  => 'Juli',
+            8  => 'Agustus',
+            9  => 'September',
+            10 => 'Oktober',
+            11 => 'November',
+            12 => 'Desember',
         ];
 
-        $distribusiWilayah = DB::table('penduduk')
-            ->join('wilayah', 'penduduk.wilayah_id', '=', 'wilayah.id')
-            ->where('penduduk.status_hidup', 'hidup')->whereNull('penduduk.deleted_at')
-            ->when($wilayahId, fn($q) => $q->where('penduduk.wilayah_id', $wilayahId))
-            ->selectRaw('wilayah.dusun,wilayah.rt,wilayah.rw,COUNT(*) as total,
-                SUM(CASE WHEN TIMESTAMPDIFF(YEAR,penduduk.tanggal_lahir,CURDATE()) BETWEEN 0 AND 5 THEN 1 ELSE 0 END) as balita,
-                SUM(CASE WHEN TIMESTAMPDIFF(YEAR,penduduk.tanggal_lahir,CURDATE()) >= 60 THEN 1 ELSE 0 END) as lansia')
-            ->groupBy('wilayah.dusun', 'wilayah.rt', 'wilayah.rw')
-            ->orderByRaw('(balita+lansia) DESC')->limit(10)->get();
+        // ── Query utama: data per kombinasi dusun → rw → rt ──────────────────
+        // Catatan: sakit_menahun_id = 1 diasumsikan "TIDAK" (sama pola ref_cacat id=1=TIDAK ADA)
+        //          Ubah kondisi sakit_menahun_id jika ref_sakit_menahun berbeda.
+        $rows = DB::table('penduduk as p')
+            ->join('wilayah as w', 'p.wilayah_id', '=', 'w.id')
+            ->where('p.status_hidup', 'hidup')
+            ->whereNull('p.deleted_at')
+            ->whereNull('w.deleted_at')
+            ->whereNotNull('w.dusun')
+            ->when($dusunFilter, fn($q) => $q->where('w.dusun', $dusunFilter))
+            ->groupBy('w.dusun', 'w.rw', 'w.rt')
+            ->selectRaw("
+            w.dusun,
+            w.rw,
+            w.rt,
+            -- Kelompok Umur (ref: Lampiran A-9 OpenSID)
+            SUM(CASE WHEN TIMESTAMPDIFF(YEAR, p.tanggal_lahir, CURDATE()) < 1              THEN 1 ELSE 0 END) AS umur_bawah_1,
+            SUM(CASE WHEN TIMESTAMPDIFF(YEAR, p.tanggal_lahir, CURDATE()) BETWEEN 1 AND 5  THEN 1 ELSE 0 END) AS umur_1_5,
+            SUM(CASE WHEN TIMESTAMPDIFF(YEAR, p.tanggal_lahir, CURDATE()) BETWEEN 6 AND 12 THEN 1 ELSE 0 END) AS umur_6_12,
+            SUM(CASE WHEN TIMESTAMPDIFF(YEAR, p.tanggal_lahir, CURDATE()) BETWEEN 13 AND 15 THEN 1 ELSE 0 END) AS umur_13_15,
+            SUM(CASE WHEN TIMESTAMPDIFF(YEAR, p.tanggal_lahir, CURDATE()) BETWEEN 16 AND 18 THEN 1 ELSE 0 END) AS umur_16_18,
+            SUM(CASE WHEN TIMESTAMPDIFF(YEAR, p.tanggal_lahir, CURDATE()) >= 60             THEN 1 ELSE 0 END) AS umur_atas_60,
+            -- Disabilitas (ref_cacat: 2=Fisik,3=Netra/Buta,4=Rungu/Wicara,5=Mental/Jiwa,6=Fisik&Mental,7=Lainnya,1=Tidak Ada)
+            SUM(CASE WHEN p.cacat_id = 2 THEN 1 ELSE 0 END) AS disab_fisik,
+            SUM(CASE WHEN p.cacat_id = 3 THEN 1 ELSE 0 END) AS disab_netra,
+            SUM(CASE WHEN p.cacat_id = 4 THEN 1 ELSE 0 END) AS disab_rungu,
+            SUM(CASE WHEN p.cacat_id = 5 THEN 1 ELSE 0 END) AS disab_mental,
+            SUM(CASE WHEN p.cacat_id = 6 THEN 1 ELSE 0 END) AS disab_fisik_mental,
+            SUM(CASE WHEN p.cacat_id = 7 THEN 1 ELSE 0 END) AS disab_lainnya,
+            SUM(CASE WHEN p.cacat_id = 1 OR p.cacat_id IS NULL THEN 1 ELSE 0 END) AS tidak_disabilitas,
+            -- Sakit Menahun terpisah L/P
+            SUM(CASE WHEN p.sakit_menahun_id IS NOT NULL AND p.sakit_menahun_id != 1 AND p.jenis_kelamin = 'L' THEN 1 ELSE 0 END) AS sakit_l,
+            SUM(CASE WHEN p.sakit_menahun_id IS NOT NULL AND p.sakit_menahun_id != 1 AND p.jenis_kelamin = 'P' THEN 1 ELSE 0 END) AS sakit_p,
+            -- Hamil
+            SUM(CASE WHEN p.hamil = 1 THEN 1 ELSE 0 END) AS hamil
+        ")
+            ->orderBy('w.dusun')
+            ->orderBy('w.rw')
+            ->orderBy('w.rt')
+            ->get();
 
-        $wilayahList = Wilayah::orderBy('dusun')->orderBy('rw')->orderBy('rt')->get();
-        $totalRentan = $balita + $anak + $remaja + $lansia + $pus + $jandaDuda + $ceraiHidup;
+        // ── Query KK per wilayah (kepala keluarga dari tabel keluarga) ────────
+        $kkMap = DB::table('keluarga as k')
+            ->join('wilayah as w', 'k.wilayah_id', '=', 'w.id')
+            ->join('penduduk as p', 'k.kepala_keluarga_id', '=', 'p.id')
+            ->whereNull('k.deleted_at')
+            ->whereNull('w.deleted_at')
+            ->whereNotNull('w.dusun')
+            ->when($dusunFilter, fn($q) => $q->where('w.dusun', $dusunFilter))
+            ->groupBy('w.dusun', 'w.rw', 'w.rt')
+            ->selectRaw("
+            w.dusun, w.rw, w.rt,
+            SUM(CASE WHEN p.jenis_kelamin = 'L' THEN 1 ELSE 0 END) AS kk_l,
+            SUM(CASE WHEN p.jenis_kelamin = 'P' THEN 1 ELSE 0 END) AS kk_p
+        ")
+            ->get()
+            ->keyBy(fn($r) => "{$r->dusun}|{$r->rw}|{$r->rt}");
+
+        // ── Gabungkan KK ke dalam rows utama ─────────────────────────────────
+        $tableRows = $rows->map(function ($row) use ($kkMap) {
+            $key       = "{$row->dusun}|{$row->rw}|{$row->rt}";
+            $kk        = $kkMap->get($key);
+            $row->kk_l = $kk->kk_l ?? 0;
+            $row->kk_p = $kk->kk_p ?? 0;
+            return $row;
+        });
 
         $data = [
-            'total_penduduk'    => $total_penduduk,
-            'kelompokRentan'    => $kelompokRentan,
-            'distribusiWilayah' => $distribusiWilayah,
-            'totalRentan'       => $totalRentan,
-            'wilayahList'       => $wilayahList,
-            'wilayahId'         => $wilayahId,
+            'tableRows'   => $tableRows,
+            'dusunList'   => $dusunList,
+            'dusunFilter' => $dusunFilter,
+            'bulan'       => $bulan,
+            'tahun'       => $tahun,
+            'bulanList'   => $bulanList,
+            'identitas'   => $identitas,
         ];
 
+        // ── Export Excel ──────────────────────────────────────────────────────
+        if ($request->get('export') === 'excel') {
+            return $this->exportExcelKelompokRentan($data);
+        }
+
         return view('admin.statistik.kelompok-rentan', compact('data'));
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    private function exportExcelKelompokRentan(array $data): \Illuminate\Http\Response {
+        $rows      = $data['tableRows'];
+        $bulanList = $data['bulanList'];
+        $bulan     = $data['bulan'];
+        $tahun     = $data['tahun'];
+        $identitas = $data['identitas'];
+
+        $namaDesa  = $identitas->nama_desa  ?? ($identitas->nama         ?? 'Desa');
+        $kecamatan = $identitas->kecamatan  ?? ($identitas->nama_kecamatan ?? '-');
+        $kabupaten = $identitas->kabupaten  ?? ($identitas->nama_kabupaten ?? '-');
+
+        // Hitung total semua kolom
+        $cols = [
+            'kk_l',
+            'kk_p',
+            'umur_bawah_1',
+            'umur_1_5',
+            'umur_6_12',
+            'umur_13_15',
+            'umur_16_18',
+            'umur_atas_60',
+            'disab_fisik',
+            'disab_netra',
+            'disab_rungu',
+            'disab_mental',
+            'disab_fisik_mental',
+            'disab_lainnya',
+            'tidak_disabilitas',
+            'sakit_l',
+            'sakit_p',
+            'hamil',
+        ];
+        $totals = array_fill_keys($cols, 0);
+        foreach ($rows as $row) {
+            foreach ($cols as $c) {
+                $totals[$c] += (int) ($row->$c ?? 0);
+            }
+        }
+
+        $namaBulan = $bulanList[$bulan] ?? $bulan;
+        $kabUp     = mb_strtoupper($kabupaten);
+
+        // Build HTML-based Excel (tidak perlu package tambahan)
+        ob_start();
+?>
+        <!DOCTYPE html>
+        <html>
+
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    font-size: 10pt;
+                }
+
+                table {
+                    border-collapse: collapse;
+                    width: 100%;
+                }
+
+                th,
+                td {
+                    border: 1px solid #000;
+                    padding: 4px 6px;
+                    text-align: center;
+                    vertical-align: middle;
+                    white-space: nowrap;
+                }
+
+                .left {
+                    text-align: left;
+                }
+
+                .bold {
+                    font-weight: bold;
+                }
+
+                .head {
+                    background: #dce6f1;
+                    font-weight: bold;
+                    font-size: 9pt;
+                }
+
+                .total {
+                    background: #e2efda;
+                    font-weight: bold;
+                }
+
+                h2,
+                h3 {
+                    text-align: center;
+                    margin: 4px 0;
+                }
+
+                p {
+                    margin: 2px 0;
+                    font-size: 10pt;
+                }
+            </style>
+        </head>
+
+        <body>
+            <h2>PEMERINTAH KABUPATEN/KOTA <?= $kabUp ?></h2>
+            <h3>DATA PILAH KEPENDUDUKAN MENURUT UMUR DAN FAKTOR KERENTANAN (LAMPIRAN A - 9)</h3>
+            <br>
+            <p>
+                Desa/Kel&nbsp;&nbsp;&nbsp;: <b><?= $namaDesa ?></b>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                Kecamatan : <b><?= $kecamatan ?></b>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                Lap. Bulan : <b><?= $namaBulan . ' ' . $tahun ?></b>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                Dusun&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <b><?= $data['dusunFilter'] ?? 'Semua' ?></b>
+            </p>
+            <br>
+            <table>
+                <thead>
+                    <tr class="head">
+                        <th rowspan="2">DUSUN</th>
+                        <th rowspan="2">RW</th>
+                        <th rowspan="2">RT</th>
+                        <th colspan="2">KK</th>
+                        <th colspan="6">KONDISI DAN KELOMPOK UMUR</th>
+                        <th colspan="7">DISABILITAS</th>
+                        <th colspan="2">SAKIT MENAHUN</th>
+                        <th rowspan="2">HAMIL</th>
+                    </tr>
+                    <tr class="head">
+                        <th>L</th>
+                        <th>P</th>
+                        <th>DI BAWAH 1 TAHUN</th>
+                        <th>1-5 TAHUN</th>
+                        <th>6-12 TAHUN</th>
+                        <th>13-15 TAHUN</th>
+                        <th>16-18 TAHUN</th>
+                        <th>DI ATAS 60 TAHUN</th>
+                        <th>DISABILITAS FISIK</th>
+                        <th>DISABILITAS NETRA/ BUTA</th>
+                        <th>DISABILITAS RUNGU/ WICARA</th>
+                        <th>DISABILITAS MENTAL/ JIWA</th>
+                        <th>DISABILITAS FISIK DAN MENTAL</th>
+                        <th>DISABILITAS LAINNYA</th>
+                        <th>TIDAK DISABILITAS</th>
+                        <th>L</th>
+                        <th>P</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($rows as $row): ?>
+                        <tr>
+                            <td class="left"><?= htmlspecialchars($row->dusun ?? '') ?></td>
+                            <td><?= htmlspecialchars($row->rw  ?? '') ?></td>
+                            <td><?= htmlspecialchars($row->rt  ?? '') ?></td>
+                            <td><?= (int)$row->kk_l ?></td>
+                            <td><?= (int)$row->kk_p ?></td>
+                            <td><?= (int)$row->umur_bawah_1 ?></td>
+                            <td><?= (int)$row->umur_1_5 ?></td>
+                            <td><?= (int)$row->umur_6_12 ?></td>
+                            <td><?= (int)$row->umur_13_15 ?></td>
+                            <td><?= (int)$row->umur_16_18 ?></td>
+                            <td><?= (int)$row->umur_atas_60 ?></td>
+                            <td><?= (int)$row->disab_fisik ?></td>
+                            <td><?= (int)$row->disab_netra ?></td>
+                            <td><?= (int)$row->disab_rungu ?></td>
+                            <td><?= (int)$row->disab_mental ?></td>
+                            <td><?= (int)$row->disab_fisik_mental ?></td>
+                            <td><?= (int)$row->disab_lainnya ?></td>
+                            <td><?= (int)$row->tidak_disabilitas ?></td>
+                            <td><?= (int)$row->sakit_l ?></td>
+                            <td><?= (int)$row->sakit_p ?></td>
+                            <td><?= (int)$row->hamil ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                    <tr class="total">
+                        <td colspan="3" class="left bold">Total</td>
+                        <td><?= $totals['kk_l'] ?></td>
+                        <td><?= $totals['kk_p'] ?></td>
+                        <td><?= $totals['umur_bawah_1'] ?></td>
+                        <td><?= $totals['umur_1_5'] ?></td>
+                        <td><?= $totals['umur_6_12'] ?></td>
+                        <td><?= $totals['umur_13_15'] ?></td>
+                        <td><?= $totals['umur_16_18'] ?></td>
+                        <td><?= $totals['umur_atas_60'] ?></td>
+                        <td><?= $totals['disab_fisik'] ?></td>
+                        <td><?= $totals['disab_netra'] ?></td>
+                        <td><?= $totals['disab_rungu'] ?></td>
+                        <td><?= $totals['disab_mental'] ?></td>
+                        <td><?= $totals['disab_fisik_mental'] ?></td>
+                        <td><?= $totals['disab_lainnya'] ?></td>
+                        <td><?= $totals['tidak_disabilitas'] ?></td>
+                        <td><?= $totals['sakit_l'] ?></td>
+                        <td><?= $totals['sakit_p'] ?></td>
+                        <td><?= $totals['hamil'] ?></td>
+                    </tr>
+                </tbody>
+            </table>
+        </body>
+
+        </html>
+<?php
+        $html = ob_get_clean();
+
+        $filename = 'lampiran_a9_' . str_replace(' ', '_', $namaBulan) . '_' . $tahun . '.xls';
+
+        return response($html, 200, [
+            'Content-Type'        => 'application/vnd.ms-excel',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Pragma'              => 'no-cache',
+            'Expires'             => '0',
+        ]);
     }
 }

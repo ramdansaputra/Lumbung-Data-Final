@@ -929,71 +929,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
     */
     Route::get('/statistik/kependudukan', [\App\Http\Controllers\Admin\statistik\StatistikController::class, 'kependudukan'])->name('statistik.kependudukan');
     Route::get('/statistik/kelompok-rentan', [\App\Http\Controllers\Admin\statistik\StatistikController::class, 'kelompokRentan'])->name('statistik.kelompok-rentan');
-
-    Route::get('/statistik/laporan-bulanan', function (\Illuminate\Http\Request $request) {
-        $month = $request->input('bulan');
-        $year  = $request->input('tahun');
-        $now = Carbon::now();
-
-        if ($month && $year) {
-            try {
-                $start = Carbon::createFromDate((int) $year, (int) $month, 1)->startOfDay();
-            } catch (\Exception $e) {
-                $start = $now->copy()->startOfMonth();
-            }
-        } else {
-            $start = $now->copy()->startOfMonth();
-        }
-
-        $end   = $start->copy()->endOfMonth()->endOfDay();
-        $year  = $start->year;
-        $month = $start->month;
-
-        $total_penduduk = \App\Models\Penduduk::where('status_hidup', 'hidup')->count();
-
-        $lahir = \App\Models\Penduduk::whereYear('tanggal_lahir', $year)
-            ->whereMonth('tanggal_lahir', $month)
-            ->whereBetween('created_at', [$start, $end])
-            ->count();
-
-        $created = \App\Models\Penduduk::whereBetween('created_at', [$start, $end])->count();
-        $datang  = max(0, $created - $lahir);
-
-        $meninggal = \App\Models\Penduduk::where('status_hidup', 'meninggal')
-            ->whereBetween('updated_at', [$start, $end])
-            ->count();
-
-        $pindah = 0;
-
-        $mutasi = [
-            'lahir'     => $lahir,
-            'meninggal' => $meninggal,
-            'datang'    => $datang,
-            'pindah'    => $pindah,
-        ];
-
-        $makePercent = function ($count) use ($total_penduduk) {
-            $pct  = $total_penduduk > 0 ? round(($count / $total_penduduk) * 100, 2) : 0;
-            $sign = $pct >= 0 ? '+' : '';
-            return $sign . $pct . '%';
-        };
-
-        $laporan = [
-            ['kategori' => 'Kelahiran', 'jumlah' => $lahir,     'persen' => $makePercent($lahir)],
-            ['kategori' => 'Kematian',  'jumlah' => $meninggal, 'persen' => $makePercent($meninggal)],
-            ['kategori' => 'Pendatang', 'jumlah' => $datang,    'persen' => $makePercent($datang)],
-            ['kategori' => 'Pindah',    'jumlah' => $pindah,    'persen' => $makePercent($pindah)],
-        ];
-
-        $data = [
-            'bulan'          => $start->translatedFormat('F Y'),
-            'total_penduduk' => $total_penduduk,
-            'mutasi'         => $mutasi,
-            'laporan'        => $laporan,
-        ];
-
-        return view('admin.statistik.laporan-bulanan', compact('data'));
-    })->name('statistik.laporan-bulanan');
+    Route::get('/statistik/laporan-bulanan', [App\Http\Controllers\Admin\statistik\StatistikController::class, 'laporanBulanan'])->name('statistik.laporan-bulanan');
 
     Route::get('/statistik/penduduk',               [LaporanPendudukController::class, 'index'])->name('statistik.penduduk');
     Route::post('/statistik/penduduk',               [LaporanPendudukController::class, 'store'])->name('statistik.penduduk.store');
