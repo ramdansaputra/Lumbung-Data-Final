@@ -76,41 +76,6 @@
         </nav>
     </div>
 
-    {{-- ── FLASH MESSAGES (satu sumber saja — jika layout sudah ada, hapus blok ini) ── --}}
-    @if(session('success'))
-        <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)"
-             x-transition:leave="transition ease-in duration-300" x-transition:leave-end="opacity-0 -translate-y-1"
-             class="flex items-center gap-3 p-4 mb-5 bg-emerald-50 dark:bg-emerald-900/20
-                    border border-emerald-200 dark:border-emerald-800 rounded-xl">
-            <svg class="w-5 h-5 text-emerald-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-            </svg>
-            <p class="text-sm font-semibold text-emerald-800 dark:text-emerald-300">{{ session('success') }}</p>
-            <button @click="show = false" class="ml-auto text-emerald-400 hover:text-emerald-600">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-            </button>
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 8000)"
-             x-transition:leave="transition ease-in duration-300" x-transition:leave-end="opacity-0 -translate-y-1"
-             class="flex items-center gap-3 p-4 mb-5 bg-red-50 dark:bg-red-900/20
-                    border border-red-200 dark:border-red-800 rounded-xl">
-            <svg class="w-5 h-5 text-red-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-            </svg>
-            <p class="text-sm font-semibold text-red-700 dark:text-red-300">{{ session('error') }}</p>
-            <button @click="show = false" class="ml-auto text-red-400 hover:text-red-600">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-            </button>
-        </div>
-    @endif
-
     {{-- ── MAIN CARD ── --}}
     <div class="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700">
 
@@ -127,27 +92,32 @@
                 Tambah
             </button>
 
-            {{-- Hapus Bulk — hanya muncul saat ada yang dicentang --}}
-            <button type="button"
-                x-show="selectedIds.length > 0"
-                x-transition:enter="transition ease-out duration-150"
-                x-transition:enter-start="opacity-0 scale-95"
-                x-transition:enter-end="opacity-100 scale-100"
-                @click="if(confirm('Hapus ' + selectedIds.length + ' dokumen yang dipilih? Tindakan ini tidak bisa dibatalkan.')) {
-                    document.getElementById('form-bulk-destroy').submit();
-                }"
-                class="inline-flex items-center gap-1.5 px-4 py-2 bg-red-500 hover:bg-red-600
-                       text-white text-sm font-semibold rounded-lg transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                </svg>
-                Hapus (<span x-text="selectedIds.length"></span>)
-            </button>
+            {{-- Hapus Bulk — selalu tampil, disabled jika tidak ada yang dipilih (seperti PPID) --}}
+            <form method="POST" action="{{ route('admin.penduduk.dokumen.bulk-destroy', $penduduk) }}" id="form-bulk-destroy">
+                @csrf
+                @method('DELETE')
+                <template x-for="id in selectedIds" :key="id">
+                    <input type="hidden" name="ids[]" :value="id">
+                </template>
+                <button type="button"
+                    :disabled="selectedIds.length === 0"
+                    @click="selectedIds.length > 0 && modalHapus.bukaJs(selectedIds.length + ' dokumen yang dipilih', () => document.getElementById('form-bulk-destroy').submit())"
+                    :class="selectedIds.length > 0
+                        ? 'bg-red-500 hover:bg-red-600 cursor-pointer'
+                        : 'bg-red-300 dark:bg-red-900/50 cursor-not-allowed opacity-60'"
+                    class="inline-flex items-center gap-1.5 px-4 py-2 text-white text-sm font-semibold rounded-lg transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                    Hapus
+                    <span x-show="selectedIds.length > 0">(<span x-text="selectedIds.length"></span>)</span>
+                </button>
+            </form>
 
             {{-- Kembali ke Biodata --}}
             <a href="{{ route('admin.penduduk.show', $penduduk) }}"
-                class="inline-flex items-center gap-1.5 px-4 py-2 bg-sky-500 hover:bg-sky-600
+                class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-500 hover:bg-emerald-600
                        text-white text-sm font-semibold rounded-lg transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
@@ -184,60 +154,29 @@
         {{-- ── TOOLBAR 2: per_page + search ── --}}
         <div class="flex flex-wrap items-center justify-between gap-3 px-5 py-3 border-b border-gray-100 dark:border-slate-700">
 
-            {{-- Per-page (custom dropdown dengan Alpine agar konsisten) --}}
-            <div x-data="{
-                    open: false,
-                    selected: {{ request('per_page', 10) }},
-                    options: [10, 25, 50],
-                    choose(n) {
-                        this.selected = n;
-                        this.open = false;
-                        window.location = '{{ route('admin.penduduk.dokumen', $penduduk) }}?per_page=' + n;
-                    }
-                }" @click.away="open = false"
-                class="flex items-center gap-2 text-sm text-gray-600 dark:text-slate-400">
+            {{-- Per-page — regular select seperti PPID --}}
+            <form method="GET" action="{{ route('admin.penduduk.dokumen', $penduduk) }}"
+                  class="flex items-center gap-2 text-sm text-gray-600 dark:text-slate-400">
                 <span>Tampilkan</span>
-                <div class="relative">
-                    <button type="button" @click="open = !open"
-                        class="flex items-center gap-1.5 px-3 py-1.5 border border-gray-300 dark:border-slate-600
-                               rounded-lg bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200 text-sm
-                               hover:border-emerald-400 focus:outline-none transition-colors"
-                        :class="open ? 'border-emerald-500 ring-2 ring-emerald-500/20' : ''">
-                        <span x-text="selected"></span>
-                        <svg class="w-3.5 h-3.5 text-gray-400 transition-transform" :class="open ? 'rotate-180' : ''"
-                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
-                    </button>
-                    <div x-show="open"
-                         x-transition:enter="transition ease-out duration-100"
-                         x-transition:enter-start="opacity-0 -translate-y-1"
-                         x-transition:enter-end="opacity-100 translate-y-0"
-                         class="absolute left-0 top-full mt-1 w-20 z-50 bg-white dark:bg-slate-800
-                                border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg py-1"
-                         style="display:none">
-                        <template x-for="n in options" :key="n">
-                            <div @click="choose(n)"
-                                 class="px-3 py-1.5 text-sm cursor-pointer transition-colors
-                                        hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700"
-                                 :class="selected === n
-                                     ? 'bg-emerald-500 text-white hover:bg-emerald-600 hover:text-white'
-                                     : 'text-gray-700 dark:text-slate-200'"
-                                 x-text="n">
-                            </div>
-                        </template>
-                    </div>
-                </div>
+                <select name="per_page" onchange="this.form.submit()"
+                    class="px-2 py-1.5 border border-gray-300 dark:border-slate-600 rounded-lg
+                           bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200
+                           focus:ring-2 focus:ring-emerald-500 outline-none text-sm cursor-pointer">
+                    @foreach([10, 25, 50] as $n)
+                        <option value="{{ $n }}" {{ request('per_page', 10) == $n ? 'selected' : '' }}>{{ $n }}</option>
+                    @endforeach
+                </select>
                 <span>entri</span>
-            </div>
+            </form>
 
-            {{-- Search — maks 50 karakter --}}
+            {{-- Search — maks 50 karakter dengan tooltip seperti PPID --}}
             <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-slate-400">
                 <label for="search-dokumen">Cari:</label>
-                <div class="relative">
+                <div class="relative group">
                     <input type="text" id="search-dokumen"
                         placeholder="kata kunci pencarian"
                         maxlength="50"
+                        title="Masukkan kata kunci untuk mencari (maksimal 50 karakter)"
                         class="pl-8 pr-3 py-1.5 border border-gray-300 dark:border-slate-600 rounded-lg
                                bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200
                                focus:ring-2 focus:ring-emerald-500 outline-none text-sm w-52 transition-colors">
@@ -246,20 +185,16 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
                     </svg>
+                    {{-- Tooltip saat focused --}}
+                    <div class="absolute bottom-full right-0 mb-2 hidden group-focus-within:block z-50 pointer-events-none">
+                        <div class="bg-gray-800 dark:bg-slate-700 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-lg">
+                            Masukkan kata kunci untuk mencari (maksimal 50 karakter)
+                            <div class="absolute top-full right-4 border-4 border-transparent border-t-gray-800 dark:border-t-slate-700"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-
-        {{-- ── FORM BULK DESTROY (hidden) ── --}}
-        <form id="form-bulk-destroy"
-              method="POST"
-              action="{{ route('admin.penduduk.dokumen.bulk-destroy', $penduduk) }}">
-            @csrf
-            @method('DELETE')
-            <template x-for="id in selectedIds" :key="id">
-                <input type="hidden" name="ids[]" :value="id">
-            </template>
-        </form>
 
         {{-- ── TABEL ── --}}
         <div class="overflow-x-auto">
@@ -308,7 +243,7 @@
 
                             {{-- Aksi --}}
                             <td class="px-4 py-3">
-                                <div class="flex items-center gap-1.5">
+                                <div class="flex items-center gap-1">
 
                                     {{-- Edit --}}
                                     <button type="button"
@@ -317,35 +252,34 @@
                                             '{{ addslashes($dok->nama_dokumen) }}',
                                             '{{ addslashes($dok->jenis_dokumen ?? '') }}'
                                         )"
-                                        class="p-1.5 rounded-lg bg-amber-400 hover:bg-amber-500 text-white transition-colors"
+                                        class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-amber-500 hover:bg-amber-600 text-white transition-colors"
                                         title="Edit">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                         </svg>
                                     </button>
 
-                                    {{-- Hapus satu --}}
-                                    <form method="POST"
-                                          action="{{ route('admin.penduduk.dokumen.destroy', [$penduduk, $dok->id]) }}"
-                                          onsubmit="return confirm('Hapus dokumen ini?')">
-                                        @csrf @method('DELETE')
-                                        <button type="submit"
-                                            class="p-1.5 rounded-lg bg-red-500 hover:bg-red-600 text-white transition-colors"
-                                            title="Hapus">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                            </svg>
-                                        </button>
-                                    </form>
+                                    {{-- Hapus — pakai modal-hapus seperti PPID --}}
+                                    <button type="button"
+                                        @click="$dispatch('buka-modal-hapus', {
+                                            action: '{{ route('admin.penduduk.dokumen.destroy', [$penduduk, $dok->id]) }}',
+                                            nama: '{{ addslashes($dok->nama_dokumen) }}'
+                                        })"
+                                        class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-red-500 hover:bg-red-600 text-white transition-colors"
+                                        title="Hapus">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                        </svg>
+                                    </button>
 
                                     {{-- Download / Lihat --}}
                                     <a href="{{ asset('storage/' . $dok->file_path) }}"
                                        target="_blank" download
-                                       class="p-1.5 rounded-lg bg-sky-500 hover:bg-sky-600 text-white transition-colors"
+                                       class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-sky-500 hover:bg-sky-600 text-white transition-colors"
                                        title="Download / Lihat">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                                         </svg>
@@ -551,9 +485,8 @@
 
                 <div class="flex items-center justify-between px-6 py-4 border-t border-gray-200 dark:border-slate-700">
                     <button type="button" @click="showModalTambah = false"
-                        class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200
-                               dark:bg-slate-700 dark:hover:bg-slate-600 text-gray-700 dark:text-slate-300
-                               text-sm font-semibold rounded-lg transition-colors">
+                        class="inline-flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600
+                               text-white text-sm font-semibold rounded-lg transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                         </svg>
@@ -564,9 +497,9 @@
                                text-white text-sm font-semibold rounded-lg transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                                d="M17 16v2a2 2 0 01-2 2H5a2 2 0 01-2-2v-7a2 2 0 012-2h2m3-4H9a2 2 0 00-2 2v7a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-1m-1 4l-3 3m0 0l-3-3m3 3V3"/>
                         </svg>
-                        Upload
+                        Simpan
                     </button>
                 </div>
             </form>
@@ -657,8 +590,8 @@
                         <input type="file" name="file" accept=".pdf,.jpg,.jpeg,.png"
                             class="w-full text-sm text-gray-700 dark:text-slate-200
                                    file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0
-                                   file:text-sm file:font-semibold file:bg-amber-50 file:text-amber-700
-                                   hover:file:bg-amber-100 dark:file:bg-amber-900/20 dark:file:text-amber-400
+                                   file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700
+                                   hover:file:bg-emerald-100 dark:file:bg-emerald-900/30 dark:file:text-emerald-400
                                    cursor-pointer">
                         <p class="mt-1.5 text-xs text-gray-400 dark:text-slate-500">
                             Biarkan kosong jika tidak ingin mengganti file. Format: PDF, JPG, PNG — Maks 5 MB
@@ -668,16 +601,15 @@
 
                 <div class="flex items-center justify-between px-6 py-4 border-t border-gray-200 dark:border-slate-700">
                     <button type="button" @click="showModalEdit = false"
-                        class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200
-                               dark:bg-slate-700 dark:hover:bg-slate-600 text-gray-700 dark:text-slate-300
-                               text-sm font-semibold rounded-lg transition-colors">
+                        class="inline-flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600
+                               text-white text-sm font-semibold rounded-lg transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                         </svg>
                         Batal
                     </button>
                     <button type="submit"
-                        class="inline-flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600
+                        class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600
                                text-white text-sm font-semibold rounded-lg transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
@@ -690,6 +622,10 @@
     </div>
 
 </div>{{-- /x-data --}}
+
+{{-- Modal hapus (shared: single & bulk) --}}
+@include('admin.partials.modal-hapus')
+
 @endsection
 
 @push('scripts')
