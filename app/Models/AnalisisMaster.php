@@ -19,10 +19,26 @@ class AnalisisMaster extends Model {
         'status',
         'lock',
         'periode',
+        'google_form_id',
+        'last_sync_at',
     ];
 
     protected $casts = [
-        'lock' => 'boolean',
+        'lock'         => 'boolean',
+        'last_sync_at' => 'datetime',
+    ];
+
+    // ── Subjek yang tersedia ─────────────────────────────────
+
+    public const SUBJEK_OPTIONS = [
+        'PENDUDUK'     => 'Penduduk',
+        'KELUARGA'     => 'Keluarga / KK',
+        'RUMAH_TANGGA' => 'Rumah Tangga',
+        'KELOMPOK'     => 'Kelompok',
+        'DESA'         => 'Desa',
+        'DUSUN'        => 'Dusun',
+        'RW'           => 'Rukun Warga (RW)',
+        'RT'           => 'Rukun Tetangga (RT)',
     ];
 
     // ── Relasi ──────────────────────────────────────────────
@@ -52,22 +68,12 @@ class AnalisisMaster extends Model {
     // ── Helpers ─────────────────────────────────────────────
 
     public function getSubjekLabelAttribute(): string {
-        return match ($this->subjek) {
-            'PENDUDUK'     => 'Penduduk',
-            'KELUARGA'     => 'Keluarga',
-            'RUMAH_TANGGA' => 'Rumah Tangga',
-            'KELOMPOK'     => 'Kelompok',
-            default        => $this->subjek,
-        };
+        return self::SUBJEK_OPTIONS[$this->subjek] ?? $this->subjek;
     }
 
     public function getStatusBadgeAttribute(): array {
         return $this->status === 'AKTIF'
             ? ['label' => 'Aktif',       'class' => 'bg-emerald-100 text-emerald-700']
             : ['label' => 'Tidak Aktif', 'class' => 'bg-gray-100 text-gray-600'];
-    }
-
-    public function getTotalRespondenAttribute(): int {
-        return $this->responden()->count();
     }
 }

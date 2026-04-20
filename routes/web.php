@@ -1566,6 +1566,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
     Route::post('analisis/{analisi}/toggle-status', [AnalisisMasterController::class, 'toggleStatus'])->name('analisis.toggle-status');
     Route::post('analisis/{analisi}/toggle-lock', [AnalisisMasterController::class, 'toggleLock'])->name('analisis.toggle-lock');
 
+    Route::get('analisis/{analisi}/export',       [AnalisisMasterController::class, 'export'])->name('analisis.export');
+    Route::post('analisis/{analisi}/sinkronisasi', [AnalisisMasterController::class, 'sinkronisasi'])->name('analisis.sinkronisasi');
+    Route::post('analisis/import',                 [AnalisisMasterController::class, 'import'])->name('analisis.import');
+    
     Route::prefix('analisis/{analisi}/indikator')->name('analisis.indikator.')->group(function () {
         Route::post('/', [AnalisisIndikatorController::class, 'store'])->name('store');
         Route::put('/{indikator}', [AnalisisIndikatorController::class, 'update'])->name('update');
