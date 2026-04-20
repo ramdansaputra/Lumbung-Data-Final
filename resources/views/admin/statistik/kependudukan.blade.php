@@ -832,33 +832,36 @@
             ];
 
             if (type === 'bar') {
+                const barColors = [
+                    '#10B981', '#3B82F6', '#F59E0B', '#EC4899', '#8B5CF6',
+                    '#F97316', '#06B6D4', '#EF4444', '#6366F1', '#84CC16',
+                    '#14B8A6', '#F43F5E', '#A855F7', '#FBBF24', '#22C55E',
+                ];
                 chartInstance = new Chart(ctx, {
                     type: 'bar',
                     data: {
                         labels: chartLabels,
                         datasets: [{
-                                label: 'Laki-laki',
-                                data: chartLaki,
-                                backgroundColor: '#3B82F6',
-                                borderRadius: 4
-                            },
-                            {
-                                label: 'Perempuan',
-                                data: chartPerempuan,
-                                backgroundColor: '#EC4899',
-                                borderRadius: 4
-                            },
-                        ]
+                            label: 'Jumlah Penduduk',
+                            data: chartTotal,
+                            backgroundColor: chartLabels.map((_, i) => barColors[i % barColors.length]),
+                            borderRadius: 4,
+                        }]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
                         plugins: {
                             legend: {
-                                position: 'bottom',
-                                labels: {
-                                    usePointStyle: true,
-                                    padding: 16
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(ctx) {
+                                        const total = chartTotal.reduce((a, b) => a + b, 0);
+                                        const pct = total > 0 ? ((ctx.raw / total) * 100).toFixed(2) : 0;
+                                        return ` ${ctx.raw} jiwa (${pct}%)`;
+                                    }
                                 }
                             }
                         },
@@ -866,8 +869,9 @@
                             x: {
                                 ticks: {
                                     font: {
-                                        size: 11
-                                    }
+                                        size: 10
+                                    },
+                                    maxRotation: 30
                                 }
                             },
                             y: {
