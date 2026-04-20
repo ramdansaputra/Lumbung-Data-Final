@@ -41,18 +41,65 @@
          Grup aktif (Statistik Penduduk) selalu terbuka.
          Grup lain (Keluarga / RTM / Program Bantuan) = coming soon.
          ================================================================ --}}
+        {{-- ================================================================
+     SIDEBAR
+     ================================================================ --}}
+        @php
+            $pendudukKeys = [
+                'usia',
+                'pendidikan',
+                'pekerjaan',
+                'status_kawin',
+                'agama',
+                'jenis_kelamin',
+                'golongan_darah',
+                'wilayah',
+            ];
+            $isPendudukActive = in_array($data['kategori'], $pendudukKeys);
+
+            $pendudukMenus = [
+                ['key' => 'usia', 'label' => 'Distribusi Usia'],
+                ['key' => 'pendidikan', 'label' => 'Pendidikan Dalam KK'],
+                ['key' => 'pekerjaan', 'label' => 'Pekerjaan'],
+                ['key' => 'status_kawin', 'label' => 'Status Perkawinan'],
+                ['key' => 'agama', 'label' => 'Agama'],
+                ['key' => 'jenis_kelamin', 'label' => 'Jenis Kelamin'],
+                ['key' => 'golongan_darah', 'label' => 'Golongan Darah'],
+                ['key' => 'wilayah', 'label' => 'Sebaran Wilayah'],
+            ];
+
+            $soonGroups = [
+                [
+                    'label' => 'Statistik Keluarga',
+                    'items' => ['Kelas Sosial', 'Kepemilikan Aset', 'Sumber Penghasilan'],
+                ],
+                ['label' => 'Statistik RTM', 'items' => ['BDT', 'DTSEN']],
+                [
+                    'label' => 'Statistik Program Bantuan',
+                    'items' => [
+                        'Bantuan Penduduk',
+                        'Bantuan Keluarga',
+                        'BPNT',
+                        'BLSM',
+                        'PKH',
+                        'Bedah Rumah',
+                        'JAMKESMAS',
+                    ],
+                ],
+            ];
+        @endphp
+
         <div class="w-56 flex-shrink-0">
             <div
                 class="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden divide-y divide-gray-200 dark:divide-slate-700">
 
-                {{-- ── Grup 1: Statistik Penduduk ── --}}
+                {{-- Grup 1: Statistik Penduduk --}}
                 <div x-data="{ open: {{ $isPendudukActive ? 'true' : 'false' }} }">
                     <button @click="open = !open"
                         class="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors border-l-4 border-emerald-500">
                         <span>Statistik Penduduk</span>
                         <span class="text-lg font-light leading-none text-gray-400" x-text="open ? '−' : '+'"></span>
                     </button>
-
                     <div x-show="open" x-transition:enter="transition ease-out duration-150"
                         x-transition:enter-start="opacity-0 -translate-y-1"
                         x-transition:enter-end="opacity-100 translate-y-0"
@@ -62,16 +109,16 @@
                         @foreach ($pendudukMenus as $menu)
                             <a href="{{ request()->fullUrlWithQuery(['kategori' => $menu['key']]) }}"
                                 class="block px-4 py-2.5 text-sm border-t border-gray-100 dark:border-slate-700 transition-colors
-                          {{ $data['kategori'] === $menu['key']
-                              ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 font-semibold border-l-4 border-l-emerald-500 pl-3'
-                              : 'text-slate-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700/50 pl-4' }}">
+                        {{ $data['kategori'] === $menu['key']
+                            ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 font-semibold border-l-4 border-l-emerald-500 pl-3'
+                            : 'text-slate-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700/50 pl-4' }}">
                                 {{ $menu['label'] }}
                             </a>
                         @endforeach
                     </div>
                 </div>
 
-                {{-- ── Grup 2, 3, 4: Coming soon ── --}}
+                {{-- Grup 2, 3, 4: Coming soon --}}
                 @foreach ($soonGroups as $group)
                     <div x-data="{ open: false }">
                         <button @click="open = !open"
@@ -79,7 +126,6 @@
                             <span>{{ $group['label'] }}</span>
                             <span class="text-lg font-light leading-none text-gray-400" x-text="open ? '−' : '+'"></span>
                         </button>
-
                         <div x-show="open" x-transition:enter="transition ease-out duration-150"
                             x-transition:enter-start="opacity-0 -translate-y-1"
                             x-transition:enter-end="opacity-100 translate-y-0"
@@ -100,7 +146,7 @@
 
             </div>
         </div>
-        {{-- ── end sidebar ── --}}
+        {{-- end sidebar --}}
 
 
         {{-- ================================================================
@@ -467,7 +513,8 @@
                                         class="border border-slate-400 px-2 py-2 {{ $totalLaki ? 'text-emerald-600 font-semibold' : 'text-slate-400' }}">
                                         {{ $totalLaki ? number_format($totalLaki) : '-' }}</td>
                                     <td class="border border-slate-400 px-2 py-2 text-slate-500">
-                                        {{ $totalRow > 0 ? number_format(($totalLaki / $totalRow) * 100, 2) : '0,00' }}%</td>
+                                        {{ $totalRow > 0 ? number_format(($totalLaki / $totalRow) * 100, 2) : '0,00' }}%
+                                    </td>
                                     <td
                                         class="border border-slate-400 px-2 py-2 {{ $totalPerempuan ? 'text-emerald-600 font-semibold' : 'text-slate-400' }}">
                                         {{ $totalPerempuan ? number_format($totalPerempuan) : '-' }}</td>
@@ -542,11 +589,13 @@
                             {value:'{{ $p->nama }}', label:'{{ addslashes($p->nama) }}{{ !empty($p->jabatan) ? ' (' . addslashes($p->jabatan) . ')' : '' }}'}, @endforeach
                     ],
                     get filtered() { return !this.search ? this.options : this.options.filter(o => o.label.toLowerCase().includes(this.search.toLowerCase())); },
-                    choose(opt) { this.selected = opt.value;
+                    choose(opt) {
+                        this.selected = opt.value;
                         this.selectedLabel = opt.label;
                         document.getElementById('cetakPenandatangan').value = opt.value;
                         this.open = false;
-                        this.search = ''; }
+                        this.search = '';
+                    }
                 }" @click.away="open = false" class="relative">
                     <input type="hidden" id="cetakPenandatangan" value="">
                     <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Laporan
@@ -643,11 +692,13 @@
                             {value:'{{ $p->nama }}', label:'{{ addslashes($p->nama) }}{{ !empty($p->jabatan) ? ' (' . addslashes($p->jabatan) . ')' : '' }}'}, @endforeach
                     ],
                     get filtered() { return !this.search ? this.options : this.options.filter(o => o.label.toLowerCase().includes(this.search.toLowerCase())); },
-                    choose(opt) { this.selected = opt.value;
+                    choose(opt) {
+                        this.selected = opt.value;
                         this.selectedLabel = opt.label;
                         document.getElementById('unduhPenandatangan').value = opt.value;
                         this.open = false;
-                        this.search = ''; }
+                        this.search = '';
+                    }
                 }" @click.away="open = false" class="relative">
                     <input type="hidden" id="unduhPenandatangan" value="">
                     <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Laporan
