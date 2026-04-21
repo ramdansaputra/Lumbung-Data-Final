@@ -292,30 +292,30 @@
                     <h3 class="font-semibold text-gray-900 dark:text-slate-100 text-sm">Daftar Anggota Keluarga</h3>
                 </div>
 
-                <div class="overflow-x-auto">
+                <div style="overflow-x: auto; overflow-y: visible;">
                     <table class="w-full text-sm">
                         <thead>
                             <tr class="bg-gray-50 dark:bg-slate-700/50 border-b border-gray-200 dark:border-slate-700">
                                 <th
-                                    class="px-4 py-3 text-center text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider w-12">
+                                    class="px-3 py-3 text-center text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider w-10">
                                     NO</th>
                                 <th
-                                    class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                                    class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
                                     AKSI</th>
                                 <th
-                                    class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                                    class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
                                     NIK</th>
                                 <th
-                                    class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                                    class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
                                     NAMA</th>
                                 <th
-                                    class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                                    class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
                                     TANGGAL LAHIR</th>
                                 <th
-                                    class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                                    class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
                                     JENIS KELAMIN</th>
                                 <th
-                                    class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                                    class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
                                     HUBUNGAN</th>
                             </tr>
                         </thead>
@@ -327,12 +327,14 @@
                                 <tr
                                     class="hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors {{ $isKepala ? 'bg-emerald-50/60 dark:bg-emerald-900/10' : '' }}">
 
+                                    {{-- NO --}}
                                     <td
-                                        class="px-4 py-3 text-center text-gray-400 dark:text-slate-500 tabular-nums text-xs">
-                                        {{ $i + 1 }}</td>
+                                        class="px-3 py-3 text-center text-xs text-gray-500 dark:text-slate-400 tabular-nums">
+                                        {{ $i + 1 }}
+                                    </td>
 
                                     {{-- AKSI --}}
-                                    <td class="px-4 py-2.5">
+                                    <td class="px-3 py-3">
                                         <div class="flex items-center gap-1">
                                             {{-- 1. Lihat detail --}}
                                             <a href="{{ route('admin.penduduk.show', $anggota) }}"
@@ -344,7 +346,6 @@
                                                         clip-rule="evenodd" />
                                                 </svg>
                                             </a>
-
                                             {{-- 2. Ubah biodata --}}
                                             <a href="{{ route('admin.penduduk.edit', $anggota) }}"
                                                 title="Ubah Biodata Penduduk"
@@ -355,7 +356,6 @@
                                                         d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                                 </svg>
                                             </a>
-
                                             {{-- 3. Manajemen dokumen --}}
                                             <a href="{{ route('admin.penduduk.dokumen', $anggota) }}"
                                                 title="Manajemen Dokumen"
@@ -366,15 +366,14 @@
                                                         d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                                 </svg>
                                             </a>
-
                                             {{-- 4. Ubah status dasar --}}
                                             <button type="button" title="Ubah Status Dasar"
                                                 @click="bukaUbahStatusDasar({
-                                                    id: {{ $anggota->id }},
-                                                    nama: '{{ addslashes($anggota->nama) }}',
-                                                    isKepala: {{ $isKepala ? 'true' : 'false' }},
-                                                    action: '{{ route('admin.penduduk.ubah-status-dasar', $anggota) }}'
-                                                })"
+                                id: {{ $anggota->id }},
+                                nama: '{{ addslashes($anggota->nama) }}',
+                                isKepala: {{ $isKepala ? 'true' : 'false' }},
+                                action: '{{ route('admin.penduduk.ubah-status-dasar', $anggota) }}'
+                            })"
                                                 class="inline-flex items-center justify-center w-7 h-7 rounded bg-teal-500 hover:bg-teal-600 text-white transition-colors">
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
@@ -382,13 +381,10 @@
                                                         d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                 </svg>
                                             </button>
-
                                             {{-- 5. Pecah KK (khusus kepala) --}}
                                             @if ($isKepala)
                                                 <button type="button" title="Pecah Kartu Keluarga"
-                                                    @click="bukaPecahKk({
-                                                        action: '{{ route('admin.keluarga.pecah-kk', [$keluarga, $anggota]) }}'
-                                                    })"
+                                                    @click="bukaPecahKk({ action: '{{ route('admin.keluarga.pecah-kk', [$keluarga, $anggota]) }}' })"
                                                     class="inline-flex items-center justify-center w-7 h-7 rounded bg-orange-500 hover:bg-orange-600 text-white transition-colors">
                                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor"
                                                         viewBox="0 0 24 24">
@@ -398,15 +394,14 @@
                                                     </svg>
                                                 </button>
                                             @endif
-
                                             {{-- 6. Buat KK Baru --}}
                                             <button type="button" title="Buat KK Baru"
                                                 @click="bukaBuatKkBaru({
-                                                    pendudukId: {{ $anggota->id }},
-                                                    nama: '{{ addslashes($anggota->nama) }}',
-                                                    nik: '{{ $anggota->nik }}',
-                                                    action: '{{ route('admin.keluarga.buat-kk-baru.store', [$keluarga, $anggota]) }}'
-                                                })"
+                                pendudukId: {{ $anggota->id }},
+                                nama: '{{ addslashes($anggota->nama) }}',
+                                nik: '{{ $anggota->nik }}',
+                                action: '{{ route('admin.keluarga.buat-kk-baru.store', [$keluarga, $anggota]) }}'
+                            })"
                                                 class="inline-flex items-center justify-center w-7 h-7 rounded bg-purple-500 hover:bg-purple-600 text-white transition-colors">
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
@@ -414,17 +409,16 @@
                                                         d="M12 4v16m8-8H4" />
                                                 </svg>
                                             </button>
-
                                             @if (!$isKepala)
                                                 {{-- 7. Ubah hubungan keluarga --}}
                                                 <button type="button" title="Ubah Hubungan Keluarga"
                                                     @click="bukaUbahHubungan({
-                                                        id: {{ $anggota->id }},
-                                                        nik: '{{ $anggota->nik }}',
-                                                        nama: '{{ addslashes($anggota->nama) }}',
-                                                        kkLevel: {{ $anggota->kk_level ?? 3 }},
-                                                        action: '{{ route('admin.keluarga.anggota.ubah-hubungan', [$keluarga, $anggota]) }}'
-                                                    })"
+                                    id: {{ $anggota->id }},
+                                    nik: '{{ $anggota->nik }}',
+                                    nama: '{{ addslashes($anggota->nama) }}',
+                                    kkLevel: {{ $anggota->kk_level ?? 3 }},
+                                    action: '{{ route('admin.keluarga.anggota.ubah-hubungan', [$keluarga, $anggota]) }}'
+                                })"
                                                     class="inline-flex items-center justify-center w-7 h-7 rounded bg-slate-600 hover:bg-slate-700 text-white transition-colors">
                                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor"
                                                         viewBox="0 0 24 24">
@@ -433,13 +427,12 @@
                                                             d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                                                     </svg>
                                                 </button>
-
                                                 {{-- 8. Bukan anggota keluarga ini --}}
                                                 <button type="button" title="Bukan Anggota Keluarga Ini"
                                                     @click="bukaBukanAnggota({
-                                                        nama: '{{ addslashes($anggota->nama) }}',
-                                                        action: '{{ route('admin.keluarga.anggota.pecah', [$keluarga, $anggota]) }}'
-                                                    })"
+                                    nama: '{{ addslashes($anggota->nama) }}',
+                                    action: '{{ route('admin.keluarga.anggota.pecah', [$keluarga, $anggota]) }}'
+                                })"
                                                     class="inline-flex items-center justify-center w-7 h-7 rounded bg-red-500 hover:bg-red-600 text-white transition-colors">
                                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor"
                                                         viewBox="0 0 24 24">
@@ -453,31 +446,30 @@
 
                                     {{-- NIK --}}
                                     <td
-                                        class="px-4 py-3 font-mono text-xs text-gray-500 dark:text-slate-400 whitespace-nowrap">
+                                        class="px-3 py-3 font-mono text-xs text-gray-500 dark:text-slate-400 whitespace-nowrap">
                                         {{ $anggota->nik ?? '—' }}
                                     </td>
 
                                     {{-- NAMA --}}
-                                    <td class="px-4 py-3">
+                                    <td class="px-3 py-3 whitespace-nowrap">
                                         <a href="{{ route('admin.penduduk.show', $anggota) }}"
-                                            class="font-semibold text-gray-900 dark:text-slate-100 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors text-xs whitespace-nowrap">
+                                            class="text-xs text-gray-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
                                             {{ $anggota->nama }}
                                         </a>
                                     </td>
 
                                     {{-- TANGGAL LAHIR --}}
-                                    <td class="px-4 py-3 text-xs text-gray-600 dark:text-slate-300 whitespace-nowrap">
+                                    <td class="px-3 py-3 text-xs text-gray-500 dark:text-slate-400 whitespace-nowrap">
                                         {{ $anggota->tanggal_lahir?->isoFormat('D MMMM YYYY') ?? '—' }}
                                     </td>
 
                                     {{-- JENIS KELAMIN --}}
-                                    <td class="px-4 py-3 text-xs text-gray-600 dark:text-slate-300 whitespace-nowrap">
+                                    <td class="px-3 py-3 text-xs text-gray-500 dark:text-slate-400 whitespace-nowrap">
                                         {{ $anggota->jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan' }}
                                     </td>
 
                                     {{-- HUBUNGAN --}}
-                                    <td
-                                        class="px-4 py-3 text-xs font-semibold text-gray-700 dark:text-slate-200 whitespace-nowrap">
+                                    <td class="px-3 py-3 text-xs text-gray-500 dark:text-slate-400 whitespace-nowrap">
                                         {{ $shdkMap[$anggota->kk_level] ?? 'Lainnya' }}
                                     </td>
 

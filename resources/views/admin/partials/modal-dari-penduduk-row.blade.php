@@ -3,6 +3,29 @@
      Simpan di: resources/views/admin/partials/modal-dari-penduduk-row.blade.php
 ══════════════════════════════════════════════════════════════ --}}
 
+<script>
+    {{-- Set hanya jika belum didefinisikan dari show.blade.php ($shdkMap) --}}
+    @isset($refShdk)
+        window.shdkList = [
+            @foreach ($refShdk as $s)
+                { id: {{ $s->id }}, nama: "{{ addslashes($s->nama) }}" },
+            @endforeach
+        ];
+    @endisset
+
+    @isset($pendudukLepas)
+        if (!window.pendudukLepas) {
+            window.pendudukLepas = [
+                @foreach ($pendudukLepas as $p)
+                    { id: {{ $p->id }}, nik: "{{ $p->nik }}", nama: "{{ addslashes($p->nama) }}" },
+                @endforeach
+            ];
+        }
+    @endisset
+
+    window.kkAnggotaDariPendudukBaseUrl = "{{ url('admin/keluarga') }}";
+</script>
+
 {{-- ════════════ MODAL ════════════ --}}
 <div
     x-data="{
@@ -13,7 +36,6 @@
 
         selectedId: '',
         selectedLabel: '',
-
         openPendudukDrop: false,
         searchPenduduk: '',
 
@@ -105,7 +127,7 @@
          @click.stop>
 
         {{-- ── HEADER ── --}}
-        <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-slate-700 bg-white dark:bg-slate-800">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-slate-700">
             <div>
                 <h3 class="font-semibold text-gray-800 dark:text-slate-200 text-sm">Tambah Anggota Keluarga</h3>
                 <p class="text-xs text-gray-400 dark:text-slate-500 mt-0.5 font-mono"
@@ -128,7 +150,7 @@
                     Anggota Saat Ini
                 </label>
                 <div class="rounded-lg border border-gray-200 dark:border-slate-700 overflow-hidden">
-                    <table class="w-full text-sm">
+                    <table class="w-full">
                         <thead>
                             <tr class="bg-gray-50 dark:bg-slate-700/50 border-b border-gray-200 dark:border-slate-700">
                                 <th class="px-3 py-2 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider w-8">No</th>
@@ -148,16 +170,9 @@
                             <template x-for="(ang, idx) in anggota" :key="idx">
                                 <tr class="hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors">
                                     <td class="px-3 py-2 text-xs text-gray-500 dark:text-slate-400 tabular-nums" x-text="idx + 1"></td>
-                                    <td class="px-3 py-2 font-mono text-xs text-gray-600 dark:text-slate-300" x-text="ang.nik"></td>
-                                    <td class="px-3 py-2 text-xs font-semibold text-gray-800 dark:text-slate-200" x-text="ang.nama"></td>
-                                    <td class="px-3 py-2">
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold"
-                                            :class="ang.hubungan === 'Kepala Keluarga'
-                                                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
-                                                : 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300'"
-                                            x-text="ang.hubungan">
-                                        </span>
-                                    </td>
+                                    <td class="px-3 py-2 font-mono text-xs text-gray-500 dark:text-slate-400" x-text="ang.nik"></td>
+                                    <td class="px-3 py-2 text-xs text-gray-500 dark:text-slate-400" x-text="ang.nama"></td>
+                                    <td class="px-3 py-2 text-xs text-gray-500 dark:text-slate-400" x-text="ang.hubungan"></td>
                                 </tr>
                             </template>
                         </tbody>
@@ -171,7 +186,6 @@
                     NIK / Nama Penduduk <span class="text-red-500">*</span>
                 </label>
                 <div class="relative" @click.away="openPendudukDrop = false">
-                    {{-- Trigger --}}
                     <button type="button" @click="openPendudukDrop = !openPendudukDrop"
                             class="w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm bg-white dark:bg-slate-700 transition-colors focus:outline-none"
                             :class="openPendudukDrop
@@ -185,8 +199,6 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                         </svg>
                     </button>
-
-                    {{-- Dropdown --}}
                     <div x-show="openPendudukDrop"
                          x-transition:enter="transition ease-out duration-100"
                          x-transition:enter-start="opacity-0 -translate-y-1"
@@ -200,7 +212,6 @@
                             <input type="text" x-model="searchPenduduk"
                                    placeholder="Cari NIK atau nama penduduk..."
                                    @keydown.escape="openPendudukDrop = false"
-                                   x-ref="searchPendudukInput"
                                    class="w-full px-2 py-1.5 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded outline-none focus:border-emerald-500 text-gray-700 dark:text-slate-200">
                         </div>
                         <ul class="max-h-48 overflow-y-auto py-1">
@@ -223,13 +234,12 @@
                 </div>
             </div>
 
-            {{-- ── Dropdown: Hubungan Keluarga (dengan search, tanpa Kepala Keluarga) ── --}}
+            {{-- ── Dropdown: Hubungan Keluarga (search, tanpa Kepala Keluarga) ── --}}
             <div>
                 <label class="block text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide mb-1.5">
                     Hubungan Keluarga <span class="text-red-500">*</span>
                 </label>
                 <div class="relative" @click.away="openHubunganDrop = false">
-                    {{-- Trigger --}}
                     <button type="button" @click="openHubunganDrop = !openHubunganDrop"
                             class="w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm bg-white dark:bg-slate-700 transition-colors focus:outline-none"
                             :class="openHubunganDrop
@@ -243,8 +253,6 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                         </svg>
                     </button>
-
-                    {{-- Dropdown --}}
                     <div x-show="openHubunganDrop"
                          x-transition:enter="transition ease-out duration-100"
                          x-transition:enter-start="opacity-0 -translate-y-1"
