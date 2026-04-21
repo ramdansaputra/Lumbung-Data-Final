@@ -729,7 +729,7 @@
             x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0"
             x-transition:enter-end="opacity-100" @click.self="modalBuatKk.open = false" style="display:none">
             <div
-                class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-700 w-full max-w-2xl mx-4 overflow-hidden">
+                class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-700 w-full max-w-2xl mx-4">
 
                 <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-slate-700">
                     <h3 class="font-semibold text-gray-800 dark:text-slate-100">Buat KK Baru</h3>
@@ -818,9 +818,14 @@
                                                 class="hover:bg-gray-50 dark:hover:bg-slate-700/30 {{ $isKepalaRow ? 'bg-emerald-50/60 dark:bg-emerald-900/10' : '' }}">
                                                 <td class="px-3 py-2 text-center">
                                                     <input type="checkbox" name="anggota_ids[]"
-                                                        value="{{ $anggota->id }}"
-                                                        {{ $isKepalaRow ? 'checked disabled' : '' }}
-                                                        class="rounded border-gray-300 text-emerald-500 focus:ring-emerald-500">
+                                                        value="{{ $anggota->id }}" {{ $isKepalaRow ? 'checked' : '' }}
+                                                        disabled
+                                                        class="rounded border-gray-300 text-emerald-500 focus:ring-emerald-500 opacity-60 cursor-not-allowed">
+                                                    {{-- Hidden input agar nilai kepala tetap terkirim meski disabled --}}
+                                                    @if ($isKepalaRow)
+                                                        <input type="hidden" name="anggota_ids[]"
+                                                            value="{{ $anggota->id }}">
+                                                    @endif
                                                 </td>
                                                 <td class="px-3 py-2 font-mono text-gray-500">{{ $anggota->nik }}</td>
                                                 <td class="px-3 py-2 font-semibold text-gray-700 dark:text-slate-200">
