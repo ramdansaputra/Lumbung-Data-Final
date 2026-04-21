@@ -1082,12 +1082,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
     Route::get(
         'rumah-tangga/{rumahTangga}/lokasi',
         [RumahTanggaController::class, 'lokasi']
-    )->name('admin.rumah-tangga.lokasi');
+    )->name('rumah-tangga.lokasi');
 
     Route::post(
         'rumah-tangga/{rumahTangga}/lokasi',
         [RumahTanggaController::class, 'lokasiStore']
-    )->name('admin.rumah-tangga.lokasi.store');
+    )->name('rumah-tangga.lokasi.store');
     
     Route::resource('rumah-tangga', RumahTanggaController::class)->names([
         'index'   => 'rumah-tangga.index',
