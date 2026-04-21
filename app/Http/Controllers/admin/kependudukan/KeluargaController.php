@@ -170,9 +170,19 @@ class KeluargaController extends Controller {
         $refBahasa       = RefBahasa::orderBy('nama')->get();
 
         return view('admin.keluarga-create-masuk', compact(
-            'wilayah', 'refAgama', 'refPendidikan', 'refPekerjaan',
-            'refStatusKawin', 'refWarganegara', 'refGolDarah', 'refShdk',
-            'refCacat', 'refSakitMenahun', 'refCaraKb', 'refAsuransi', 'refBahasa',
+            'wilayah',
+            'refAgama',
+            'refPendidikan',
+            'refPekerjaan',
+            'refStatusKawin',
+            'refWarganegara',
+            'refGolDarah',
+            'refShdk',
+            'refCacat',
+            'refSakitMenahun',
+            'refCaraKb',
+            'refAsuransi',
+            'refBahasa',
         ));
     }
 
@@ -292,7 +302,7 @@ class KeluargaController extends Controller {
         if (! $kepala) {
             return back()->withErrors(['kepala_keluarga_id' => 'Penduduk tidak ditemukan.'])->withInput();
         }
-        
+
         if (! is_null($kepala->keluarga_id)) {
             return back()->withErrors(['kepala_keluarga_id' => 'Penduduk sudah terdaftar di KK lain.'])->withInput();
         }
@@ -303,7 +313,7 @@ class KeluargaController extends Controller {
                 'kepala_keluarga_id' => 'Penduduk ini belum memiliki wilayah. Perbaiki data penduduk terlebih dahulu.'
             ]);
         }
-        
+
         $wilayahId = $kepala->wilayah_id;
 
         DB::transaction(function () use ($request, $kepala, $wilayahId) {
@@ -520,7 +530,7 @@ class KeluargaController extends Controller {
             default => abort(400, 'Parameter jenis tidak valid.'),
         };
     }
-    
+
     public function storeAnggotaLahir(Request $request, Keluarga $keluarga) {
         $request->validate([
             'nik'            => 'required|string|size:16|unique:penduduk,nik',
@@ -791,7 +801,72 @@ class KeluargaController extends Controller {
 
         return back()->with('success', "{$jumlah} KK berhasil ditambahkan ke rumah tangga kolektif baru.");
     }
-    
+
+    // =========================================================================
+    // PECAH KK OLEH KEPALA — semua anggota dilepas, KK dinonaktifkan
+    // =========================================================================
+
+    public function pecahKkKepala(Keluarga $keluarga, Penduduk $penduduk) {
+        if ($penduduk->kk_level !== Penduduk::SHDK_KEPALA_KELUARGA) {
+            return back()->with('error', 'Hanya kepala keluarga yang bisa memecah KK.');
+        }
+
+        DB::transaction(function () use ($keluarga) {
+            $keluarga->anggota()->update([
+                'keluarga_id' => null,
+                'kk_level'    => null,
+            ]);
+            $keluarga->update([
+                'kepala_keluarga_id' => null,
+                'nik_kepala'         => null,
+                'status'             => Keluarga::STATUS_TIDAK_AKTIF,
+            ]);
+        });
+
+        return redirect()->route('admin.keluarga')
+            ->with('success', 'KK berhasil dipecah. Semua anggota kini berstatus penduduk lepas.');
+    }
+
+    // =========================================================================
+    // UBAH HUBUNGAN KELUARGA (SHDK)
+    // =========================================================================
+
+    public function ubahHubungan(Request $request, Keluarga $keluarga, Penduduk $penduduk) {
+        $request->validate([
+            'kk_level' => 'required|integer|min:1|max:10',
+        ]);
+
+        if ($penduduk->keluarga_id !== $keluarga->id) {
+            return back()->with('error', 'Penduduk bukan anggota KK ini.');
+        }
+
+        $penduduk->update(['kk_level' => $request->kk_level]);
+
+        return redirect()->route('admin.keluarga.show', $keluarga)
+            ->with('success', "Hubungan keluarga {$penduduk->nama} berhasil diubah.");
+    }
+
+    // =========================================================================
+    // CETAK KARTU KELUARGA
+    // =========================================================================
+
+    public function cetakKk(Keluarga $keluarga) {
+        $keluarga->load([
+            'wilayah',
+            'kepalaKeluarga',
+            'anggota' => fn($q) => $q->orderByRaw("FIELD(kk_level, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10)"),
+            'anggota.agama',
+            'anggota.pekerjaan',
+            'anggota.statusKawin',
+            'anggota.pendidikanKk',
+        ]);
+
+        $pdf = Pdf::loadView('admin.keluarga-cetak-kk', compact('keluarga'))
+            ->setPaper('a4', 'portrait');
+
+        return $pdf->stream('KK_' . $keluarga->no_kk . '.pdf');
+    }
+
     // =========================================================================
     // DESTROY
     // =========================================================================
@@ -966,4 +1041,3 @@ class KeluargaController extends Controller {
             ->orderBy('no_kk');
     }
 }
-
