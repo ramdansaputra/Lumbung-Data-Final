@@ -225,29 +225,13 @@
                         <div class="col-span-2 flex items-center gap-1.5">
                             <span class="text-sm text-gray-500">:</span>
                             @if ($keluarga->kepalaKeluarga)
-                                <div class="flex items-center gap-2.5">
-                                    @if ($keluarga->kepalaKeluarga->foto)
-                                        <img src="{{ asset('storage/' . $keluarga->kepalaKeluarga->foto) }}"
-                                            class="w-8 h-8 rounded-full object-cover border-2 border-emerald-200 dark:border-emerald-700">
-                                    @else
-                                        <div
-                                            class="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center flex-shrink-0">
-                                            <svg class="w-4 h-4 text-emerald-600" fill="currentColor"
-                                                viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd"
-                                                    d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
-                                                    clip-rule="evenodd" />
-                                            </svg>
-                                        </div>
-                                    @endif
-                                    <div>
-                                        <a href="{{ route('admin.penduduk.show', $keluarga->kepalaKeluarga) }}"
-                                            class="text-sm font-semibold text-gray-900 dark:text-slate-100 hover:text-emerald-600 transition-colors">
-                                            {{ $keluarga->kepalaKeluarga->nama }}
-                                        </a>
-                                        <p class="text-xs font-mono text-gray-400 dark:text-slate-500">
-                                            {{ $keluarga->kepalaKeluarga->nik }}</p>
-                                    </div>
+                                <div>
+                                    <a href="{{ route('admin.penduduk.show', $keluarga->kepalaKeluarga) }}"
+                                        class="text-sm font-semibold text-gray-900 dark:text-slate-100 hover:text-emerald-600 transition-colors">
+                                        {{ $keluarga->kepalaKeluarga->nama }}
+                                    </a>
+                                    <p class="text-xs font-mono text-gray-400 dark:text-slate-500">
+                                        {{ $keluarga->kepalaKeluarga->nik }}</p>
                                 </div>
                             @else
                                 <p class="text-sm text-gray-400 italic">Belum ada kepala keluarga</p>
@@ -475,28 +459,10 @@
 
                                     {{-- NAMA --}}
                                     <td class="px-4 py-3">
-                                        <div class="flex items-center gap-2">
-                                            @if ($anggota->foto)
-                                                <img src="{{ asset('storage/' . $anggota->foto) }}"
-                                                    class="w-7 h-7 rounded-full object-cover border border-gray-200 dark:border-slate-600 flex-shrink-0">
-                                            @else
-                                                <div
-                                                    class="w-7 h-7 rounded-full bg-gray-200 dark:bg-slate-600 flex items-center justify-center flex-shrink-0">
-                                                    <svg class="w-3.5 h-3.5 text-gray-400" fill="currentColor"
-                                                        viewBox="0 0 20 20">
-                                                        <path fill-rule="evenodd"
-                                                            d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
-                                                            clip-rule="evenodd" />
-                                                    </svg>
-                                                </div>
-                                            @endif
-                                            <div>
-                                                <a href="{{ route('admin.penduduk.show', $anggota) }}"
-                                                    class="font-semibold text-gray-900 dark:text-slate-100 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors text-xs whitespace-nowrap">
-                                                    {{ $anggota->nama }}
-                                                </a>
-                                            </div>
-                                        </div>
+                                        <a href="{{ route('admin.penduduk.show', $anggota) }}"
+                                            class="font-semibold text-gray-900 dark:text-slate-100 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors text-xs whitespace-nowrap">
+                                            {{ $anggota->nama }}
+                                        </a>
                                     </td>
 
                                     {{-- TANGGAL LAHIR --}}

@@ -1,24 +1,7 @@
 {{-- ══════════════════════════════════════════════════════════════
      MODAL: DARI PENDUDUK SUDAH ADA — Per-baris (index keluarga)
      Simpan di: resources/views/admin/partials/modal-dari-penduduk-row.blade.php
-     Include di dalam div x-data utama pada keluarga/index.blade.php
 ══════════════════════════════════════════════════════════════ --}}
-
-{{-- JS: data pendudukLepas & SHDK (variabel sudah tersedia dari controller) --}}
-<script>
-    window.pendudukLepas = [
-        @foreach ($pendudukLepas as $p)
-            { id: {{ $p->id }}, nik: "{{ $p->nik }}", nama: "{{ addslashes($p->nama) }}" },
-        @endforeach
-    ];
-    window.shdkList = [
-        @foreach ($refShdk as $s)
-            { id: {{ $s->id }}, nama: "{{ addslashes($s->nama) }}" },
-        @endforeach
-    ];
-    {{-- Base URL untuk form action dinamis berdasarkan kkId yang diklik --}}
-    window.kkAnggotaDariPendudukBaseUrl = "{{ url('admin/keluarga') }}";
-</script>
 
 {{-- ════════════ MODAL ════════════ --}}
 <div
@@ -30,35 +13,52 @@
 
         selectedId: '',
         selectedLabel: '',
-        selectedHubunganId: '',
 
         openPendudukDrop: false,
-        openHubunganDrop: false,
         searchPenduduk: '',
+
+        selectedHubunganId: '',
+        openHubunganDrop: false,
+        searchHubungan: '',
 
         get filteredPenduduk() {
             const list = window.pendudukLepas || [];
-            if (!this.searchPenduduk) return list;
+            if (!this.searchPenduduk.trim()) return list;
             const q = this.searchPenduduk.toLowerCase();
             return list.filter(p =>
                 p.nik.includes(q) || p.nama.toLowerCase().includes(q)
             );
         },
+
+        get hubunganList() {
+            return (window.shdkList || []).filter(s => s.id != 1);
+        },
+
+        get filteredHubungan() {
+            if (!this.searchHubungan.trim()) return this.hubunganList;
+            const q = this.searchHubungan.toLowerCase();
+            return this.hubunganList.filter(s => s.nama.toLowerCase().includes(q));
+        },
+
         get selectedHubunganLabel() {
             if (!this.selectedHubunganId) return '';
-            const found = (window.shdkList || []).find(s => s.id == this.selectedHubunganId);
+            const found = this.hubunganList.find(s => s.id == this.selectedHubunganId);
             return found ? found.nama : '';
         },
+
         pilihPenduduk(p) {
             this.selectedId    = p.id;
             this.selectedLabel = p.nik + ' — ' + p.nama;
             this.openPendudukDrop = false;
             this.searchPenduduk   = '';
         },
+
         pilihHubungan(s) {
             this.selectedHubunganId = s.id;
             this.openHubunganDrop   = false;
+            this.searchHubungan     = '';
         },
+
         submit() {
             if (!this.selectedId) {
                 alert('Pilih penduduk terlebih dahulu.');
@@ -82,9 +82,8 @@
         anggota = $event.detail.anggota || [];
         selectedId = ''; selectedLabel = '';
         selectedHubunganId = '';
-        searchPenduduk = '';
-        openPendudukDrop = false;
-        openHubunganDrop = false;
+        searchPenduduk = ''; searchHubungan = '';
+        openPendudukDrop = false; openHubunganDrop = false;
     "
     @keydown.escape.window="show && (show = false)"
     x-show="show"
@@ -95,10 +94,9 @@
     x-transition:leave-start="opacity-100"
     x-transition:leave-end="opacity-0"
     class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-    @keydown.escape.window="show = false"
     style="display:none">
 
-    {{-- Backdrop klik tutup --}}
+    {{-- Backdrop --}}
     <div class="absolute inset-0" @click="show = false"></div>
 
     {{-- Modal box --}}
@@ -107,29 +105,29 @@
          @click.stop>
 
         {{-- ── HEADER ── --}}
-        <div class="flex items-center justify-between px-5 py-4 border-b border-red-500 bg-white dark:bg-slate-800">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-slate-700 bg-white dark:bg-slate-800">
             <div>
                 <h3 class="font-semibold text-gray-800 dark:text-slate-200 text-sm">Tambah Anggota Keluarga</h3>
-                <p class="text-xs text-gray-400 dark:text-slate-500 mt-0.5"
-                   x-text="noKk ? 'No. KK: ' + noKk : 'Dari penduduk yang sudah ada'"></p>
+                <p class="text-xs text-gray-400 dark:text-slate-500 mt-0.5 font-mono"
+                   x-text="noKk ? 'No. KK: ' + noKk : ''"></p>
             </div>
             <button type="button" @click="show = false"
-                    class="w-7 h-7 flex items-center justify-center rounded text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-slate-700 transition-all">
+                    class="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-slate-700 transition-all">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
             </button>
         </div>
 
-        {{-- ── BODY (scrollable) ── --}}
+        {{-- ── BODY ── --}}
         <div class="p-5 space-y-4 overflow-y-auto" style="max-height:calc(90vh - 130px)">
 
             {{-- Tabel Anggota Saat Ini --}}
             <div>
-                <label class="block text-xs font-semibold text-gray-600 dark:text-slate-300 mb-1.5">
+                <label class="block text-xs font-semibold text-gray-600 dark:text-slate-300 uppercase tracking-wide mb-1.5">
                     Anggota Saat Ini
                 </label>
-                <div class="rounded border border-gray-200 dark:border-slate-700 overflow-hidden">
+                <div class="rounded-lg border border-gray-200 dark:border-slate-700 overflow-hidden">
                     <table class="w-full text-sm">
                         <thead>
                             <tr class="bg-gray-50 dark:bg-slate-700/50 border-b border-gray-200 dark:border-slate-700">
@@ -154,7 +152,7 @@
                                     <td class="px-3 py-2 text-xs font-semibold text-gray-800 dark:text-slate-200" x-text="ang.nama"></td>
                                     <td class="px-3 py-2">
                                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold"
-                                            :class="ang.hubungan === 'KEPALA KELUARGA' || ang.hubungan === 'Kepala Keluarga'
+                                            :class="ang.hubungan === 'Kepala Keluarga'
                                                 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
                                                 : 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300'"
                                             x-text="ang.hubungan">
@@ -167,86 +165,115 @@
                 </div>
             </div>
 
-            {{-- Info Box --}}
-            <div class="flex items-start gap-2 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-100 dark:border-blue-800/40 text-xs text-blue-700 dark:text-blue-300">
-                <svg class="w-3.5 h-3.5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-                </svg>
-                <p>Daftar hanya menampilkan <strong>penduduk aktif</strong> yang belum terdaftar di KK manapun (penduduk lepas).</p>
-            </div>
-
-            {{-- Dropdown Cari Penduduk --}}
+            {{-- ── Dropdown: NIK / Nama Penduduk ── --}}
             <div>
-                <label class="block text-xs font-semibold text-gray-600 dark:text-slate-300 mb-1.5">
+                <label class="block text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide mb-1.5">
                     NIK / Nama Penduduk <span class="text-red-500">*</span>
                 </label>
-                <div class="relative" x-data="{ openDrop: false }" @click.away="openDrop = false">
-                    <div @click="openPendudukDrop = !openPendudukDrop"
-                         class="flex items-center justify-between w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded text-sm bg-white dark:bg-slate-700 text-gray-700 dark:text-slate-200 cursor-pointer hover:border-emerald-400 transition-colors">
-                        <span x-text="selectedLabel || '-- Silakan Cari NIK / Nama Penduduk --'"
-                              :class="selectedLabel ? 'text-gray-800 dark:text-slate-100' : 'text-gray-400 dark:text-slate-500'"></span>
-                        <svg class="w-4 h-4 text-gray-400 flex-shrink-0 transition-transform"
+                <div class="relative" @click.away="openPendudukDrop = false">
+                    {{-- Trigger --}}
+                    <button type="button" @click="openPendudukDrop = !openPendudukDrop"
+                            class="w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm bg-white dark:bg-slate-700 transition-colors focus:outline-none"
+                            :class="openPendudukDrop
+                                ? 'border-emerald-500 ring-2 ring-emerald-500/20'
+                                : 'border-gray-300 dark:border-slate-600 hover:border-emerald-400'">
+                        <span x-text="selectedLabel || '-- Pilih Penduduk --'"
+                              :class="selectedLabel ? 'text-gray-800 dark:text-slate-200' : 'text-gray-400 dark:text-slate-500'"></span>
+                        <svg class="w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ml-2"
                              :class="openPendudukDrop ? 'rotate-180' : ''"
                              fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                         </svg>
-                    </div>
+                    </button>
 
-                    <div x-show="openPendudukDrop" x-transition
+                    {{-- Dropdown --}}
+                    <div x-show="openPendudukDrop"
+                         x-transition:enter="transition ease-out duration-100"
+                         x-transition:enter-start="opacity-0 -translate-y-1"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-75"
+                         x-transition:leave-start="opacity-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 -translate-y-1"
                          class="absolute left-0 top-full mt-1 w-full z-[200] bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-xl overflow-hidden"
                          style="display:none">
                         <div class="p-2 border-b border-gray-100 dark:border-slate-700">
                             <input type="text" x-model="searchPenduduk"
                                    placeholder="Cari NIK atau nama penduduk..."
                                    @keydown.escape="openPendudukDrop = false"
-                                   class="w-full px-2 py-1.5 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded text-gray-700 dark:text-slate-200 outline-none focus:border-emerald-400">
+                                   x-ref="searchPendudukInput"
+                                   class="w-full px-2 py-1.5 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded outline-none focus:border-emerald-500 text-gray-700 dark:text-slate-200">
                         </div>
                         <ul class="max-h-48 overflow-y-auto py-1">
                             <template x-for="p in filteredPenduduk" :key="p.id">
                                 <li @click="pilihPenduduk(p)"
-                                    class="px-3 py-2 text-sm cursor-pointer hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors"
-                                    :class="selectedId === p.id ? 'bg-emerald-500 text-white' : 'text-gray-700 dark:text-slate-200'">
+                                    class="px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
+                                    :class="selectedId === p.id
+                                        ? 'bg-emerald-500 text-white hover:bg-emerald-600'
+                                        : 'text-gray-700 dark:text-slate-200'">
                                     <span class="font-mono text-xs opacity-75 mr-1" x-text="p.nik"></span>
                                     <span class="font-medium" x-text="p.nama"></span>
                                 </li>
                             </template>
                             <li x-show="filteredPenduduk.length === 0"
-                                class="px-3 py-2 text-sm text-gray-400 dark:text-slate-500 text-center italic">
-                                Tidak ada penduduk tanpa No. KK
+                                class="px-3 py-4 text-center text-sm text-gray-400 dark:text-slate-500 italic">
+                                Tidak ada hasil
                             </li>
                         </ul>
                     </div>
                 </div>
             </div>
 
-            {{-- Dropdown Hubungan Keluarga --}}
+            {{-- ── Dropdown: Hubungan Keluarga (dengan search, tanpa Kepala Keluarga) ── --}}
             <div>
-                <label class="block text-xs font-semibold text-gray-600 dark:text-slate-300 mb-1.5">
+                <label class="block text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide mb-1.5">
                     Hubungan Keluarga <span class="text-red-500">*</span>
                 </label>
                 <div class="relative" @click.away="openHubunganDrop = false">
-                    <div @click="openHubunganDrop = !openHubunganDrop"
-                         class="flex items-center justify-between w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded text-sm bg-white dark:bg-slate-700 text-gray-700 dark:text-slate-200 cursor-pointer hover:border-emerald-400 transition-colors">
-                        <span x-text="selectedHubunganLabel || '-- Silakan Cari Hubungan Keluarga --'"
-                              :class="selectedHubunganLabel ? 'text-gray-800 dark:text-slate-100' : 'text-gray-400 dark:text-slate-500'"></span>
-                        <svg class="w-4 h-4 text-gray-400 flex-shrink-0 transition-transform"
+                    {{-- Trigger --}}
+                    <button type="button" @click="openHubunganDrop = !openHubunganDrop"
+                            class="w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm bg-white dark:bg-slate-700 transition-colors focus:outline-none"
+                            :class="openHubunganDrop
+                                ? 'border-emerald-500 ring-2 ring-emerald-500/20'
+                                : 'border-gray-300 dark:border-slate-600 hover:border-emerald-400'">
+                        <span x-text="selectedHubunganLabel || '-- Pilih Hubungan Keluarga --'"
+                              :class="selectedHubunganLabel ? 'text-gray-800 dark:text-slate-200' : 'text-gray-400 dark:text-slate-500'"></span>
+                        <svg class="w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ml-2"
                              :class="openHubunganDrop ? 'rotate-180' : ''"
                              fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                         </svg>
-                    </div>
+                    </button>
 
-                    <div x-show="openHubunganDrop" x-transition
+                    {{-- Dropdown --}}
+                    <div x-show="openHubunganDrop"
+                         x-transition:enter="transition ease-out duration-100"
+                         x-transition:enter-start="opacity-0 -translate-y-1"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-75"
+                         x-transition:leave-start="opacity-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 -translate-y-1"
                          class="absolute left-0 top-full mt-1 w-full z-[200] bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-xl overflow-hidden"
                          style="display:none">
+                        <div class="p-2 border-b border-gray-100 dark:border-slate-700">
+                            <input type="text" x-model="searchHubungan"
+                                   placeholder="Cari hubungan keluarga..."
+                                   @keydown.escape="openHubunganDrop = false"
+                                   class="w-full px-2 py-1.5 text-sm bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded outline-none focus:border-emerald-500 text-gray-700 dark:text-slate-200">
+                        </div>
                         <ul class="max-h-48 overflow-y-auto py-1">
-                            <template x-for="s in (window.shdkList || [])" :key="s.id">
+                            <template x-for="s in filteredHubungan" :key="s.id">
                                 <li @click="pilihHubungan(s)"
-                                    class="px-3 py-2 text-sm cursor-pointer hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors"
-                                    :class="selectedHubunganId == s.id ? 'bg-emerald-500 text-white' : 'text-gray-700 dark:text-slate-200'"
+                                    class="px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 dark:hover:text-emerald-400"
+                                    :class="selectedHubunganId == s.id
+                                        ? 'bg-emerald-500 text-white hover:bg-emerald-600 hover:text-white'
+                                        : 'text-gray-700 dark:text-slate-200'"
                                     x-text="s.nama">
                                 </li>
                             </template>
+                            <li x-show="filteredHubungan.length === 0"
+                                class="px-3 py-4 text-center text-sm text-gray-400 dark:text-slate-500">
+                                Tidak ada hasil
+                            </li>
                         </ul>
                     </div>
                 </div>
@@ -264,7 +291,7 @@
                 Tutup
             </button>
             <button type="button" @click="submit()"
-                    class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg transition-colors">
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold rounded-lg transition-colors">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                 </svg>
