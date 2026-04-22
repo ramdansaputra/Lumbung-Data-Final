@@ -3,9 +3,33 @@
 @section('title', 'Lembaga Kemasyarakatan Desa')
 @section('description', 'Informasi lembaga dan organisasi kemasyarakatan yang menjadi mitra pemerintah desa')
 
+{{-- Style Animasi Khusus --}}
+@push('styles')
+<style>
+    .reveal {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .reveal.active {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    .stagger-card {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: all 0.6s ease-out;
+    }
+    .stagger-card.active {
+        opacity: 1;
+        transform: translateY(0);
+    }
+</style>
+@endpush
+
 @section('content')
 
-<x-hero-section 
+<x-hero-section
     title="Lembaga Kemasyarakatan"
     subtitle="Wadah partisipasi masyarakat yang ikut serta merencanakan, melaksanakan, dan mengawasi pembangunan desa."
     :breadcrumb="[
@@ -16,9 +40,13 @@
 />
 
 <section class="py-20 bg-slate-50 relative min-h-screen">
+    {{-- Dekoratif Latar Belakang --}}
+    <div class="absolute top-40 right-0 w-96 h-96 bg-emerald-100/30 rounded-full blur-3xl -z-10"></div>
+    <div class="absolute bottom-20 left-0 w-72 h-72 bg-blue-100/30 rounded-full blur-3xl -z-10"></div>
+
     <div class="container mx-auto px-4 max-w-7xl">
-        
-        <div class="text-center mb-16">
+
+        <div class="text-center mb-16 reveal">
             <span class="text-emerald-600 font-bold tracking-wider uppercase text-sm mb-2 block">Mitra Pemerintah Desa</span>
             <h2 class="text-3xl md:text-4xl font-bold text-slate-800">Daftar Lembaga Masyarakat</h2>
             <div class="w-16 h-1.5 bg-emerald-500 mx-auto mt-4 rounded-full"></div>
@@ -26,10 +54,10 @@
         </div>
 
         @if($kategoriLembaga->count() > 0)
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 stagger-container">
                 @foreach($kategoriLembaga as $master)
-                    <div class="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm hover:shadow-lg transition-all duration-300 relative overflow-hidden group">
-                        
+                    <div class="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 relative overflow-hidden group stagger-card">
+
                         <div class="absolute -top-10 -right-10 w-32 h-32 bg-emerald-50 rounded-full opacity-50 group-hover:scale-150 transition-transform duration-700"></div>
 
                         <div class="flex items-start gap-5 mb-6 relative z-10">
@@ -53,13 +81,13 @@
 
                         <div class="relative z-10">
                             <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Informasi Kepengurusan:</p>
-                            
+
                             @if(isset($dataKelompok[$master->id]) && count($dataKelompok[$master->id]) > 0)
                                 <div class="space-y-3">
                                     @foreach($dataKelompok[$master->id] as $kel)
-                                        <div class="bg-slate-50 rounded-xl p-4 border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-emerald-50/50 transition-colors">
+                                        <div class="bg-slate-50 rounded-xl p-4 border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-emerald-50/50 transition-colors group/item">
                                             <div class="flex items-center gap-3">
-                                                <div class="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 flex-shrink-0">
+                                                <div class="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 flex-shrink-0 group-hover/item:border-emerald-300 transition-colors">
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                                                 </div>
                                                 <div>
@@ -67,9 +95,9 @@
                                                     <p class="text-xs text-emerald-600 font-medium">Ketua: <span class="font-bold text-slate-700">{{ $kel->nama_ketua ?? 'Belum Diatur' }}</span></p>
                                                 </div>
                                             </div>
-                                            
+
                                             @if($kel->sk_desa)
-                                                <div class="sm:text-right bg-white px-3 py-1.5 rounded-lg border border-slate-200 self-start sm:self-auto">
+                                                <div class="sm:text-right bg-white px-3 py-1.5 rounded-lg border border-slate-200 self-start sm:self-auto shadow-sm">
                                                     <p class="text-[10px] text-slate-500 font-bold uppercase mb-0.5">Nomor SK Desa</p>
                                                     <p class="text-xs font-mono text-slate-800 font-semibold">{{ $kel->sk_desa }}</p>
                                                 </div>
@@ -88,12 +116,12 @@
                 @endforeach
             </div>
         @else
-            <div class="text-center py-20 bg-white rounded-3xl border border-dashed border-gray-200 shadow-sm">
+            <div class="text-center py-20 bg-white rounded-3xl border border-dashed border-gray-200 shadow-sm reveal">
                 <div class="inline-flex justify-center items-center w-20 h-20 rounded-full bg-slate-50 text-slate-400 mb-6 border border-slate-100">
                     <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
                 </div>
                 <h3 class="text-xl font-bold text-gray-800 mb-2">Belum Ada Data Lembaga</h3>
-                <p class="text-gray-500 max-w-md mx-auto">Data master Lembaga Kemasyarakatan Desa (PKK, Karang Taruna, dll) belum ditambahkan oleh Admin.</p>
+                <p class="text-gray-500 max-w-md mx-auto">Data master Lembaga Kemasyarakatan Desa belum ditambahkan oleh Admin.</p>
             </div>
         @endif
 
@@ -101,3 +129,39 @@
 </section>
 
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Observer untuk elemen tunggal
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        // Observer untuk grid kontainer (Stagger effect)
+        const staggerObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const cards = entry.target.querySelectorAll('.stagger-card');
+                    cards.forEach((card, index) => {
+                        setTimeout(() => {
+                            card.classList.add('active');
+                        }, index * 100); // delay 100ms antar card
+                    });
+                    staggerObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.05 });
+
+        // Inisialisasi
+        document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+        const containers = document.querySelectorAll('.stagger-container');
+        containers.forEach(container => staggerObserver.observe(container));
+    });
+</script>
+@endpush

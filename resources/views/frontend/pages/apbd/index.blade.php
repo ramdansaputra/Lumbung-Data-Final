@@ -5,7 +5,7 @@
 
 @section('content')
 
-<x-hero-section 
+<x-hero-section
     title="Transparansi APBDes"
     subtitle="Wujud nyata tata kelola keuangan desa yang transparan, akuntabel, dan partisipatif untuk pembangunan masyarakat."
     :breadcrumb="[
@@ -24,7 +24,7 @@
     <div class="apbd-container">
 
         {{-- ── Year Filter Bar ── --}}
-        <div class="apbd-filter-bar">
+        <div class="apbd-filter-bar reveal">
             <div class="apbd-filter-left">
                 <div class="apbd-icon-box apbd-icon-green">
                     <svg style="width:26px;height:26px;" fill="none" stroke="#fff" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
@@ -52,7 +52,7 @@
         <div class="apbd-grid-3">
 
             {{-- Anggaran Belanja --}}
-            <div class="apbd-card-hover apbd-summary-green">
+            <div class="apbd-card-hover apbd-summary-green reveal" style="transition-delay: 0.1s">
                 <div class="apbd-summary-bg-icon">
                     <svg style="width:140px;height:140px;" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2.65 1.87 1.96 0 2.4-.98 2.4-1.59 0-.83-.44-1.61-2.67-2.14-2.48-.6-4.18-1.62-4.18-3.97 0-1.8 1.39-3.06 3.11-3.53V3.33h2.67v2.01c1.45.3 2.72 1.39 2.84 3.14h-1.93c-.14-.92-.74-1.68-2.39-1.68-1.61 0-2.06.84-2.06 1.48 0 .92.61 1.43 2.71 1.93 2.51.59 4.14 1.76 4.14 4.15 0 2.03-1.47 3.32-3.41 3.73z"/></svg>
                 </div>
@@ -67,7 +67,7 @@
             </div>
 
             {{-- Realisasi Serapan --}}
-            <div class="apbd-card-hover apbd-summary-white">
+            <div class="apbd-card-hover apbd-summary-white reveal" style="transition-delay: 0.2s">
                 <div>
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;">
                         <div style="padding:14px;background:#eff6ff;border-radius:16px;">
@@ -80,13 +80,13 @@
                 </div>
                 <div style="margin-top:36px;">
                     <div class="apbd-progress-track">
-                        <div style="background:#3b82f6;height:8px;border-radius:999px;width:{{ $progressPersen }}%;box-shadow:0 0 12px rgba(59,130,246,0.45);transition:width 1s ease;"></div>
+                        <div class="apbd-progress-fill" style="--width: {{ $progressPersen }}%;"></div>
                     </div>
                 </div>
             </div>
 
             {{-- Sisa Anggaran --}}
-            <div class="apbd-card-hover apbd-summary-white">
+            <div class="apbd-card-hover apbd-summary-white reveal" style="transition-delay: 0.3s">
                 <div>
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;">
                         <div style="padding:14px;background:#fffbeb;border-radius:16px;">
@@ -112,7 +112,7 @@
         <div class="apbd-grid-2 apbd-panels">
 
             {{-- Sumber Pendapatan --}}
-            <div class="apbd-panel">
+            <div class="apbd-panel reveal">
                 <div class="apbd-panel-header apbd-panel-header-dark">
                     <div style="display:flex;align-items:center;gap:18px;flex:1;min-width:0;">
                         <div class="apbd-icon-box-sm apbd-icon-dark">
@@ -136,7 +136,7 @@
                                 $c = $barColors[$index % count($barColors)];
                                 $persen = $totalPendapatan > 0 ? round(($item->anggaran / $totalPendapatan) * 100, 1) : 0;
                             @endphp
-                            <div>
+                            <div class="reveal-list" style="transition-delay: {{ 0.1 * ($index + 1) }}s">
                                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px;">
                                     <div style="display:flex;align-items:center;gap:12px;min-width:0;flex:1;">
                                         <div style="width:4px;height:24px;border-radius:999px;background:{{ $c }};flex-shrink:0;"></div>
@@ -148,7 +148,7 @@
                                     </div>
                                 </div>
                                 <div class="apbd-progress-track">
-                                    <div style="background:{{ $c }};height:6px;border-radius:999px;width:{{ $persen }}%;transition:width 1s ease;"></div>
+                                    <div class="apbd-progress-fill" style="background:{{ $c }}; --width: {{ $persen }}%;"></div>
                                 </div>
                             </div>
                         @empty
@@ -162,7 +162,7 @@
             </div>
 
             {{-- Alokasi Belanja --}}
-            <div class="apbd-panel">
+            <div class="apbd-panel reveal">
                 <div class="apbd-panel-header apbd-panel-header-white">
                     <div class="apbd-icon-box-sm apbd-icon-light">
                         <svg style="width:22px;height:22px;" fill="none" stroke="#475569" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
@@ -191,7 +191,7 @@
                                 $s = $cardStyles[$index % count($cardStyles)];
                                 $persenBelanja = $totalBelanja > 0 ? round(($item->anggaran / $totalBelanja) * 100, 1) : 0;
                             @endphp
-                            <div class="apbd-card-hover apbd-alloc-card" style="background:{{ $s['bg'] }};border:1px solid {{ $s['border'] }};">
+                            <div class="apbd-card-hover apbd-alloc-card reveal-list" style="background:{{ $s['bg'] }};border:1px solid {{ $s['border'] }}; transition-delay: {{ 0.05 * ($index + 1) }}s">
                                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
                                     <div style="width:42px;height:42px;background:{{ $s['icon'] }};border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                                         <svg style="width:20px;height:20px;" fill="none" stroke="#fff" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
@@ -209,11 +209,10 @@
                     </div>
                 </div>
             </div>
-
         </div>
 
         {{-- ── CTA Download ── --}}
-        <div class="apbd-cta-wrap">
+        <div class="apbd-cta-wrap reveal">
             <div class="apbd-cta-inner">
                 <div class="apbd-cta-left">
                     <div class="apbd-cta-icon">
@@ -239,6 +238,44 @@
 </section>
 
 <style>
+/* ── NEW ANIMATION STYLES ── */
+.reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.reveal.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.reveal-list {
+    opacity: 0;
+    transform: translateX(-20px);
+    transition: all 0.6s ease-out;
+}
+
+.reveal-list.active {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* Progress bar animation */
+.apbd-progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    width: 0; /* Start at 0 */
+    background: #3b82f6;
+    box-shadow: 0 0 12px rgba(59,130,246,0.45);
+    transition: width 1.5s cubic-bezier(0.1, 0.5, 0.1, 1);
+}
+
+/* Trigger fill when parent is active */
+.active .apbd-progress-fill {
+    width: var(--width);
+}
+
 /* ── Base Section ── */
 .apbd-section {
     position: relative;
@@ -318,7 +355,7 @@
     border-radius: 40px; padding: 40px; color: #fff;
     box-shadow: 0 20px 60px rgba(16,185,129,0.25);
     position: relative; overflow: hidden;
-    transition: transform 0.4s, box-shadow 0.4s;
+    transition: transform 0.4s, box-shadow 0.4s, opacity 0.8s, transform 0.8s;
 }
 .apbd-summary-bg-icon { position:absolute;top:0;right:0;padding:16px;opacity:0.08;pointer-events:none; }
 .apbd-summary-white {
@@ -326,7 +363,7 @@
     box-shadow: 0 2px 12px rgba(0,0,0,0.05);
     border: 1px solid #f1f5f9;
     display: flex; flex-direction: column; justify-content: space-between;
-    transition: transform 0.4s, box-shadow 0.4s;
+    transition: transform 0.4s, box-shadow 0.4s, opacity 0.8s, transform 0.8s;
 }
 .apbd-label-white { color:rgba(209,250,229,0.9);font-size:0.7rem;font-weight:800;text-transform:uppercase;letter-spacing:0.18em;margin:0 0 18px; }
 .apbd-label-gray  { color:#94a3b8;font-size:0.7rem;font-weight:800;text-transform:uppercase;letter-spacing:0.15em;margin:0 0 8px; }
@@ -427,76 +464,50 @@
    RESPONSIVE BREAKPOINTS
 ──────────────────────────────── */
 
-/* Tablet: ≤ 1024px */
 @media (max-width: 1024px) {
     .apbd-grid-3 { grid-template-columns: 1fr 1fr; gap: 20px; }
     .apbd-grid-2 { grid-template-columns: 1fr; gap: 28px; }
-    .apbd-amount-white { font-size: 1.6rem; }
-    .apbd-amount-dark  { font-size: 1.4rem; }
     .apbd-panel-body   { max-height: 400px; }
 }
 
-/* Mobile: ≤ 768px */
 @media (max-width: 768px) {
     .apbd-section { padding: 48px 0 72px; }
     .apbd-container { padding: 0 16px; }
-
-    /* Filter Bar */
     .apbd-filter-bar    { padding: 18px 20px; flex-direction: column; align-items: flex-start; margin-bottom: 32px; }
-    .apbd-filter-left   { gap: 14px; }
-    .apbd-filter-title  { font-size: 1rem; }
-    .apbd-select        { width: 100%; min-width: unset; }
-
-    /* Summary Cards → 1 column */
     .apbd-grid-3 { grid-template-columns: 1fr; gap: 16px; margin-bottom: 32px; }
-    .apbd-summary-green,
-    .apbd-summary-white { border-radius: 24px; padding: 28px 24px; }
-    .apbd-amount-white  { font-size: 1.4rem; }
-    .apbd-amount-dark   { font-size: 1.3rem; }
-    .apbd-badge-glass   { margin-top: 20px; }
-
-    /* Panels */
     .apbd-panels        { margin-bottom: 32px; }
-    .apbd-panel         { border-radius: 24px; }
-    .apbd-panel-header  { padding: 20px 20px; gap: 12px; }
-    .apbd-panel-header-dark { flex-wrap: wrap; }
-    .apbd-panel-total-white { font-size: 0.85rem; }
     .apbd-panel-body    { padding: 20px !important; max-height: 320px; }
-    .apbd-panel-title   { font-size: 0.95rem; }
-
-    /* Alloc grid → 1 column on small mobile */
     .apbd-alloc-grid    { grid-template-columns: 1fr; gap: 14px; }
-    .apbd-alloc-card    { padding: 18px; border-radius: 18px; }
-    .apbd-empty         { padding: 48px 0; }
-
-    /* CTA */
-    .apbd-cta-wrap      { border-radius: 24px; }
     .apbd-cta-inner     { padding: 28px 24px; flex-direction: column; align-items: flex-start; gap: 24px; }
-    .apbd-cta-left      { flex-direction: column; align-items: flex-start; gap: 16px; }
-    .apbd-cta-icon      { width: 52px; height: 52px; border-radius: 16px; }
-    .apbd-cta-title     { font-size: 1rem; }
-    .apbd-cta-desc      { font-size: 0.8rem; }
-    .apbd-btn-download  { width: 100%; justify-content: center; padding: 14px 24px; }
-
-    /* Bar labels */
-    .apbd-bar-amount    { font-size: 0.75rem; }
-    .apbd-bar-label     { font-size: 0.78rem; }
+    .apbd-btn-download  { width: 100%; justify-content: center; }
 }
-
-/* Small Mobile: ≤ 480px */
-@media (max-width: 480px) {
-    .apbd-filter-bar  { border-radius: 16px; }
-    .apbd-summary-green,
-    .apbd-summary-white { border-radius: 20px; padding: 22px 18px; }
-    .apbd-amount-white  { font-size: 1.2rem; }
-    .apbd-amount-dark   { font-size: 1.15rem; }
-    .apbd-icon-box      { width: 44px; height: 44px; }
-    .apbd-cta-wrap      { border-radius: 20px; }
-}
-
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
-input[type=number] { -moz-appearance:textfield; }
 </style>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: "0px 0px -50px 0px"
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('active');
+                // Optional: stop observing after animation is done
+                // observer.unobserve(entry.target);
+            }
+        });
+    }, observerOptions);
+
+    // Observe single elements
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // Observe list items
+    document.querySelectorAll('.reveal-list').forEach(el => observer.observe(el));
+});
+</script>
+@endpush
 
 @endsection
