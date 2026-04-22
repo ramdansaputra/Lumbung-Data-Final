@@ -25,7 +25,7 @@
         </nav>
     </div>
 
-    <div class="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden">
+    <div class="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700">
 
         <div
             class="px-5 py-5 border-b border-gray-200 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -46,12 +46,14 @@
         <div class="p-6" x-data="{
             nama: '{{ addslashes(old('nama', $bantuan->nama ?? '')) }}',
             sasaran: '{{ old('sasaran', $bantuan->sasaran ?? '') }}',
-            sasaranLabel: '{{ old('sasaran', $bantuan->sasaran ?? '') == 1 ? 'Penduduk' : (old('sasaran', $bantuan->sasaran ?? '') == 2 ? 'Keluarga' : '') }}',
+            sasaranLabel: '{{ old('sasaran', $bantuan->sasaran ?? '') == 1 ? 'Penduduk' : (old('sasaran', $bantuan->sasaran ?? '') == 2 ? 'Keluarga' : (old('sasaran', $bantuan->sasaran ?? '') == 3 ? 'Rumah Tangga' : (old('sasaran', $bantuan->sasaran ?? '') == 4 ? 'Kelompok/Organisasi Kemasyarakatan' : ''))) }}',
             sasaranOpen: false,
             sasaranSearch: '',
             sasaranOptions: [
                 { value: '1', label: 'Penduduk' },
                 { value: '2', label: 'Keluarga' },
+                { value: '3', label: 'Rumah Tangga' },
+                { value: '4', label: 'Kelompok/Organisasi Kemasyarakatan' },
             ],
             asalDana: '{{ addslashes(old('asal_dana', $bantuan->asal_dana ?? '')) }}',
             asalDanaLabel: '{{ addslashes(old('asal_dana', $bantuan->asal_dana ?? '')) }}',
