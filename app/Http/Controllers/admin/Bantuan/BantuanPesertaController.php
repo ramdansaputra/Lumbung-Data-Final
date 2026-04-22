@@ -31,9 +31,11 @@ class BantuanPesertaController extends Controller {
                 'tanggal_lahir'    => optional($p->tanggal_lahir)->format('d M Y'),
                 'tanggal_lahir_iso' => optional($p->tanggal_lahir)->format('Y-m-d'),
                 'jenis_kelamin'    => $p->jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan',
-                'umur'             => optional($p->tanggal_lahir)->diffInYears(now()),
+                // FIX: cast ke int supaya tidak desimal
+                'umur'             => $p->tanggal_lahir ? (int) $p->tanggal_lahir->diffInYears(now()) : null,
                 'pendidikan'       => $p->pendidikan,
-                'agama'            => $p->agama,
+                // FIX: paksa jadi string — agama bisa jadi relasi/object
+                'agama'            => $p->getRawOriginal('agama') ?? (is_string($p->agama) ? $p->agama : ($p->agama->nama ?? '-')),
                 'alamat'           => $p->alamat,
                 'warga_negara'     => 'WNI',
                 'bantuan_aktif'    => [],
@@ -75,9 +77,11 @@ class BantuanPesertaController extends Controller {
                 'tanggal_lahir'    => optional($p->tanggal_lahir)->format('d M Y'),
                 'tanggal_lahir_iso' => optional($p->tanggal_lahir)->format('Y-m-d'),
                 'jenis_kelamin'    => $p->jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan',
-                'umur'             => optional($p->tanggal_lahir)->diffInYears(now()),
+                // FIX: cast ke int
+                'umur'             => $p->tanggal_lahir ? (int) $p->tanggal_lahir->diffInYears(now()) : null,
                 'pendidikan'       => $p->pendidikan,
-                'agama'            => $p->agama,
+                // FIX: paksa jadi string
+                'agama'            => $p->getRawOriginal('agama') ?? (is_string($p->agama) ? $p->agama : ($p->agama->nama ?? '-')),
                 'alamat'           => $p->alamat,
                 'warga_negara'     => 'WNI',
                 'sudah_terdaftar'  => $sudahPeserta->contains($p->id),
@@ -89,7 +93,6 @@ class BantuanPesertaController extends Controller {
         return response()->json($results);
     }
 
-    // GANTI seluruh method store() yang lama dengan ini:
     public function store(Request $request, Program $bantuan) {
         $request->validate([
             'penduduk_id'         => 'required|exists:penduduk,id',
@@ -99,7 +102,6 @@ class BantuanPesertaController extends Controller {
             'kartu_tempat_lahir'  => 'nullable|string|max:100',
             'kartu_tanggal_lahir' => 'nullable|date',
             'kartu_alamat'        => 'nullable|string',
-            'keterangan'          => 'nullable|string|max:255',
             'gambar_kartu'        => 'nullable|image|max:2048',
         ]);
 
@@ -120,7 +122,6 @@ class BantuanPesertaController extends Controller {
             'kartu_tempat_lahir',
             'kartu_tanggal_lahir',
             'kartu_alamat',
-            'keterangan',
         ]);
         $data['peserta'] = $request->kartu_nik;
 
@@ -141,7 +142,6 @@ class BantuanPesertaController extends Controller {
             ->with('success', 'Peserta berhasil dihapus.');
     }
 
-    // ← Tambahkan di sini
     public function bulkDestroy(Request $request, Program $bantuan) {
         $ids = $request->input('ids', []);
 
@@ -160,11 +160,9 @@ class BantuanPesertaController extends Controller {
     public function downloadTemplate(Program $bantuan) {
         $spreadsheet = new Spreadsheet();
 
-        // ── Sheet 1: Template ──
         $sheet = $spreadsheet->getActiveSheet()->setTitle('Template');
-        $headers = ['NIK (16 digit)', 'Keterangan'];
+        $headers = ['NIK (16 digit)'];
 
-        // Header row
         $col = 'A';
         foreach ($headers as $h) {
             $sheet->setCellValue($col . '1', $h);
@@ -179,16 +177,10 @@ class BantuanPesertaController extends Controller {
         ]);
         $sheet->getRowDimension(1)->setRowHeight(25);
 
-        // Baris contoh
         $sheet->setCellValue('A2', '3302011234560001');
-        $sheet->setCellValue('B2', 'Keterangan opsional');
-        $sheet->getStyle("A2:B2")->getFont()->setItalic(true)->getColor()->setRGB('6B7280');
+        $sheet->getStyle("A2:A2")->getFont()->setItalic(true)->getColor()->setRGB('6B7280');
+        $sheet->getColumnDimension('A')->setAutoSize(true);
 
-        foreach (['A', 'B'] as $c) {
-            $sheet->getColumnDimension($c)->setAutoSize(true);
-        }
-
-        // ── Sheet 2: Referensi (daftar penduduk hidup yang belum jadi peserta) ──
         $refSheet = $spreadsheet->createSheet()->setTitle('Referensi');
         $sudahPeserta = $bantuan->peserta()->whereNotNull('penduduk_id')->pluck('penduduk_id');
         $pendudukList = Penduduk::where('status_hidup', 'hidup')
@@ -236,18 +228,13 @@ class BantuanPesertaController extends Controller {
         $rows        = $sheet->toArray(null, true, true, true);
         $highestRow  = $sheet->getHighestRow();
 
-        // Deteksi kolom dari header baris 1
         $header = $rows[1] ?? [];
         $nikCol = null;
-        $ketCol = null;
 
         foreach ($header as $colLetter => $label) {
             $label = strtolower(trim((string) $label));
             if (str_contains($label, 'nik')) {
                 $nikCol = $colLetter;
-            }
-            if (str_contains($label, 'keterangan')) {
-                $ketCol = $colLetter;
             }
         }
 
@@ -264,18 +251,14 @@ class BantuanPesertaController extends Controller {
             for ($rowNum = 2; $rowNum <= $highestRow; $rowNum++) {
                 $raw = $rows[$rowNum] ?? [];
                 $nik = trim((string) ($raw[$nikCol] ?? ''));
-                $ket = trim((string) ($raw[$ketCol] ?? ''));
 
-                // Skip baris kosong
                 if (empty($nik)) continue;
 
-                // Validasi format 16 digit
                 if (!preg_match('/^\d{16}$/', $nik)) {
                     $importErrors[] = "Baris {$rowNum}: Format NIK tidak valid — \"{$nik}\" (harus 16 digit)";
                     continue;
                 }
 
-                // Cek NIK ada di tabel penduduk + status_hidup=hidup
                 $penduduk = Penduduk::where('nik', $nik)->where('status_hidup', 'hidup')->first();
                 if (!$penduduk) {
                     $importErrors[] = "Baris {$rowNum}: NIK {$nik} tidak ditemukan atau sudah meninggal";
@@ -288,25 +271,20 @@ class BantuanPesertaController extends Controller {
 
                 if ($existing) {
                     if ($request->mode === 'overwrite') {
-                        // Update keterangan jika ada
-                        $existing->update([
-                            'keterangan' => $ket ?: null,
-                        ]);
                         $imported++;
                     } else {
                         $skipped++;
                     }
                 } else {
                     ProgramPeserta::create([
-                        'program_id'         => $bantuan->id,
-                        'penduduk_id'        => $penduduk->id,
-                        'peserta'            => $penduduk->nik,
-                        'kartu_nama'         => $penduduk->nama,
-                        'kartu_nik'          => $penduduk->nik,
-                        'kartu_tempat_lahir' => $penduduk->tempat_lahir,
+                        'program_id'          => $bantuan->id,
+                        'penduduk_id'         => $penduduk->id,
+                        'peserta'             => $penduduk->nik,
+                        'kartu_nama'          => $penduduk->nama,
+                        'kartu_nik'           => $penduduk->nik,
+                        'kartu_tempat_lahir'  => $penduduk->tempat_lahir,
                         'kartu_tanggal_lahir' => $penduduk->tanggal_lahir,
-                        'kartu_alamat'       => $penduduk->alamat,
-                        'keterangan'         => $ket ?: null,
+                        'kartu_alamat'        => $penduduk->alamat,
                     ]);
                     $imported++;
                 }
@@ -334,8 +312,7 @@ class BantuanPesertaController extends Controller {
         $spreadsheet = new Spreadsheet();
         $sheet       = $spreadsheet->getActiveSheet()->setTitle('Peserta');
 
-        // Header
-        $headers = ['No', 'NIK', 'Nama', 'JK', 'Tempat/Tgl Lahir', 'Alamat', 'Keterangan'];
+        $headers = ['No', 'NIK', 'Nama', 'JK', 'Tempat/Tgl Lahir', 'Alamat'];
         $col = 'A';
         foreach ($headers as $h) {
             $sheet->setCellValue($col . '1', $h);
@@ -351,7 +328,6 @@ class BantuanPesertaController extends Controller {
         $sheet->getRowDimension(1)->setRowHeight(25);
         $sheet->freezePane('A2');
 
-        // Data rows
         foreach ($peserta as $i => $p) {
             $rowNum = $i + 2;
             $penduduk = $p->penduduk;
@@ -362,9 +338,7 @@ class BantuanPesertaController extends Controller {
             $tempatTgl = ($p->kartu_tempat_lahir ?? '-') . ' / ' . (optional($p->kartu_tanggal_lahir)->format('d/m/Y') ?? '-');
             $sheet->setCellValue('E' . $rowNum, $tempatTgl);
             $sheet->setCellValue('F' . $rowNum, $p->kartu_alamat ?? '-');
-            $sheet->setCellValue('G' . $rowNum, $p->keterangan ?? '-');
 
-            // Alternating row
             if ($i % 2 === 1) {
                 $sheet->getStyle("A{$rowNum}:{$lastCol}{$rowNum}")
                     ->getFill()->setFillType(Fill::FILL_SOLID)
