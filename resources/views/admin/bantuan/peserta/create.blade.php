@@ -14,7 +14,6 @@
         penduduk: null,
 
         async search() {
-            if (this.query.length < 2) { this.results = []; this.open = false; return; }
             this.loading = true;
             try {
                 const res = await fetch(`{{ route('admin.bantuan.peserta.search', $bantuan) }}?q=` + encodeURIComponent(this.query));
@@ -72,11 +71,12 @@
     {{-- ── Page Header ── --}}
     <div class="flex items-center justify-between mb-5">
         <div>
-            <p class="text-xs font-medium text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-0.5">Program Bantuan</p>
-            <h2 class="text-lg font-bold text-gray-800 dark:text-slate-100">
-                Tambah Peserta
-                <span class="text-emerald-600 dark:text-emerald-400">— {{ $bantuan->nama }}</span>
+            <h2 class="text-lg font-bold text-gray-700 dark:text-slate-200">
+                Tambah Peserta Program Bantuan
             </h2>
+            <p class="text-sm text-gray-400 dark:text-slate-500 mt-0.5">
+                Tambah peserta baru untuk program {{ $bantuan->nama }}
+            </p>
         </div>
         <nav class="flex items-center gap-1.5 text-sm">
             <a href="{{ route('admin.dashboard') }}"
@@ -202,7 +202,7 @@
                             type="text"
                             x-model="query"
                             @input.debounce.350ms="search()"
-                            @focus="query.length >= 2 && results.length && (open = true)"
+                            @focus="!selected && search()"
                             placeholder="Masukkan NIK atau nama penduduk…"
                             :readonly="!!selected"
                             class="w-full pl-9 pr-9 py-2.5 border rounded-lg text-sm bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200 placeholder-gray-400 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-colors"
@@ -243,7 +243,7 @@
                         </div>
                     </div>
                 </div>
-                <p class="text-xs text-gray-400 dark:text-slate-500 mt-1.5">Ketik minimal 2 karakter untuk memulai pencarian</p>
+
             </div>
 
             {{-- Two Panels (visible after selecting penduduk) --}}

@@ -58,15 +58,12 @@
              ══════════════════════════════════════════ --}}
         <div class="flex items-center justify-between mb-5">
             <div>
-                {{-- Label kecil di atas --}}
-                <p class="text-xs font-medium text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-0.5">
-                    Detail Program Bantuan
-                </p>
-                {{-- Judul utama: "Program Bantuan [Nama]" --}}
-                <h2 class="text-lg font-bold text-gray-800 dark:text-slate-100">
-                    Program Bantuan
-                    <span class="text-emerald-600 dark:text-emerald-400">{{ $bantuan->nama }}</span>
+                <h2 class="text-lg font-bold text-gray-700 dark:text-slate-200">
+                    Program Bantuan {{ $bantuan->nama }}
                 </h2>
+                <p class="text-sm text-gray-400 dark:text-slate-500 mt-0.5">
+                    Detail dan daftar peserta program bantuan
+                </p>
             </div>
             <nav class="flex items-center gap-1.5 text-sm">
                 <a href="{{ route('admin.dashboard') }}"

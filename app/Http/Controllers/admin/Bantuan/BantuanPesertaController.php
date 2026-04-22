@@ -24,10 +24,6 @@ class BantuanPesertaController extends Controller {
     public function search(Request $request, Program $bantuan) {
         $q = $request->query('q', '');
 
-        if (strlen($q) < 2) {
-            return response()->json([]);
-        }
-
         $sudahPeserta = $bantuan->peserta()
             ->whereNotNull('penduduk_id')
             ->pluck('penduduk_id');
