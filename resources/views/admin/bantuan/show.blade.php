@@ -4,315 +4,518 @@
 
 @section('content')
 
-{{-- Flash Messages --}}
-@if(session('success'))
-<div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 6000)"
-    class="flex items-start gap-3 p-4 mb-6 bg-emerald-50 border border-emerald-200 rounded-xl">
-    <svg class="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-        <path fill-rule="evenodd"
-            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-            clip-rule="evenodd" />
-    </svg>
-    <div>
-        <p class="text-sm font-semibold text-emerald-800">{{ session('success') }}</p>
-        @if(session('import_errors'))
-        <ul class="mt-2 space-y-0.5">
-            @foreach(session('import_errors') as $err)
-            <li class="text-xs text-red-600">• {{ $err }}</li>
-            @endforeach
-        </ul>
-        @endif
-    </div>
-</div>
-@endif
+    <div x-data="{
+        selectedIds: [],
+        selectAll: false,
+        toggleAll() {
+            if (this.selectAll) {
+                this.selectedIds = Array.from(document.querySelectorAll('.row-checkbox')).map(el => el.value);
+            } else {
+                this.selectedIds = [];
+            }
+        },
+        toggleOne() {
+            const all = Array.from(document.querySelectorAll('.row-checkbox')).map(el => el.value);
+            this.selectAll = all.every(id => this.selectedIds.includes(id));
+        },
+    }">
 
-@if(session('error'))
-<div class="flex items-center gap-3 p-4 mb-6 bg-red-50 border border-red-200 rounded-xl">
-    <svg class="w-5 h-5 text-red-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-        <path fill-rule="evenodd"
-            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-            clip-rule="evenodd" />
-    </svg>
-    <p class="text-sm font-medium text-red-700">{{ session('error') }}</p>
-</div>
-@endif
-
-{{-- Breadcrumb --}}
-<div class="flex items-center gap-2 text-sm text-gray-400 mb-6">
-    <a href="{{ route('admin.bantuan.index') }}" class="hover:text-emerald-600 transition-colors font-medium">Program
-        Bantuan</a>
-    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-    </svg>
-    <span class="text-gray-600 font-medium truncate">{{ $bantuan->nama }}</span>
-</div>
-
-{{-- Program Info --}}
-<div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden mb-6">
-
-    {{-- Header --}}
-    <div class="px-6 py-5 border-b border-gray-100">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div class="flex items-center gap-4">
-                <div
-                    class="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-md flex-shrink-0">
-                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                    </svg>
-                </div>
+        {{-- Flash Messages --}}
+        @if (session('success'))
+            <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 6000)"
+                class="flex items-start gap-3 p-4 mb-4 bg-emerald-50 border border-emerald-200 rounded-xl">
+                <svg class="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clip-rule="evenodd" />
+                </svg>
                 <div>
-                    <h3 class="text-lg font-bold text-gray-900">{{ $bantuan->nama }}</h3>
-                    <div class="flex items-center gap-2 mt-1">
-                        <span
-                            class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium
-                            {{ $bantuan->status == 1 ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-500' }}">
-                            <span
-                                class="w-1.5 h-1.5 rounded-full {{ $bantuan->status == 1 ? 'bg-emerald-400' : 'bg-gray-400' }}"></span>
-                            {{ $bantuan->status_label }}
-                        </span>
-                        <span
-                            class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium
-                            {{ $bantuan->sasaran == 1 ? 'bg-violet-50 text-violet-700' : 'bg-orange-50 text-orange-700' }}">
-                            {{ $bantuan->sasaran_label }}
-                        </span>
+                    <p class="text-sm font-semibold text-emerald-800">{{ session('success') }}</p>
+                    @if (session('import_errors'))
+                        <ul class="mt-2 space-y-0.5">
+                            @foreach (session('import_errors') as $err)
+                                <li class="text-xs text-red-600">• {{ $err }}</li>
+                            @endforeach
+                        </ul>
+                    @endif
+                </div>
+            </div>
+        @endif
+
+        @if (session('error'))
+            <div class="flex items-center gap-3 p-4 mb-4 bg-red-50 border border-red-200 rounded-xl">
+                <svg class="w-5 h-5 text-red-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                        clip-rule="evenodd" />
+                </svg>
+                <p class="text-sm font-medium text-red-700">{{ session('error') }}</p>
+            </div>
+        @endif
+
+        {{-- Page Header --}}
+        <div class="flex items-center justify-between mb-5">
+            <div>
+                <p class="text-xs font-medium text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-0.5">Program Bantuan</p>
+                <h2 class="text-lg font-bold text-gray-800 dark:text-slate-100">{{ $bantuan->nama }}</h2>
+            </div>
+            <nav class="flex items-center gap-1.5 text-sm">
+                <a href="{{ route('admin.dashboard') }}"
+                    class="flex items-center gap-1 text-gray-400 dark:text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    Beranda
+                </a>
+                <svg class="w-3.5 h-3.5 text-gray-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+                <a href="{{ route('admin.bantuan.index') }}"
+                    class="text-gray-400 dark:text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+                    Daftar Program Bantuan
+                </a>
+                <svg class="w-3.5 h-3.5 text-gray-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+                <span class="text-gray-600 dark:text-slate-300 font-medium truncate max-w-[180px]">{{ $bantuan->nama }}</span>
+            </nav>
+        </div>
+
+        {{-- ── MAIN CARD ── --}}
+        <div class="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-visible">
+
+            {{-- ── TOOLBAR ── --}}
+            <div class="flex flex-wrap items-center gap-2 px-5 pt-5 pb-4 border-b border-gray-100 dark:border-slate-700">
+
+                {{-- Tambah (Dropdown) --}}
+                <div class="relative" x-data="{ open: false }" @click.away="open = false">
+                    <button type="button" @click="open = !open"
+                        class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold rounded-lg transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Tambah
+                        <svg class="w-3.5 h-3.5 transition-transform" :class="open ? 'rotate-180' : ''" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <div x-show="open" x-transition:enter="transition ease-out duration-100"
+                        x-transition:enter-start="opacity-0 -translate-y-1"
+                        x-transition:enter-end="opacity-100 translate-y-0"
+                        x-transition:leave="transition ease-in duration-75"
+                        x-transition:leave-start="opacity-100 translate-y-0"
+                        x-transition:leave-end="opacity-0 -translate-y-1"
+                        class="absolute left-0 top-full mt-1 w-52 z-[100] bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-xl shadow-lg overflow-hidden"
+                        style="display:none">
+                        <button type="button" @click="$dispatch('buka-modal-tambah-peserta'); open = false"
+                            class="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-gray-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 transition-colors">
+                            <svg class="w-4 h-4 text-emerald-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                            </svg>
+                            Tambah Satu Peserta Baru
+                        </button>
+                        <div class="h-px bg-gray-100 dark:bg-slate-700 mx-3"></div>
+                        <button type="button" @click="$dispatch('buka-modal-import-bantuan'); open = false"
+                            class="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-gray-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 transition-colors">
+                            <svg class="w-4 h-4 text-emerald-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            Tambah Beberapa Peserta Baru
+                        </button>
                     </div>
                 </div>
-            </div>
-            <div class="flex items-center gap-2">
-                <a href="{{ route('admin.bantuan.edit', $bantuan->id) }}"
-                    class="inline-flex items-center gap-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 text-sm font-semibold px-4 py-2 rounded-xl transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                    Edit
-                </a>
+
+                {{-- Hapus Bulk --}}
+                <form method="POST" action="{{ route('admin.bantuan.peserta.bulk-destroy', $bantuan->id) }}" id="form-bulk-hapus-bantuan">
+                    @csrf
+                    @method('DELETE')
+                    <template x-for="id in selectedIds" :key="id">
+                        <input type="hidden" name="ids[]" :value="id">
+                    </template>
+                    <button type="button" :disabled="selectedIds.length === 0"
+                        @click="selectedIds.length > 0 && $dispatch('buka-modal-hapus', {
+                            bulkCount: selectedIds.length,
+                            onConfirm: () => document.getElementById('form-bulk-hapus-bantuan').submit()
+                        })"
+                        :class="selectedIds.length > 0 ?
+                            'bg-red-500 hover:bg-red-600 cursor-pointer' :
+                            'bg-red-300 opacity-60 cursor-not-allowed'"
+                        class="inline-flex items-center gap-2 px-4 py-2 text-white text-sm font-semibold rounded-lg transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        Hapus
+                        <span x-show="selectedIds.length > 0">(<span x-text="selectedIds.length"></span>)</span>
+                    </button>
+                </form>
+
+                {{-- Cetak/Unduh (Dropdown) --}}
+                <div class="relative" x-data="{ open: false }" @click.away="open = false">
+                    <button @click="open = !open"
+                        class="inline-flex items-center gap-1.5 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold rounded-lg transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                        </svg>
+                        Cetak/Unduh
+                        <svg class="w-3.5 h-3.5 transition-transform" :class="open ? 'rotate-180' : ''" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <div x-show="open" x-transition:enter="transition ease-out duration-100"
+                        x-transition:enter-start="opacity-0 -translate-y-1"
+                        x-transition:enter-end="opacity-100 translate-y-0"
+                        x-transition:leave="transition ease-in duration-75"
+                        x-transition:leave-start="opacity-100 translate-y-0"
+                        x-transition:leave-end="opacity-0 -translate-y-1"
+                        class="absolute left-0 top-full mt-1 w-44 z-[100] bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-xl shadow-lg overflow-hidden"
+                        style="display:none">
+                        <a href="{{ route('admin.bantuan.peserta.export.pdf', $bantuan) }}" target="_blank"
+                            class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-slate-200 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:text-orange-700 transition-colors">
+                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                            </svg>
+                            Cetak
+                        </a>
+                        <div class="h-px bg-gray-100 dark:bg-slate-700 mx-3"></div>
+                        <a href="{{ route('admin.bantuan.peserta.export.excel', $bantuan) }}"
+                            class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-slate-200 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:text-orange-700 transition-colors">
+                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            Unduh
+                        </a>
+                    </div>
+                </div>
+
+                {{-- Kembali --}}
                 <a href="{{ route('admin.bantuan.index') }}"
-                    class="inline-flex items-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold px-4 py-2 rounded-xl transition-colors">
+                    class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold rounded-lg transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
-                    Kembali
+                    Kembali ke Daftar Program Bantuan
                 </a>
-            </div>
-        </div>
-    </div>
 
-    {{-- Info Grid --}}
-    <div class="p-6">
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div class="bg-gray-50 dark:bg-slate-700/50 rounded-xl p-4">
-                <p class="text-xs font-semibold text-gray-400 dark:text-slate-400 uppercase tracking-wide mb-1">Asal Dana</p>
-                <p class="text-sm font-bold text-gray-800 dark:text-slate-200">{{ $bantuan->asal_dana ?? '-' }}</p>
             </div>
-            <div class="bg-gray-50 dark:bg-slate-700/50 rounded-xl p-4">
-                <p class="text-xs font-semibold text-gray-400 dark:text-slate-400 uppercase tracking-wide mb-1">Tahun</p>
-                <p class="text-sm font-bold text-gray-800 dark:text-slate-200">{{ $bantuan->tahun ?? '-' }}</p>
+
+            {{-- ── RINCIAN PROGRAM ── --}}
+            <div class="px-5 py-4 border-b border-gray-100 dark:border-slate-700">
+                <h3 class="text-sm font-semibold text-gray-700 dark:text-slate-200 mb-3">Rincian Program</h3>
+                <table class="w-full text-sm">
+                    <tbody>
+                        <tr>
+                            <td class="py-1.5 pr-4 w-40 text-gray-500 dark:text-slate-400">Nama Program</td>
+                            <td class="py-1.5 pr-3 text-gray-400 w-4">:</td>
+                            <td class="py-1.5 text-gray-800 dark:text-slate-200 font-medium">{{ $bantuan->nama }}</td>
+                        </tr>
+                        <tr>
+                            <td class="py-1.5 pr-4 text-gray-500 dark:text-slate-400">Sasaran Peserta</td>
+                            <td class="py-1.5 pr-3 text-gray-400">:</td>
+                            <td class="py-1.5">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold
+                                    {{ $bantuan->sasaran == 1 ? 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400' :
+                                       ($bantuan->sasaran == 2 ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' :
+                                       ($bantuan->sasaran == 3 ? 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400' :
+                                       ($bantuan->sasaran == 4 ? 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400' : 'bg-gray-100 text-gray-500'))) }}">
+                                    {{ $bantuan->sasaran_label }}
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="py-1.5 pr-4 text-gray-500 dark:text-slate-400">Masa Berlaku</td>
+                            <td class="py-1.5 pr-3 text-gray-400">:</td>
+                            <td class="py-1.5 text-gray-800 dark:text-slate-200">
+                                @if ($bantuan->tanggal_mulai || $bantuan->tanggal_selesai)
+                                    {{ optional($bantuan->tanggal_mulai)->format('d M Y') ?? '-' }}
+                                    <span class="text-gray-400 mx-1">s/d</span>
+                                    {{ optional($bantuan->tanggal_selesai)->format('d M Y') ?? '-' }}
+                                @else
+                                    -
+                                @endif
+                            </td>
+                        </tr>
+                        @if ($bantuan->keterangan)
+                            <tr>
+                                <td class="py-1.5 pr-4 text-gray-500 dark:text-slate-400">Keterangan</td>
+                                <td class="py-1.5 pr-3 text-gray-400">:</td>
+                                <td class="py-1.5 text-gray-800 dark:text-slate-200">{{ $bantuan->keterangan }}</td>
+                            </tr>
+                        @endif
+                    </tbody>
+                </table>
             </div>
-            <div class="bg-gray-50 dark:bg-slate-700/50 rounded-xl p-4">
-                <p class="text-xs font-semibold text-gray-400 dark:text-slate-400 uppercase tracking-wide mb-1">Nominal</p>
-                <p class="text-sm font-bold text-emerald-700 dark:text-emerald-400">
-                    {{ $bantuan->nominal ? 'Rp ' . number_format($bantuan->nominal, 0, ',', '.') : '-' }}
+
+            {{-- ── DAFTAR PESERTA: HEADER ── --}}
+            <div class="px-5 py-3 border-b border-gray-100 dark:border-slate-700">
+                <h3 class="text-sm font-semibold text-gray-700 dark:text-slate-200">Daftar Peserta</h3>
+            </div>
+
+            {{-- ── TOOLBAR: Tampilkan X entri + Search ── --}}
+            <div class="flex flex-wrap items-center justify-between gap-3 px-5 py-3 border-b border-gray-100 dark:border-slate-700">
+
+                {{-- Tampilkan X entri --}}
+                <form method="GET" action="{{ route('admin.bantuan.show', $bantuan) }}" id="form-per-page-bantuan"
+                    class="flex items-center gap-2 text-sm text-gray-600 dark:text-slate-400">
+                    @foreach (request()->except('per_page', 'page') as $key => $val)
+                        <input type="hidden" name="{{ $key }}" value="{{ $val }}">
+                    @endforeach
+                    <input type="hidden" name="per_page" id="val-per-page-bantuan" value="{{ request('per_page', 10) }}">
+
+                    <span>Tampilkan</span>
+
+                    <div class="relative w-20" x-data="{
+                        open: false,
+                        selected: '{{ request('per_page', 10) }}',
+                        options: [
+                            { value: '10', label: '10' },
+                            { value: '25', label: '25' },
+                            { value: '50', label: '50' },
+                            { value: '100', label: '100' },
+                        ],
+                        get label() { return this.options.find(o => o.value === this.selected)?.label ?? '10'; },
+                        choose(opt) {
+                            this.selected = opt.value;
+                            document.getElementById('val-per-page-bantuan').value = opt.value;
+                            this.open = false;
+                            document.getElementById('form-per-page-bantuan').submit();
+                        }
+                    }" @click.away="open = false">
+                        <button type="button" @click="open = !open"
+                            class="w-full flex items-center justify-between px-3 py-1.5 border rounded-lg text-sm cursor-pointer bg-white dark:bg-slate-700 focus:outline-none transition-colors"
+                            :class="open ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-gray-300 dark:border-slate-600 hover:border-emerald-400'">
+                            <span x-text="label" class="text-gray-700 dark:text-slate-200"></span>
+                            <svg class="w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ml-1"
+                                :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        <div x-show="open" x-transition:enter="transition ease-out duration-100"
+                            x-transition:enter-start="opacity-0 -translate-y-1"
+                            x-transition:enter-end="opacity-100 translate-y-0"
+                            x-transition:leave="transition ease-in duration-75"
+                            x-transition:leave-start="opacity-100 translate-y-0"
+                            x-transition:leave-end="opacity-0 -translate-y-1"
+                            class="absolute left-0 top-full mt-1 w-full z-[100] bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg overflow-hidden"
+                            style="display:none">
+                            <ul class="py-1">
+                                <template x-for="opt in options" :key="opt.value">
+                                    <li @click="choose(opt)"
+                                        class="px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700"
+                                        :class="selected === opt.value ?
+                                            'bg-emerald-500 text-white hover:bg-emerald-600 hover:text-white' :
+                                            'text-gray-700 dark:text-slate-200'"
+                                        x-text="opt.label"></li>
+                                </template>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <span>entri</span>
+                </form>
+
+                {{-- Search --}}
+                <form method="GET" action="{{ route('admin.bantuan.show', $bantuan) }}" class="flex items-center gap-2">
+                    @foreach (request()->except('search', 'page') as $key => $val)
+                        <input type="hidden" name="{{ $key }}" value="{{ $val }}">
+                    @endforeach
+                    <label class="text-sm text-gray-600 dark:text-slate-400">Cari:</label>
+                    <div class="relative group">
+                        <input type="text" name="search" value="{{ request('search') }}"
+                            placeholder="kata kunci pencarian" maxlength="50" @input.debounce.400ms="$el.form.submit()"
+                            class="px-3 py-1.5 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none text-sm w-52">
+                        <div class="absolute bottom-full right-0 mb-2 hidden group-focus-within:block z-50 pointer-events-none">
+                            <div class="bg-gray-800 dark:bg-slate-700 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-lg">
+                                Masukkan kata kunci untuk mencari (maksimal 50 karakter)
+                                <div class="absolute top-full right-4 border-4 border-transparent border-t-gray-800 dark:border-t-slate-700"></div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+
+            </div>
+
+            {{-- ── TABEL PESERTA ── --}}
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="bg-gray-50 dark:bg-slate-700/50 border-b border-gray-200 dark:border-slate-700">
+                            <th class="px-3 py-3 w-10">
+                                <input type="checkbox" x-model="selectAll" @change="toggleAll()"
+                                    class="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer">
+                            </th>
+                            <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider w-10">NO</th>
+                            <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider w-20">AKSI</th>
+                            <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">NIK</th>
+                            <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">NO. KK</th>
+                            <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">NAMA PENDUDUK</th>
+                            <th colspan="7" class="px-3 py-3 text-center text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider border-l border-gray-200 dark:border-slate-600">
+                                IDENTITAS DI KARTU PESERTA
+                            </th>
+                        </tr>
+                        <tr class="bg-gray-50 dark:bg-slate-700/50 border-b border-gray-200 dark:border-slate-700">
+                            <th colspan="6"></th>
+                            <th class="px-3 py-2 text-left text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider border-l border-gray-200 dark:border-slate-600">NO. KARTU PESERTA</th>
+                            <th class="px-3 py-2 text-left text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider">NIK</th>
+                            <th class="px-3 py-2 text-left text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider">NAMA</th>
+                            <th class="px-3 py-2 text-left text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider">TEMPAT LAHIR</th>
+                            <th class="px-3 py-2 text-left text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider">TANGGAL LAHIR</th>
+                            <th class="px-3 py-2 text-left text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider">ALAMAT</th>
+                            <th class="px-3 py-2 text-left text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider">KETERANGAN</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100 dark:divide-slate-700">
+                        @forelse($peserta as $i => $p)
+                            <tr class="hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors"
+                                :class="selectedIds.includes('{{ $p->id }}') ? 'bg-emerald-50 dark:bg-emerald-900/10' : ''">
+
+                                {{-- CHECKBOX --}}
+                                <td class="px-3 py-3 text-center">
+                                    <input type="checkbox"
+                                        class="row-checkbox w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+                                        value="{{ $p->id }}" x-model="selectedIds" @change="toggleOne()">
+                                </td>
+
+                                {{-- NO --}}
+                                <td class="px-3 py-3 text-sm text-gray-500 dark:text-slate-400 tabular-nums">
+                                    {{ $peserta->firstItem() + $i }}
+                                </td>
+
+                                {{-- AKSI --}}
+                                <td class="px-3 py-3">
+                                    <div class="flex items-center gap-1">
+                                        <a href="#" title="Edit"
+                                            class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-amber-500 hover:bg-amber-600 text-white transition-colors">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                            </svg>
+                                        </a>
+                                        <button type="button" title="Hapus"
+                                            @click="$dispatch('buka-modal-hapus', {
+                                                action: '{{ route('admin.bantuan.peserta.destroy', [$bantuan->id, $p->id]) }}',
+                                                nama: '{{ addslashes($p->kartu_nama ?? $p->peserta) }}'
+                                            })"
+                                            class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-red-500 hover:bg-red-600 text-white transition-colors">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td>
+
+                                {{-- NIK --}}
+                                <td class="px-3 py-3 text-sm text-emerald-600 dark:text-emerald-400 font-mono hover:underline cursor-pointer">
+                                    {{ $p->kartu_nik ?? $p->peserta ?? '-' }}
+                                </td>
+
+                                {{-- NO. KK --}}
+                                <td class="px-3 py-3 text-sm text-gray-600 dark:text-slate-400 font-mono">
+                                    {{ $p->penduduk?->keluarga?->no_kk ?? '-' }}
+                                </td>
+
+                                {{-- NAMA PENDUDUK --}}
+                                <td class="px-3 py-3 text-sm font-medium text-gray-800 dark:text-slate-200 whitespace-nowrap">
+                                    {{ $p->penduduk?->nama ?? $p->kartu_nama ?? '-' }}
+                                </td>
+
+                                {{-- IDENTITAS KARTU --}}
+                                <td class="px-3 py-3 text-sm text-gray-600 dark:text-slate-400 border-l border-gray-100 dark:border-slate-700">
+                                    {{ $p->no_kartu ?? '-' }}
+                                </td>
+                                <td class="px-3 py-3 text-sm text-gray-600 dark:text-slate-400 font-mono">
+                                    {{ $p->kartu_nik ?? '-' }}
+                                </td>
+                                <td class="px-3 py-3 text-sm text-gray-800 dark:text-slate-200 whitespace-nowrap">
+                                    {{ $p->kartu_nama ?? '-' }}
+                                </td>
+                                <td class="px-3 py-3 text-sm text-gray-600 dark:text-slate-400">
+                                    {{ $p->kartu_tempat_lahir ?? '-' }}
+                                </td>
+                                <td class="px-3 py-3 text-sm text-gray-600 dark:text-slate-400 whitespace-nowrap">
+                                    {{ $p->kartu_tanggal_lahir ? $p->kartu_tanggal_lahir->format('d-m-Y') : '-' }}
+                                </td>
+                                <td class="px-3 py-3 text-sm text-gray-600 dark:text-slate-400 max-w-[150px] truncate">
+                                    {{ $p->kartu_alamat ?? '-' }}
+                                </td>
+                                <td class="px-3 py-3 text-sm text-gray-600 dark:text-slate-400">
+                                    {{ $p->keterangan ?? '-' }}
+                                </td>
+
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="13" class="px-6 py-16 text-center">
+                                    <div class="flex flex-col items-center gap-3">
+                                        <svg class="w-14 h-14 text-gray-300 dark:text-slate-600" fill="none"
+                                            stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        </svg>
+                                        <p class="text-gray-500 dark:text-slate-400 font-medium">Belum ada peserta terdaftar</p>
+                                        <p class="text-gray-400 dark:text-slate-500 text-sm">Silakan tambah peserta baru</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            {{-- ── PAGINATION ── --}}
+            <div class="px-6 py-4 border-t border-gray-200 dark:border-slate-700 flex items-center justify-between flex-wrap gap-3">
+                <p class="text-sm text-gray-500 dark:text-slate-400">
+                    @if ($peserta->total() > 0)
+                        Menampilkan {{ $peserta->firstItem() }} sampai {{ $peserta->lastItem() }} dari
+                        {{ number_format($peserta->total()) }} entri
+                    @else
+                        Menampilkan 0 sampai 0 dari 0 entri
+                    @endif
                 </p>
-            </div>
-            <div class="bg-gray-50 rounded-xl p-4">
-                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Total Peserta</p>
-                <p class="text-sm font-bold text-blue-700">{{ $peserta->total() }} orang</p>
-            </div>
-        </div>
+                <div class="flex items-center gap-1">
+                    @if ($peserta->onFirstPage())
+                        <span class="px-3 py-1.5 text-sm text-gray-400 border border-gray-200 dark:border-slate-600 rounded-lg bg-gray-50 dark:bg-slate-700/50 cursor-not-allowed">Sebelumnya</span>
+                    @else
+                        <a href="{{ $peserta->appends(request()->query())->previousPageUrl() }}"
+                            class="px-3 py-1.5 text-sm text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 hover:bg-gray-50 transition-colors">Sebelumnya</a>
+                    @endif
 
-        {{-- Periode --}}
-        @if($bantuan->tanggal_mulai || $bantuan->tanggal_selesai)
-        <div class="flex items-center gap-3 bg-blue-50 rounded-xl px-4 py-3 mb-4">
-            <svg class="w-4 h-4 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            <p class="text-sm text-blue-700 font-medium">
-                Periode:
-                {{ optional($bantuan->tanggal_mulai)->format('d F Y') ?? '-' }}
-                <span class="text-blue-400">s/d</span>
-                {{ optional($bantuan->tanggal_selesai)->format('d F Y') ?? '-' }}
-            </p>
-        </div>
-        @endif
+                    @php
+                        $cp = $peserta->currentPage();
+                        $lp = $peserta->lastPage();
+                    @endphp
+                    @for ($pg = max(1, $cp - 2); $pg <= min($lp, $cp + 2); $pg++)
+                        @if ($pg == $cp)
+                            <span class="px-3 py-1.5 text-sm font-semibold text-white bg-emerald-600 border border-emerald-600 rounded-lg">{{ $pg }}</span>
+                        @else
+                            <a href="{{ $peserta->appends(request()->query())->url($pg) }}"
+                                class="px-3 py-1.5 text-sm text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 hover:bg-gray-50 transition-colors">{{ $pg }}</a>
+                        @endif
+                    @endfor
 
-        {{-- Syarat --}}
-        @if($bantuan->syarat)
-        <div class="mb-4">
-            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Syarat / Kriteria</p>
-            <div class="bg-yellow-50 border border-yellow-100 rounded-xl p-4 text-sm text-gray-700">{{ $bantuan->syarat
-                }}</div>
-        </div>
-        @endif
-
-        {{-- Keterangan --}}
-        @if($bantuan->keterangan)
-        <div>
-            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Keterangan</p>
-            <p class="text-sm text-gray-600">{{ $bantuan->keterangan }}</p>
-        </div>
-        @endif
-    </div>
-</div>
-
-{{-- Peserta Table --}}
-<div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden">
-
-    <div class="px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-            <h4 class="font-bold text-gray-900">Daftar Peserta</h4>
-            <p class="text-xs text-gray-400 mt-0.5">{{ $peserta->total() }} peserta terdaftar dalam program ini</p>
-        </div>
-        <div class="flex items-center gap-2">
-            <button type="button" @click="$dispatch('buka-modal-import-bantuan')"
-                class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-50 transition-colors shadow-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
-                </svg>
-                Import
-            </button>
-            <div x-data="{ open: false }" @click.away="open = false" class="relative">
-                <button type="button" @click="open = !open"
-                    class="inline-flex items-center gap-2 border border-gray-200 hover:border-emerald-400 bg-white hover:bg-emerald-50 text-gray-700 hover:text-emerald-700 px-4 py-2 rounded-xl text-sm font-medium transition-all shadow-sm">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    Export
-                    <svg class="w-3 h-3 transition-transform duration-150" :class="open && 'rotate-180'" fill="none"
-                        stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                </button>
-                <div x-show="open" x-transition:enter="transition ease-out duration-150"
-                    x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
-                    x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 scale-100"
-                    x-transition:leave-end="opacity-0 scale-95"
-                    class="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden z-30"
-                    style="display:none">
-                    <a href="{{ route('admin.bantuan.peserta.export.excel', $bantuan) }}"
-                        class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 transition-colors">
-                        <div class="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center flex-shrink-0">
-                            <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                        </div>
-                        <div>
-                            <p class="font-semibold text-xs">Excel (.xlsx)</p>
-                            <p class="text-xs text-gray-400">Semua data</p>
-                        </div>
-                    </a>
-                    <div class="h-px bg-gray-100 mx-3"></div>
-                    <a href="{{ route('admin.bantuan.peserta.export.pdf', $bantuan) }}"
-                        class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 transition-colors">
-                        <div class="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center flex-shrink-0">
-                            <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                            </svg>
-                        </div>
-                        <div>
-                            <p class="font-semibold text-xs">PDF</p>
-                            <p class="text-xs text-gray-400">Siap cetak + TTD</p>
-                        </div>
-                    </a>
+                    @if ($peserta->hasMorePages())
+                        <a href="{{ $peserta->appends(request()->query())->nextPageUrl() }}"
+                            class="px-3 py-1.5 text-sm text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 hover:bg-gray-50 transition-colors">Selanjutnya</a>
+                    @else
+                        <span class="px-3 py-1.5 text-sm text-gray-400 border border-gray-200 dark:border-slate-600 rounded-lg bg-gray-50 dark:bg-slate-700/50 cursor-not-allowed">Selanjutnya</span>
+                    @endif
                 </div>
             </div>
-            <button type="button" @click="$dispatch('buka-modal-tambah-peserta')"
-                class="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-sm font-semibold px-4 py-2 rounded-xl shadow-sm hover:shadow-md transition-all duration-200">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                </svg>
-                Tambah Peserta
-            </button>
-        </div>
-    </div>
 
-    <div class="overflow-x-auto">
-        <table class="w-full">
-            <thead>
-                <tr class="bg-gray-50 dark:bg-slate-700/50 text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide dark:divide-slate-700">
-                    <th class="px-6 py-3 text-left">#</th>
-                    <th class="px-6 py-3 text-left">Nama</th>
-                    <th class="px-6 py-3 text-left">NIK</th>
-                    <th class="px-6 py-3 text-left">Tempat / Tgl Lahir</th>
-                    <th class="px-6 py-3 text-left">Alamat</th>
-                    <th class="px-6 py-3 text-center">Aksi</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-50">
-                @forelse($peserta as $i => $p)
-                <tr class="hover:bg-gray-50/70 dark:hover:bg-slate-700/50 transition-colors duration-150 divide-gray-100 dark:divide-slate-700">
-                    <td class="px-6 py-4 text-sm text-gray-400 dark:text-slate-200">{{ $peserta->firstItem() + $i }}</td>
-                    <td class="px-6 py-4">
-                        <div class="flex items-center gap-3">
-                            <div
-                                class="w-8 h-8 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                                {{ strtoupper(substr($p->kartu_nama ?? '?', 0, 1)) }}
-                            </div>
-                            <span class="text-sm font-semibold text-gray-900">{{ $p->kartu_nama ?? '-' }}</span>
-                        </div>
-                    </td>
-                    <td class="px-6 py-4 text-sm text-gray-600 font-mono">{{ $p->kartu_nik ?? $p->peserta }}</td>
-                    <td class="px-6 py-4 text-sm text-gray-600">
-                        {{ $p->kartu_tempat_lahir ?? '-' }}
-                        @if($p->kartu_tanggal_lahir)
-                        / {{ $p->kartu_tanggal_lahir->format('d/m/Y') }}
-                        @endif
-                    </td>
-                    <td class="px-6 py-4 text-sm text-gray-600 max-w-[200px] truncate">{{ $p->kartu_alamat ?? '-' }}
-                    </td>
-                    <td class="px-6 py-4 text-center">
-                        <button type="button" @click="$dispatch('buka-modal-hapus', {
-                            action: '{{ route('admin.bantuan.peserta.destroy', [$bantuan->id, $p->id]) }}',
-                            nama: '{{ addslashes($p->kartu_nama ?? $p->peserta) }}'
-                        })"
-                            class="inline-flex items-center gap-1 px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold rounded-lg transition-colors">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                            Hapus
-                        </button>
-                    </td>
-                </tr>
-                @empty
-                <tr>
-                    <td colspan="6" class="px-6 py-16 text-center">
-                        <div class="flex flex-col items-center gap-3">
-                            <div class="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center">
-                                <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                                </svg>
-                            </div>
-                            <p class="font-semibold text-gray-400">Belum ada peserta terdaftar</p>
-                            <a href="{{ route('admin.bantuan.peserta.create', $bantuan->id) }}"
-                                class="text-sm text-emerald-600 hover:text-emerald-700 font-medium">+ Tambah Peserta
-                                Pertama</a>
-                        </div>
-                    </td>
-                </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
+        </div>{{-- end main card --}}
 
-    @if($peserta->hasPages())
-    <div class="px-6 py-4 border-t border-gray-100">
-        {{ $peserta->links() }}
-    </div>
-    @endif
-</div>
+    </div>{{-- end x-data --}}
 
-@include('admin.partials.modal-import-bantuan', ['bantuan' => $bantuan])
-@include('admin.partials.modal-hapus')
+    @include('admin.partials.modal-import-bantuan', ['bantuan' => $bantuan])
+    @include('admin.partials.modal-hapus')
 
 @endsection

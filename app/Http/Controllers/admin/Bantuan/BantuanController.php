@@ -57,23 +57,38 @@ class BantuanController extends Controller
         return redirect()->route('admin.bantuan.index')->with('success', 'Program bantuan berhasil ditambahkan.');
     }
 
-    public function show($id)
-    {
+    public function show($id, Request $request) {
         $bantuan = Program::findOrFail($id);
-        $peserta = $bantuan->peserta()->orderBy('created_at', 'desc')->paginate(10);
 
-        // Data untuk dropdown modal tambah peserta
+        $query = $bantuan->peserta()->orderBy('created_at', 'desc');
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('kartu_nama', 'like', "%{$search}%")
+                    ->orWhere('kartu_nik', 'like', "%{$search}%")
+                    ->orWhere('no_kartu', 'like', "%{$search}%");
+            });
+        }
+
+        $perPage = $request->get('per_page', 10);
+        $peserta = $query->paginate($perPage)->appends($request->query());
+
         $dataPenduduk = \App\Models\Penduduk::select('id', 'nama', 'nik')
             ->where('status_hidup', 'hidup')
             ->orderBy('nama')
             ->get();
 
-        $dataKeluarga = \App\Models\Keluarga::select('id', 'no_kk', 'nama_kepala as nama')
-            ->orderBy('no_kk')
+        $dataKeluarga = \App\Models\Keluarga::select('keluarga.id', 'keluarga.no_kk', 'penduduk.nama')
+            ->leftJoin('penduduk', 'penduduk.id', '=', 'keluarga.kepala_keluarga_id')
+            ->orderBy('keluarga.no_kk')
             ->get();
 
-        $dataRumahTangga = \App\Models\RumahTangga::select('id', 'no_kk', 'nama_kepala as nama')
-            ->orderBy('no_kk')
+        $dataRumahTangga = \App\Models\RumahTangga::select('rumah_tangga.id', 'rumah_tangga.no_rumah_tangga', 'penduduk.nama')
+            ->leftJoin('keluarga', 'keluarga.rumah_tangga_id', '=', 'rumah_tangga.id')
+            ->leftJoin('penduduk', 'penduduk.id', '=', 'keluarga.kepala_keluarga_id')
+            ->orderBy('rumah_tangga.no_rumah_tangga')
+            ->groupBy('rumah_tangga.id', 'rumah_tangga.no_rumah_tangga', 'penduduk.nama')
             ->get();
 
         return view('admin.bantuan.show', compact('bantuan', 'peserta', 'dataPenduduk', 'dataKeluarga', 'dataRumahTangga'));
@@ -174,5 +189,18 @@ class BantuanController extends Controller
     public function contohFormat() {
         // Implementasi nanti, sementara return 404
         abort(404, 'Template belum tersedia');
+    }
+    public function bulkDestroy(Request $request, Program $bantuan) {
+        $ids = $request->input('ids', []);
+
+        if (empty($ids)) {
+            return redirect()->route('admin.bantuan.show', $bantuan)
+                ->with('error', 'Tidak ada peserta yang dipilih.');
+        }
+
+        $bantuan->peserta()->whereIn('id', $ids)->delete();
+
+        return redirect()->route('admin.bantuan.show', $bantuan)
+            ->with('success', count($ids) . ' peserta berhasil dihapus.');
     }
 }
