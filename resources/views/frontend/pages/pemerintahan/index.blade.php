@@ -3,9 +3,33 @@
 @section('title', 'Struktur Pemerintahan')
 @section('description', 'Struktur organisasi dan perangkat desa yang melayani dengan dedikasi')
 
+{{-- Tambahkan Style Animasi --}}
+@push('styles')
+<style>
+    .reveal {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .reveal.active {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    .stagger-card {
+        opacity: 0;
+        transform: scale(0.95);
+        transition: all 0.5s ease-out;
+    }
+    .stagger-card.active {
+        opacity: 1;
+        transform: scale(1);
+    }
+</style>
+@endpush
+
 @section('content')
 
-<x-hero-section 
+<x-hero-section
     title="Struktur Pemerintahan"
     subtitle="Susunan perangkat desa yang bertugas melayani masyarakat dengan penuh dedikasi dan integritas."
     :breadcrumb="[
@@ -16,7 +40,7 @@
 
 <section class="py-20 bg-gray-50/50 relative overflow-hidden">
     <div class="container mx-auto px-4 max-w-6xl">
-        <div class="text-center mb-16">
+        <div class="text-center mb-16 reveal">
             <span class="text-emerald-600 font-bold tracking-wider uppercase text-sm mb-2 block">Pemerintah Desa</span>
             <h2 class="text-3xl md:text-4xl font-bold text-slate-800">Struktur Organisasi</h2>
             <div class="w-20 h-1.5 bg-emerald-500 rounded-full mx-auto mt-4"></div>
@@ -24,10 +48,10 @@
 
         <div class="flex flex-col items-center relative">
             @if($kades)
-            <div class="z-10 bg-white border-[3px] border-emerald-500 rounded-3xl p-6 w-72 text-center shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 relative">
+            <div class="z-10 bg-white border-[3px] border-emerald-500 rounded-3xl p-6 w-72 text-center shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 relative reveal">
                 <div class="absolute -top-4 -right-4 w-12 h-12 bg-emerald-100 rounded-full mix-blend-multiply blur-md"></div>
                 <div class="w-28 h-28 mx-auto rounded-full p-1 border-2 border-emerald-200 mb-4 overflow-hidden bg-gray-50">
-                    <img src="{{ $kades->foto ? asset('storage/'.$kades->foto) : 'https://ui-avatars.com/api/?name='.urlencode($kades->nama).'&background=10b981&color=fff' }}" 
+                    <img src="{{ $kades->foto ? asset('storage/'.$kades->foto) : 'https://ui-avatars.com/api/?name='.urlencode($kades->nama).'&background=10b981&color=fff' }}"
                          alt="{{ $kades->nama }}" class="w-full h-full object-cover rounded-full">
                 </div>
                 <h3 class="font-bold text-gray-900 text-lg leading-tight mb-1">{{ $kades->nama }}</h3>
@@ -36,12 +60,12 @@
             </div>
             @endif
 
-            <div class="w-0.5 h-8 bg-emerald-300 hidden md:block"></div>
+            <div class="w-0.5 h-8 bg-emerald-300 hidden md:block reveal"></div>
 
             @if($sekdes)
-            <div class="z-10 bg-white border border-blue-200 rounded-2xl p-5 w-64 text-center shadow-lg hover:shadow-xl transition-all duration-300 relative">
+            <div class="z-10 bg-white border border-blue-200 rounded-2xl p-5 w-64 text-center shadow-lg hover:shadow-xl transition-all duration-300 relative reveal">
                 <div class="w-20 h-20 mx-auto rounded-full p-1 border-2 border-blue-100 mb-3 overflow-hidden bg-gray-50">
-                    <img src="{{ $sekdes->foto ? asset('storage/'.$sekdes->foto) : 'https://ui-avatars.com/api/?name='.urlencode($sekdes->nama).'&background=3b82f6&color=fff' }}" 
+                    <img src="{{ $sekdes->foto ? asset('storage/'.$sekdes->foto) : 'https://ui-avatars.com/api/?name='.urlencode($sekdes->nama).'&background=3b82f6&color=fff' }}"
                          alt="{{ $sekdes->nama }}" class="w-full h-full object-cover rounded-full">
                 </div>
                 <h3 class="font-bold text-gray-900 text-base leading-tight mb-1">{{ $sekdes->nama }}</h3>
@@ -50,18 +74,18 @@
             @endif
 
             @if(count($kasiKaur) > 0)
-            <div class="w-0.5 h-8 bg-emerald-300 hidden md:block relative">
+            <div class="w-0.5 h-8 bg-emerald-300 hidden md:block relative reveal">
                 <div class="absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 bg-emerald-300" style="width: min(100vw - 4rem, {{ count($kasiKaur) * 220 }}px);"></div>
             </div>
 
-            <div class="flex flex-wrap justify-center gap-4 md:gap-6 mt-8 md:mt-0 relative w-full px-4">
+            <div class="flex flex-wrap justify-center gap-4 md:gap-6 mt-8 md:mt-0 relative w-full px-4" id="stagger-kasi">
                 @foreach($kasiKaur as $perangkat)
-                <div class="relative flex flex-col items-center w-[45%] md:w-52 group">
+                <div class="relative flex flex-col items-center w-[45%] md:w-52 group stagger-card">
                     <div class="absolute -top-8 left-1/2 w-0.5 h-8 bg-emerald-300 hidden md:block"></div>
-                    
+
                     <div class="bg-white border border-gray-100 rounded-2xl p-4 w-full text-center shadow-sm hover:shadow-lg transition-all duration-300 h-full flex flex-col items-center hover:-translate-y-1">
                         <div class="w-16 h-16 mx-auto rounded-full p-1 border border-gray-200 mb-3 overflow-hidden bg-gray-50 group-hover:border-emerald-300 transition-colors">
-                            <img src="{{ $perangkat->foto ? asset('storage/'.$perangkat->foto) : 'https://ui-avatars.com/api/?name='.urlencode($perangkat->nama).'&background=0ea5e9&color=fff' }}" 
+                            <img src="{{ $perangkat->foto ? asset('storage/'.$perangkat->foto) : 'https://ui-avatars.com/api/?name='.urlencode($perangkat->nama).'&background=0ea5e9&color=fff' }}"
                                  alt="{{ $perangkat->nama }}" class="w-full h-full object-cover rounded-full">
                         </div>
                         <h4 class="font-bold text-gray-800 text-sm mb-1 leading-snug">{{ $perangkat->nama }}</h4>
@@ -78,13 +102,13 @@
 @if(count($kadus) > 0)
 <section class="py-16 bg-white border-t border-gray-100">
     <div class="container mx-auto px-4 max-w-6xl">
-        <div class="text-center mb-10">
+        <div class="text-center mb-10 reveal">
             <h3 class="text-2xl font-bold text-slate-800">Pelaksana Kewilayahan (Kepala Dusun)</h3>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 justify-center">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 justify-center" id="stagger-kadus">
             @foreach($kadus as $dusun)
-            <div class="flex items-center gap-4 bg-gray-50 border border-gray-100 p-4 rounded-2xl hover:bg-emerald-50 transition-colors group">
-                <img src="{{ $dusun->foto ? asset('storage/'.$dusun->foto) : 'https://ui-avatars.com/api/?name='.urlencode($dusun->nama).'&background=f59e0b&color=fff' }}" 
+            <div class="flex items-center gap-4 bg-gray-50 border border-gray-100 p-4 rounded-2xl hover:bg-emerald-50 transition-colors group stagger-card">
+                <img src="{{ $dusun->foto ? asset('storage/'.$dusun->foto) : 'https://ui-avatars.com/api/?name='.urlencode($dusun->nama).'&background=f59e0b&color=fff' }}"
                      alt="{{ $dusun->nama }}" class="w-14 h-14 rounded-xl object-cover shadow-sm group-hover:scale-105 transition-transform">
                 <div>
                     <h4 class="font-bold text-gray-900 text-sm">{{ $dusun->nama }}</h4>
@@ -100,36 +124,24 @@
 @if(count($wilayahRw) > 0)
 <section class="py-20 bg-slate-50 border-t border-gray-200 relative">
     <div class="container mx-auto px-4 max-w-6xl">
-        <div class="text-center mb-16">
+        <div class="text-center mb-16 reveal">
             <span class="text-blue-600 font-bold tracking-wider uppercase text-sm mb-2 block">Pemerintahan Wilayah</span>
             <h2 class="text-3xl font-bold text-slate-800">Ketua RW & Ketua RT</h2>
             <p class="text-gray-500 mt-3 max-w-2xl mx-auto">Struktur pemerintahan tingkat RW dan RT yang melayani warga secara langsung di setiap wilayah.</p>
         </div>
 
         <div class="space-y-8">
-            @php 
-                // Daftar warna gradient untuk memberi kesan dinamis pada setiap card RW
-                $gradients = [
-                    'from-purple-600 to-indigo-600',
-                    'from-blue-600 to-cyan-600',
-                    'from-emerald-600 to-teal-600',
-                    'from-orange-500 to-red-500',
-                    'from-pink-500 to-rose-600'
-                ];
-                $bgColors = ['bg-purple-50', 'bg-blue-50', 'bg-emerald-50', 'bg-orange-50', 'bg-pink-50'];
-                $textColors = ['text-purple-700', 'text-blue-700', 'text-emerald-700', 'text-orange-700', 'text-pink-700'];
-            @endphp
-
+            {{-- Loop RW --}}
             @foreach($wilayahRw as $rw => $rts)
-                @php 
-                    $colorIndex = $loop->index % count($gradients); 
-                    $gradient = $gradients[$colorIndex];
-                    $bgLight = $bgColors[$colorIndex];
-                    $textDark = $textColors[$colorIndex];
+                @php
+                    $colorIndex = $loop->index % 5;
+                    $gradients = ['from-purple-600 to-indigo-600', 'from-blue-600 to-cyan-600', 'from-emerald-600 to-teal-600', 'from-orange-500 to-red-500', 'from-pink-500 to-rose-600'];
+                    $bgColors = ['bg-purple-50', 'bg-blue-50', 'bg-emerald-50', 'bg-orange-50', 'bg-pink-50'];
+                    $textColors = ['text-purple-700', 'text-blue-700', 'text-emerald-700', 'text-orange-700', 'text-pink-700'];
                 @endphp
 
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
-                    <div class="bg-gradient-to-r {{ $gradient }} px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-white">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow reveal">
+                    <div class="bg-gradient-to-r {{ $gradients[$colorIndex] }} px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-white">
                         <div class="flex items-center gap-4">
                             <div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center font-bold text-xl border border-white/30">
                                 {{ str_pad($rw, 2, '0', STR_PAD_LEFT) }}
@@ -148,14 +160,14 @@
                     <div class="p-6">
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                             @foreach($rts as $rt)
-                                <div class="border border-gray-100 {{ $bgLight }} rounded-xl p-5 hover:scale-[1.02] transition-transform duration-200">
+                                <div class="border border-gray-100 {{ $bgColors[$colorIndex] }} rounded-xl p-5 hover:scale-[1.02] transition-transform duration-200 stagger-card">
                                     <div class="flex justify-between items-start mb-3">
-                                        <span class="text-xs font-black {{ $textDark }} bg-white px-2 py-1 rounded shadow-sm border border-gray-100">
+                                        <span class="text-xs font-black {{ $textColors[$colorIndex] }} bg-white px-2 py-1 rounded shadow-sm border border-gray-100">
                                             RT {{ str_pad($rt->rt, 2, '0', STR_PAD_LEFT) }}
                                         </span>
                                     </div>
                                     <p class="font-bold text-gray-900 text-sm mb-4">{{ $rt->ketua_rt ?? 'Belum Diatur' }}</p>
-                                    
+
                                     <div class="flex items-center justify-between text-xs text-gray-500 border-t border-gray-200/60 pt-3 mt-auto">
                                         <div class="flex flex-col">
                                             <span class="font-bold text-gray-800 text-sm">{{ $rt->jumlah_kk ?? 0 }}</span>
@@ -179,3 +191,36 @@
 @endif
 
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Observer untuk elemen reveal (fade in up)
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        // Observer untuk stagger animation pada grid items
+        const staggerObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const cards = entry.target.querySelectorAll('.stagger-card');
+                    cards.forEach((card, index) => {
+                        setTimeout(() => {
+                            card.classList.add('active');
+                        }, index * 70);
+                    });
+                }
+            });
+        }, { threshold: 0.1 });
+
+        // Terapkan ke elemen
+        document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+        document.querySelectorAll('.flex-wrap, .grid, .space-y-8').forEach(el => staggerObserver.observe(el));
+    });
+</script>
+@endpush
