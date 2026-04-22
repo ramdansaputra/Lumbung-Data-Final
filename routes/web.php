@@ -1670,6 +1670,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
     Route::prefix('bantuan/{bantuan}/peserta')->name('bantuan.peserta.')->group(function () {
         Route::get('/create', [BantuanPesertaController::class, 'create'])->name('create');
         Route::post('/', [BantuanPesertaController::class, 'store'])->name('store');
+        Route::get('/search', [BantuanPesertaController::class, 'search'])->name('search');
         Route::get('/template', [BantuanPesertaController::class, 'downloadTemplate'])->name('template');
         Route::post('/import', [BantuanPesertaController::class, 'import'])->name('import');
         Route::get('/export/excel', [BantuanPesertaController::class, 'exportExcel'])->name('export.excel');
