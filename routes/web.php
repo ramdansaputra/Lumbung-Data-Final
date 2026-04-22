@@ -925,7 +925,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
             'pending_permohonan' => $pendingPermohonan,
         ]);
     })->name('notifikasi.badges');
-    
+
     /*
     |--------------------------------------------------------------------------
     | STATISTIK
@@ -1022,56 +1022,68 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
     Route::delete('/penduduk/{penduduk}/dokumen',                [PendudukController::class, 'dokumenBulkDestroy'])->name('penduduk.dokumen.bulk-destroy');
 
     /*
-    |--------------------------------------------------------------------------
-    | KEPENDUDUKAN — KELUARGA
-    |--------------------------------------------------------------------------
-    */
+|--------------------------------------------------------------------------
+| KEPENDUDUKAN — KELUARGA
+|--------------------------------------------------------------------------
+*/
     Route::get('/keluarga',               [KeluargaController::class, 'index'])->name('keluarga');
     Route::get('/keluarga/export/excel',  [KeluargaController::class, 'exportExcel'])->name('keluarga.export.excel');
     Route::get('/keluarga/export/pdf',    [KeluargaController::class, 'exportPdf'])->name('keluarga.export.pdf');
-
-    // NOTE: Dihapus (diganti Alpine inline di form) — tidak lagi butuh endpoint generate via AJAX.
-    // Route::get('/keluarga/generate-no-kk-sementara', [KeluargaController::class, 'generateNoKkSementara'])
-    //     ->name('keluarga.generate.no-kk-sementara');
-    // Route::get('/keluarga/generate-nik-sementara', [KeluargaController::class, 'generateNikSementara'])
-    //     ->name('keluarga.generate.nik-sementara');
 
     Route::get('/keluarga/create/masuk',          [KeluargaController::class, 'createMasuk'])->name('keluarga.create.masuk');
     Route::post('/keluarga/create/masuk',         [KeluargaController::class, 'storeMasuk'])->name('keluarga.store.masuk');
     Route::get('/keluarga/create/dari-penduduk',  [KeluargaController::class, 'createDariPenduduk'])->name('keluarga.create.dari-penduduk');
     Route::post('/keluarga/create/dari-penduduk', [KeluargaController::class, 'storeDariPenduduk'])->name('keluarga.store.dari-penduduk');
 
-    Route::delete('/keluarga/bulk-destroy',          [KeluargaController::class, 'bulkDestroy'])->name('keluarga.bulk-destroy');
-    Route::post('/keluarga/pindah-wilayah-kolektif', [KeluargaController::class, 'pindahWilayahKolektif'])->name('keluarga.pindah-wilayah-kolektif');
+    Route::delete('/keluarga/bulk-destroy',               [KeluargaController::class, 'bulkDestroy'])->name('keluarga.bulk-destroy');
+    Route::post('/keluarga/pindah-wilayah-kolektif',      [KeluargaController::class, 'pindahWilayahKolektif'])->name('keluarga.pindah-wilayah-kolektif');
     Route::post('/keluarga/tambah-rumah-tangga-kolektif', [KeluargaController::class, 'tambahRumahTanggaKolektif'])->name('keluarga.tambah-rumah-tangga-kolektif');
 
-    Route::get('/keluarga/{keluarga}',      [KeluargaController::class, 'show'])->name('keluarga.show');
-    Route::get('/keluarga/{keluarga}/edit', [KeluargaController::class, 'edit'])->name('keluarga.edit');
-    Route::put('/keluarga/{keluarga}',      [KeluargaController::class, 'update'])->name('keluarga.update');
-    Route::delete('/keluarga/{keluarga}',   [KeluargaController::class, 'destroy'])->name('keluarga.destroy');
+    Route::get('/keluarga/{keluarga}',           [KeluargaController::class, 'show'])->name('keluarga.show');
+    Route::get('/keluarga/{keluarga}/edit',      [KeluargaController::class, 'edit'])->name('keluarga.edit');
+    Route::put('/keluarga/{keluarga}',           [KeluargaController::class, 'update'])->name('keluarga.update');
+    Route::delete('/keluarga/{keluarga}',        [KeluargaController::class, 'destroy'])->name('keluarga.destroy');
 
-    Route::post('/keluarga/{keluarga}/anggota/lahir', [KeluargaController::class, 'storeAnggotaLahir'])->name('keluarga.anggota.store-lahir');
-    Route::post('/keluarga/{keluarga}/anggota/masuk', [KeluargaController::class, 'storeAnggotaMasuk'])->name('keluarga.anggota.store-masuk');
-    Route::post('/keluarga/{keluarga}/anggota/dari-penduduk', [KeluargaController::class, 'storeAnggotaDariPenduduk'])->name('keluarga.anggota.store-dari-penduduk');
-    Route::delete('/keluarga/{keluarga}/anggota/{penduduk}/pecah', [KeluargaController::class, 'pecahKk'])->name('keluarga.anggota.pecah');
+    // ── Cetak Kartu Keluarga (PDF) ─────────────────────────────────────────────
+    Route::get('/keluarga/{keluarga}/cetak-kk',  [KeluargaController::class, 'cetakKk'])->name('keluarga.cetak-kk');
 
-    Route::get('/keluarga/{keluarga}/anggota/{penduduk}/buat-kk-baru', [KeluargaController::class, 'formBuatKkBaru'])->name('keluarga.buat-kk-baru.form');
-    Route::post('/keluarga/{keluarga}/anggota/{penduduk}/buat-kk-baru', [KeluargaController::class, 'storeBuatKkBaru'])->name('keluarga.buat-kk-baru.store');
+    // ── Tambah Anggota ─────────────────────────────────────────────────────────
+    Route::get('/keluarga/{keluarga}/anggota/create', [KeluargaController::class, 'createAnggota'])->name('keluarga.anggota.create');
+    Route::post('/keluarga/{keluarga}/anggota',       [KeluargaController::class, 'storeAnggota'])->name('keluarga.anggota.store');
 
-    Route::get('/keluarga/{keluarga}/anggota/create', [KeluargaController::class, 'createAnggota'])
-        ->name('keluarga.anggota.create');
+    Route::post('/keluarga/{keluarga}/anggota/lahir',          [KeluargaController::class, 'storeAnggotaLahir'])->name('keluarga.anggota.store-lahir');
+    Route::post('/keluarga/{keluarga}/anggota/masuk',          [KeluargaController::class, 'storeAnggotaMasuk'])->name('keluarga.anggota.store-masuk');
+    Route::post('/keluarga/{keluarga}/anggota/dari-penduduk',  [KeluargaController::class, 'storeAnggotaDariPenduduk'])->name('keluarga.anggota.store-dari-penduduk');
 
-    Route::post('/keluarga/{keluarga}/anggota', [KeluargaController::class, 'storeAnggota'])
-        ->name('keluarga.anggota.store');
+    // ── Manajemen Anggota ──────────────────────────────────────────────────────
+    // Keluarkan anggota (non-kepala) dari KK → jadi penduduk lepas
+    Route::delete(
+        '/keluarga/{keluarga}/anggota/{penduduk}/pecah',
+        [KeluargaController::class, 'pecahKk']
+    )->name('keluarga.anggota.pecah');
 
-    Route::post('/keluarga/{keluarga}/anggota/lahir', [KeluargaController::class, 'storeAnggotaLahir'])
-        ->name('keluarga.anggota.store-lahir');
+    // Pecah KK oleh Kepala Keluarga → KK dibubarkan, semua anggota jadi lepas
+    Route::delete(
+        '/keluarga/{keluarga}/anggota/{penduduk}/pecah-kk',
+        [KeluargaController::class, 'pecahKkKepala']
+    )->name('keluarga.pecah-kk');
 
-    Route::post('/keluarga/{keluarga}/anggota/masuk', [KeluargaController::class, 'storeAnggotaMasuk'])
-        ->name('keluarga.anggota.store-masuk');
+    // Ubah Hubungan (SHDK) anggota dalam KK
+    Route::patch(
+        '/keluarga/{keluarga}/anggota/{penduduk}/ubah-hubungan',
+        [KeluargaController::class, 'ubahHubungan']
+    )->name('keluarga.anggota.ubah-hubungan');
 
-    Route::post('/keluarga/{keluarga}/anggota/dari-penduduk', [KeluargaController::class, 'storeAnggotaDariPenduduk'])
-        ->name('keluarga.anggota.store-dari-penduduk');
+    // ── Buat KK Baru (Pecah) ───────────────────────────────────────────────────
+    Route::get(
+        '/keluarga/{keluarga}/anggota/{penduduk}/buat-kk-baru',
+        [KeluargaController::class, 'formBuatKkBaru']
+    )->name('keluarga.buat-kk-baru.form');
+    Route::post(
+        '/keluarga/{keluarga}/anggota/{penduduk}/buat-kk-baru',
+        [KeluargaController::class, 'storeBuatKkBaru']
+    )->name('keluarga.buat-kk-baru.store');
+
     /*
     |--------------------------------------------------------------------------
     | KEPENDUDUKAN — RUMAH TANGGA
@@ -1083,16 +1095,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
     Route::post('/rumah-tangga/impor', [RumahTanggaController::class, 'impor'])->name('rumah-tangga.impor');
     Route::delete('/rumah-tangga/bulk-destroy', [RumahTanggaController::class, 'bulkDestroy'])->name('rumah-tangga.bulk-destroy');
     Route::get('/rumah-tangga/cari-penduduk', [RumahTanggaController::class, 'cariPenduduk'])->name('rumah-tangga.cari-penduduk');
-    Route::get(
-        'rumah-tangga/{rumahTangga}/lokasi',
-        [RumahTanggaController::class, 'lokasi']
-    )->name('admin.rumah-tangga.lokasi');
 
-    Route::post(
-        'rumah-tangga/{rumahTangga}/lokasi',
-        [RumahTanggaController::class, 'lokasiStore']
-    )->name('admin.rumah-tangga.lokasi.store');
-    
     Route::resource('rumah-tangga', RumahTanggaController::class)->names([
         'index'   => 'rumah-tangga.index',
         'create'  => 'rumah-tangga.create',
@@ -1596,7 +1599,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
     Route::get('analisis/{analisi}/export',       [AnalisisMasterController::class, 'export'])->name('analisis.export');
     Route::post('analisis/{analisi}/sinkronisasi', [AnalisisMasterController::class, 'sinkronisasi'])->name('analisis.sinkronisasi');
     Route::post('analisis/import',                 [AnalisisMasterController::class, 'import'])->name('analisis.import');
-    
+
     Route::prefix('analisis/{analisi}/indikator')->name('analisis.indikator.')->group(function () {
         Route::post('/', [AnalisisIndikatorController::class, 'store'])->name('store');
         Route::put('/{indikator}', [AnalisisIndikatorController::class, 'update'])->name('update');
@@ -1741,16 +1744,16 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
 | WISATA
 |--------------------------------------------------------------------------
 */
-Route::prefix('wisata')->name('wisata.')->group(function () {
-    Route::get('/', [WisataController::class, 'index'])->name('index');
-    Route::get('/tambah', [WisataController::class, 'create'])->name('create');
-    Route::post('/', [WisataController::class, 'store'])->name('store');
-    Route::get('/{wisata}', [WisataController::class, 'show'])->name('show');
-    Route::get('/{wisata}/edit', [WisataController::class, 'edit'])->name('edit');
-    Route::put('/{wisata}', [WisataController::class, 'update'])->name('update');
-    Route::delete('/{wisata}', [WisataController::class, 'destroy'])->name('destroy');
-    Route::patch('/{wisata}/toggle-status', [WisataController::class, 'toggleStatus'])->name('toggle-status');
-});
+    Route::prefix('wisata')->name('wisata.')->group(function () {
+        Route::get('/', [WisataController::class, 'index'])->name('index');
+        Route::get('/tambah', [WisataController::class, 'create'])->name('create');
+        Route::post('/', [WisataController::class, 'store'])->name('store');
+        Route::get('/{wisata}', [WisataController::class, 'show'])->name('show');
+        Route::get('/{wisata}/edit', [WisataController::class, 'edit'])->name('edit');
+        Route::put('/{wisata}', [WisataController::class, 'update'])->name('update');
+        Route::delete('/{wisata}', [WisataController::class, 'destroy'])->name('destroy');
+        Route::patch('/{wisata}/toggle-status', [WisataController::class, 'toggleStatus'])->name('toggle-status');
+    });
 
     /*
     |--------------------------------------------------------------------------
@@ -1900,5 +1903,4 @@ Route::prefix('wisata')->name('wisata.')->group(function () {
         Route::put('/{ppid}',         [PpidController::class, 'update'])->name('update');
         Route::delete('/{ppid}',      [PpidController::class, 'destroy'])->name('destroy');
     });
-
 }); // <--- PENUTUP GROUP ADMIN UTAMA (Semua route admin dan ppid aman di dalam sini)

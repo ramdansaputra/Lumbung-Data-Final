@@ -126,8 +126,7 @@
                             rounded-lg shadow-lg overflow-hidden"
                             style="display:none">
                             <div class="p-2 border-b border-gray-100 dark:border-slate-700">
-                                <input type="text" x-model="search" @keydown.escape="open = false"
-                                    placeholder="Cari..."
+                                <input type="text" x-model="search" @keydown.escape="open = false" placeholder="Cari..."
                                     class="w-full px-2 py-1.5 text-sm bg-gray-50 dark:bg-slate-700
                                       border border-gray-200 dark:border-slate-600 rounded
                                       text-gray-700 dark:text-slate-200 outline-none
@@ -158,12 +157,14 @@
                         open: false,
                         search: '',
                         selected: '{{ request('sasaran') }}',
-                        label: '{{ request('sasaran') === '1' ? 'Penduduk' : (request('sasaran') === '2' ? 'Keluarga' : '') }}',
+                        label: '{{ request('sasaran') === '1' ? 'Penduduk' : (request('sasaran') === '2' ? 'Keluarga' : (request('sasaran') === '3' ? 'Rumah Tangga' : (request('sasaran') === '4' ? 'Kelompok/Organisasi Kemasyarakatan' : ''))) }}',
                         placeholder: 'Pilih Sasaran',
                         options: [
                             { value: '', label: 'Semua Sasaran' },
                             { value: '1', label: 'Penduduk' },
                             { value: '2', label: 'Keluarga' },
+                            { value: '3', label: 'Rumah Tangga' },
+                            { value: '4', label: 'Kelompok/Organisasi Kemasyarakatan' },
                         ],
                         get filtered() {
                             if (!this.search) return this.options;
@@ -385,8 +386,12 @@
                                 {{-- MASA BERLAKU: Format seperti OpenSID (d M Y, satu baris) --}}
                                 <td class="px-4 py-4 text-sm text-gray-600 dark:text-slate-400 whitespace-nowrap">
                                     @php
-                                        $mulai   = $item->tanggal_mulai   ? \Carbon\Carbon::parse($item->tanggal_mulai)   : null;
-                                        $selesai = $item->tanggal_selesai ? \Carbon\Carbon::parse($item->tanggal_selesai) : null;
+                                        $mulai = $item->tanggal_mulai
+                                            ? \Carbon\Carbon::parse($item->tanggal_mulai)
+                                            : null;
+                                        $selesai = $item->tanggal_selesai
+                                            ? \Carbon\Carbon::parse($item->tanggal_selesai)
+                                            : null;
                                         $isExpired = $selesai && $selesai->isPast();
                                     @endphp
                                     @if ($selesai)
@@ -409,12 +414,16 @@
                                 <td class="px-4 py-4">
                                     <span
                                         class="px-2.5 py-1 text-xs font-semibold rounded-full
-                                {{ $item->sasaran == 1
-                                    ? 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400'
-                                    : ($item->sasaran == 2
-                                        ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
-                                        : 'bg-gray-100 text-gray-700 dark:bg-slate-700 dark:text-slate-400') }}">
-                                        {{ $item->sasaran == 1 ? 'Penduduk' : ($item->sasaran == 2 ? 'Keluarga' : '-') }}
+    {{ $item->sasaran == 1
+        ? 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400'
+        : ($item->sasaran == 2
+            ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
+            : ($item->sasaran == 3
+                ? 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400'
+                : ($item->sasaran == 4
+                    ? 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400'
+                    : 'bg-gray-100 text-gray-700 dark:bg-slate-700 dark:text-slate-400'))) }}">
+                                        {{ $item->sasaran == 1 ? 'Penduduk' : ($item->sasaran == 2 ? 'Keluarga' : ($item->sasaran == 3 ? 'Rumah Tangga' : ($item->sasaran == 4 ? 'Kelompok/Org. Kemasyarakatan' : '-'))) }}
                                     </span>
                                 </td>
 
@@ -491,9 +500,9 @@
 
                     @php
                         $currentPage = $bantuan->currentPage();
-                        $lastPage    = $bantuan->lastPage();
-                        $start       = max(1, $currentPage - 2);
-                        $end         = min($lastPage, $currentPage + 2);
+                        $lastPage = $bantuan->lastPage();
+                        $start = max(1, $currentPage - 2);
+                        $end = min($lastPage, $currentPage + 2);
                     @endphp
 
                     @if ($start > 1)
@@ -540,23 +549,17 @@
         {{-- ═══════════════════════════════════════════════════════
              MODAL IMPOR PROGRAM BANTUAN
         ════════════════════════════════════════════════════════ --}}
-        <div x-show="modalImpor"
-            x-transition:enter="transition ease-out duration-200"
-            x-transition:enter-start="opacity-0"
-            x-transition:enter-end="opacity-100"
-            x-transition:leave="transition ease-in duration-150"
-            x-transition:leave-start="opacity-100"
-            x-transition:leave-end="opacity-0"
-            class="fixed inset-0 z-50 flex items-center justify-center p-4"
+        <div x-show="modalImpor" x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+            x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0" class="fixed inset-0 z-50 flex items-center justify-center p-4"
             style="display:none">
 
             {{-- Backdrop --}}
-            <div class="absolute inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm"
-                @click="modalImpor = false"></div>
+            <div class="absolute inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm" @click="modalImpor = false"></div>
 
             {{-- Panel Modal --}}
-            <div x-show="modalImpor"
-                x-transition:enter="transition ease-out duration-200"
+            <div x-show="modalImpor" x-transition:enter="transition ease-out duration-200"
                 x-transition:enter-start="opacity-0 scale-95 translate-y-2"
                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
                 x-transition:leave="transition ease-in duration-150"
@@ -578,7 +581,8 @@
                     <button type="button" @click="modalImpor = false"
                         class="flex items-center justify-center w-8 h-8 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
                 </div>
@@ -593,11 +597,9 @@
                             <label class="block text-sm font-semibold text-gray-700 dark:text-slate-200 mb-2">
                                 File Program Bantuan
                             </label>
-                            <div x-data="{ fileName: '' }"
-                                class="flex gap-2">
+                            <div x-data="{ fileName: '' }" class="flex gap-2">
                                 <div class="flex-1 relative">
-                                    <input type="text" readonly
-                                        :value="fileName || ''"
+                                    <input type="text" readonly :value="fileName || ''"
                                         placeholder="Pilih file Excel..."
                                         class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 rounded-lg
                                                bg-gray-50 dark:bg-slate-700 text-gray-700 dark:text-slate-200
@@ -633,11 +635,13 @@
                                     class="mt-0.5 w-4 h-4 rounded border-gray-300 dark:border-slate-600
                                            text-emerald-600 focus:ring-emerald-500 cursor-pointer flex-shrink-0">
                                 <div>
-                                    <span class="text-sm font-medium text-gray-700 dark:text-slate-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                                    <span
+                                        class="text-sm font-medium text-gray-700 dark:text-slate-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                                         Ganti data lama jika data ditemukan sama
                                     </span>
                                     <p class="text-xs text-gray-400 dark:text-slate-500 mt-0.5 leading-relaxed">
-                                        Centang jika ingin memperbarui data program bantuan lama yang memiliki nama/program sama
+                                        Centang jika ingin memperbarui data program bantuan lama yang memiliki nama/program
+                                        sama
                                         dengan data yang diimpor. Jika tidak dicentang, data lama tidak diubah dan data baru
                                         dengan nama/program sama diabaikan.
                                     </p>
@@ -658,7 +662,8 @@
                                         class="mt-0.5 w-4 h-4 rounded border-gray-300 dark:border-slate-600
                                                text-emerald-600 focus:ring-emerald-500 cursor-pointer flex-shrink-0">
                                     <div>
-                                        <span class="text-sm font-medium text-gray-700 dark:text-slate-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                                        <span
+                                            class="text-sm font-medium text-gray-700 dark:text-slate-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                                             Kosongkan data peserta sebelum impor
                                         </span>
                                         <p class="text-xs text-gray-400 dark:text-slate-500 mt-0.5 leading-relaxed">
@@ -672,7 +677,8 @@
                                         class="mt-0.5 w-4 h-4 rounded border-gray-300 dark:border-slate-600
                                                text-emerald-600 focus:ring-emerald-500 cursor-pointer flex-shrink-0">
                                     <div>
-                                        <span class="text-sm font-medium text-gray-700 dark:text-slate-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                                        <span
+                                            class="text-sm font-medium text-gray-700 dark:text-slate-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                                             Ganti data peserta lama jika NIK sama
                                         </span>
                                         <p class="text-xs text-gray-400 dark:text-slate-500 mt-0.5 leading-relaxed">
@@ -686,7 +692,8 @@
                                         class="mt-0.5 w-4 h-4 rounded border-gray-300 dark:border-slate-600
                                                text-emerald-600 focus:ring-emerald-500 cursor-pointer flex-shrink-0">
                                     <div>
-                                        <span class="text-sm font-medium text-gray-700 dark:text-slate-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                                        <span
+                                            class="text-sm font-medium text-gray-700 dark:text-slate-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                                             Acak nomor kartu peserta jika kosong
                                         </span>
                                         <p class="text-xs text-gray-400 dark:text-slate-500 mt-0.5 leading-relaxed">
@@ -712,18 +719,21 @@
                     </div>
 
                     {{-- Footer Modal --}}
-                    <div class="flex items-center justify-between px-6 py-4 border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800/80">
+                    <div
+                        class="flex items-center justify-between px-6 py-4 border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800/80">
                         <button type="button" @click="modalImpor = false"
                             class="inline-flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold rounded-lg transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12" />
                             </svg>
                             Batal
                         </button>
                         <button type="submit"
                             class="inline-flex items-center gap-2 px-5 py-2 bg-teal-500 hover:bg-teal-600 text-white text-sm font-semibold rounded-lg transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7" />
                             </svg>
                             Simpan
                         </button>

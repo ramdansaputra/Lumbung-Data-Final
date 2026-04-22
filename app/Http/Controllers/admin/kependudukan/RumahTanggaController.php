@@ -24,7 +24,7 @@ class RumahTanggaController extends Controller {
     public function index(Request $request) {
         $query = RumahTangga::with([
             'wilayah',
-            'keluarga.kepalaKeluarga:id,nama,nik',
+            'keluarga' => fn($q) => $q->oldest()->with('kepalaKeluarga:id,nama,nik'),
         ]);
 
         if ($request->filled('search')) {
@@ -90,10 +90,11 @@ class RumahTanggaController extends Controller {
     public function cariPenduduk(Request $request) {
         $q = $request->get('q', '');
 
-        $results = Penduduk::where(function ($query) use ($q) {
-            $query->where('nama', 'like', "%{$q}%")
-                ->orWhere('nik', 'like', "%{$q}%");
-        })
+        $results = Penduduk::whereNotNull('keluarga_id')
+            ->where(function ($query) use ($q) {
+                $query->where('nama', 'like', "%{$q}%")
+                    ->orWhere('nik', 'like', "%{$q}%");
+            })
             ->with([
                 'keluarga:id,no_kk,alamat,wilayah_id',
                 'keluarga.wilayah:id,dusun,rw,rt',
