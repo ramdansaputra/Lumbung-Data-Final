@@ -44,6 +44,41 @@ class BantuanPesertaController extends Controller {
         return view('admin.bantuan.peserta.create', compact('bantuan', 'penduduk'));
     }
 
+    public function edit(Program $bantuan, ProgramPeserta $peserta) {
+        return view('admin.bantuan.peserta.edit', compact('bantuan', 'peserta'));
+    }
+
+    public function update(Request $request, Program $bantuan, ProgramPeserta $peserta) {
+        $request->validate([
+            'no_kartu'            => 'nullable|string|max:100',
+            'kartu_nik'           => 'required|string|max:20',
+            'kartu_nama'          => 'required|string|max:255',
+            'kartu_tempat_lahir'  => 'nullable|string|max:100',
+            'kartu_tanggal_lahir' => 'nullable|date',
+            'kartu_alamat'        => 'nullable|string',
+            'gambar_kartu'        => 'nullable|image|max:2048',
+        ]);
+
+        $data = $request->only([
+            'no_kartu',
+            'kartu_nik',
+            'kartu_nama',
+            'kartu_tempat_lahir',
+            'kartu_tanggal_lahir',
+            'kartu_alamat',
+        ]);
+
+        if ($request->hasFile('gambar_kartu')) {
+            $data['gambar_kartu'] = $request->file('gambar_kartu')
+                ->store('bantuan/kartu', 'public');
+        }
+
+        $peserta->update($data);
+
+        return redirect()->route('admin.bantuan.show', $bantuan)
+            ->with('success', 'Data peserta berhasil diperbarui.');
+    }
+
     public function search(Request $request, Program $bantuan) {
         $q = $request->query('q', '');
 

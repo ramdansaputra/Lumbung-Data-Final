@@ -1676,7 +1676,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
         Route::post('/import', [BantuanPesertaController::class, 'import'])->name('import');
         Route::get('/export/excel', [BantuanPesertaController::class, 'exportExcel'])->name('export.excel');
         Route::get('/export/pdf', [BantuanPesertaController::class, 'exportPdf'])->name('export.pdf');
-        Route::delete('/bulk-destroy', [BantuanPesertaController::class, 'bulkDestroy'])->name('bulk-destroy'); // ← tambahkan ini
+        Route::get('/{peserta}/edit', [BantuanPesertaController::class, 'edit'])->name('edit');
+        Route::put('/{peserta}', [BantuanPesertaController::class, 'update'])->name('update');
+        Route::delete('/bulk-destroy', [BantuanPesertaController::class, 'bulkDestroy'])->name('bulk-destroy');
         Route::delete('/{peserta}', [BantuanPesertaController::class, 'destroy'])->name('destroy');
     });
 
