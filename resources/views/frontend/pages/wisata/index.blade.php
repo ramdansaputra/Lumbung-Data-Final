@@ -6,7 +6,7 @@
 @section('content')
 
 {{-- Ganti blok PAGE HERO yang lama dengan ini --}}
-<x-hero-section 
+<x-hero-section
     title="Wisata Desa"
     subtitle="Temukan keindahan alam, budaya, dan potensi wisata unggulan yang ada di desa kami."
     :breadcrumb="[
@@ -14,19 +14,6 @@
         ['label' => 'Wisata Desa', 'url' => '#']
     ]"
 />
-
-{{-- BREADCRUMB --}}
-<div class="bg-white border-b border-gray-100">
-    <div class="container mx-auto px-4 py-3">
-        <nav class="flex items-center gap-2 text-sm text-gray-500">
-            <a href="{{ route('home') }}" class="hover:text-emerald-600 transition">Beranda</a>
-            <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-            </svg>
-            <span class="text-gray-900 font-medium">Wisata Desa</span>
-        </nav>
-    </div>
-</div>
 
 {{-- KONTEN UTAMA --}}
 <section class="py-16 bg-gray-50 relative">
