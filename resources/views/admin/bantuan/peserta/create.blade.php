@@ -125,7 +125,7 @@
             {{-- ── TOOLBAR ── --}}
             <div class="flex flex-wrap items-center gap-2 px-5 pt-5 pb-4 border-b border-gray-100 dark:border-slate-700">
                 <a href="{{ route('admin.bantuan.index') }}"
-                    class="inline-flex items-center gap-1.5 px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm font-semibold rounded-lg transition-colors">
+                    class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold rounded-lg transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M4 6h16M4 10h16M4 14h16M4 18h16" />
@@ -215,7 +215,7 @@
                         Cari NIK / Nama Penduduk <span class="text-red-500 ml-0.5">*</span>
                     </label>
 
-                    <div class="relative max-w-xl">
+                    <div class="relative max-w-xl" @click.outside="openDrop = false">
 
                         {{-- Tombol trigger --}}
                         <button type="button" @click="bukaDropdown()"
@@ -250,8 +250,7 @@
 
                         {{-- Dropdown panel — x-if: tidak ada di DOM saat tertutup --}}
                         <template x-if="openDrop">
-                            <div class="absolute left-0 top-full mt-1 w-full z-50 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-xl shadow-xl overflow-hidden"
-                                @click.away="openDrop = false">
+                             <div class="absolute left-0 top-full mt-1 w-full z-50 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-xl shadow-xl overflow-hidden">
 
                                 <div class="p-2 border-b border-gray-100 dark:border-slate-700">
                                     <div class="relative">
