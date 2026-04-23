@@ -238,13 +238,57 @@ class RumahTanggaController extends Controller {
     public function show(RumahTangga $rumahTangga) {
         $rumahTangga->load([
             'wilayah',
-            'keluarga' => fn($q) => $q->with([
-                'kepalaKeluarga',
-                'anggota.shdk',
-            ]),
+            'keluarga' => fn($q) => $q
+                ->with([
+                    'kepalaKeluarga:id,nama,nik',
+                    'anggota' => fn($q2) => $q2->orderBy('kk_level')->orderBy('nama'),
+                ])
+                ->orderBy('no_kk'),
         ]);
 
-        return view('admin.rumah-tangga-show', compact('rumahTangga'));
+        // KK yang belum masuk rumah tangga manapun (untuk modal tambah KK)
+        $kkTersedia = Keluarga::aktif()
+            ->whereNull('rumah_tangga_id')
+            ->with('kepalaKeluarga:id,nama,nik')
+            ->select('id', 'no_kk', 'kepala_keluarga_id')
+            ->orderBy('no_kk')
+            ->get();
+
+        return view('admin.rumah-tangga-show', compact('rumahTangga', 'kkTersedia'));
+    }
+
+    // =========================================================================
+    // TAMBAH KK — Masukkan KK yang belum ber-RT ke RT ini
+    // POST /admin/rumah-tangga/{rumahTangga}/tambah-kk
+    // =========================================================================
+    public function tambahKk(Request $request, RumahTangga $rumahTangga) {
+        $request->validate([
+            'keluarga_id' => 'required|exists:keluarga,id',
+        ]);
+
+        $kk = Keluarga::findOrFail($request->keluarga_id);
+
+        if ($kk->rumah_tangga_id) {
+            return back()->with('error', "KK {$kk->no_kk} sudah terdaftar di rumah tangga lain.");
+        }
+
+        $kk->update(['rumah_tangga_id' => $rumahTangga->id]);
+
+        return back()->with('success', "KK {$kk->no_kk} berhasil ditambahkan ke rumah tangga {$rumahTangga->no_rumah_tangga}.");
+    }
+
+    // =========================================================================
+    // LEPAS KK — Copot KK dari RT ini (tanpa menghapus KK atau anggotanya)
+    // DELETE /admin/rumah-tangga/{rumahTangga}/lepas-kk/{keluarga}
+    // =========================================================================
+    public function lepasKk(RumahTangga $rumahTangga, Keluarga $keluarga) {
+        if ((int) $keluarga->rumah_tangga_id !== $rumahTangga->id) {
+            return back()->with('error', 'KK tersebut tidak terdaftar dalam rumah tangga ini.');
+        }
+
+        $keluarga->update(['rumah_tangga_id' => null]);
+
+        return back()->with('success', "KK {$keluarga->no_kk} berhasil dilepas dari rumah tangga {$rumahTangga->no_rumah_tangga}.");
     }
 
     // ── LOKASI — Tampilkan peta lokasi rumah tangga ───────────────────────────

@@ -108,7 +108,7 @@
                     Kembali ke Daftar Program Bantuan
                 </a>
                 <a href="{{ route('admin.bantuan.show', $bantuan) }}"
-                   class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500 hover:bg-teal-600 text-white text-xs font-semibold rounded-lg transition-colors">
+                   class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-semibold rounded-lg transition-colors">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                     </svg>
