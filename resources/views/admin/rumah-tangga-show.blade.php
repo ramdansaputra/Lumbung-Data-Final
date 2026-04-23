@@ -24,29 +24,33 @@
         ];
 
         // Flatten semua anggota dari semua KK dalam RT ini
-        $kepalaRt     = $rumahTangga->getKepalaRumahTangga();
-        $totalKk      = $rumahTangga->keluarga->count();
+        $kepalaRt = $rumahTangga->getKepalaRumahTangga();
+        $totalKk = $rumahTangga->keluarga->count();
         $totalAnggota = $rumahTangga->keluarga->sum(fn($kk) => $kk->anggota->count());
 
         $allAnggota = collect();
         foreach ($rumahTangga->keluarga as $kk) {
             foreach ($kk->anggota->sortBy('kk_level') as $anggota) {
-                $anggota->_no_kk   = $kk->no_kk;
-                $anggota->_kk_id   = $kk->id;
-                $anggota->_alamat  = $kk->wilayah
-                    ? 'RT ' . ($kk->wilayah->rt ?? '—') . ' / RW ' . ($kk->wilayah->rw ?? '—') . ' — Dusun ' . ($kk->wilayah->dusun ?? '—')
-                    : ($kk->alamat ?? '—');
+                $anggota->_no_kk = $kk->no_kk;
+                $anggota->_kk_id = $kk->id;
+                $anggota->_alamat = $kk->wilayah
+                    ? 'RT ' .
+                        ($kk->wilayah->rt ?? '—') .
+                        ' / RW ' .
+                        ($kk->wilayah->rw ?? '—') .
+                        ' — Dusun ' .
+                        ($kk->wilayah->dusun ?? '—')
+                    : $kk->alamat ?? '—';
                 // Hubungan dalam konteks RT: apakah dia kepala RT atau anggota
-                $anggota->_hubungan_rt = ($kepalaRt && $anggota->id === $kepalaRt->id)
-                    ? 'Kepala Rumah Tangga'
-                    : 'Anggota';
+                $anggota->_hubungan_rt =
+                    $kepalaRt && $anggota->id === $kepalaRt->id ? 'Kepala Rumah Tangga' : 'Anggota';
                 $allAnggota->push($anggota);
             }
         }
     @endphp
 
     {{-- ROOT WRAPPER --}}
-    <div x-data="rtShow()">
+    <div x-data="rtShow()" @selection-changed.window="selectedCount = $event.detail.count">
 
         {{-- ── PAGE HEADER ── --}}
         <div class="flex items-center justify-between mb-5">
@@ -63,12 +67,14 @@
                     </svg>
                     Beranda
                 </a>
-                <svg class="w-3.5 h-3.5 text-gray-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-3.5 h-3.5 text-gray-300 dark:text-slate-600" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
                 <a href="{{ route('admin.rumah-tangga.index') }}"
                     class="text-gray-400 dark:text-slate-500 hover:text-emerald-600 transition-colors">Data Rumah Tangga</a>
-                <svg class="w-3.5 h-3.5 text-gray-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-3.5 h-3.5 text-gray-300 dark:text-slate-600" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
                 <span class="text-gray-600 dark:text-slate-300 font-medium">Data Anggota Rumah Tangga</span>
@@ -81,7 +87,9 @@
                 x-transition:leave="transition ease-in duration-200" x-transition:leave-end="opacity-0"
                 class="flex items-start gap-3 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl mb-5">
                 <svg class="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                    <path fill-rule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clip-rule="evenodd" />
                 </svg>
                 <p class="text-sm font-semibold text-emerald-800 dark:text-emerald-300">{{ session('success') }}</p>
             </div>
@@ -91,7 +99,9 @@
                 x-transition:leave="transition ease-in duration-200" x-transition:leave-end="opacity-0"
                 class="flex items-center gap-3 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl mb-5">
                 <svg class="w-5 h-5 text-red-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                    <path fill-rule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                        clip-rule="evenodd" />
                 </svg>
                 <p class="text-sm font-medium text-red-700 dark:text-red-300">{{ session('error') }}</p>
             </div>
@@ -113,13 +123,17 @@
                 </button>
 
                 {{-- Hapus (bulk) --}}
-                <button type="button" @click="bukaHapusBulk()"
-                    class="inline-flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm">
+                <button type="button" @click="bukaHapusBulk()" :disabled="selectedCount === 0"
+                    :class="selectedCount > 0 ?
+                        'bg-red-500 hover:bg-red-600 cursor-pointer' :
+                        'bg-red-300 opacity-60 cursor-not-allowed'"
+                    class="inline-flex items-center gap-2 px-4 py-2 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>
                     Hapus
+                    <span x-show="selectedCount > 0">(<span x-text="selectedCount"></span>)</span>
                 </button>
 
                 {{-- Kartu Rumah Tangga --}}
@@ -136,8 +150,10 @@
                 {{-- Kembali --}}
                 <a href="{{ route('admin.rumah-tangga.index') }}"
                     class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold rounded-lg transition-all shadow-sm group">
-                    <svg class="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    <svg class="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
                     Kembali Ke Daftar Rumah Tangga
                 </a>
@@ -184,12 +200,14 @@
                             <div>
                                 @if ($rumahTangga->wilayah)
                                     <p class="text-sm text-gray-700 dark:text-slate-300">
-                                        RT {{ $rumahTangga->wilayah->rt ?? '—' }} / RW {{ $rumahTangga->wilayah->rw ?? '—' }} —
+                                        RT {{ $rumahTangga->wilayah->rt ?? '—' }} / RW
+                                        {{ $rumahTangga->wilayah->rw ?? '—' }} —
                                         Dusun {{ $rumahTangga->wilayah->dusun ?? '—' }}
                                     </p>
                                 @endif
                                 @if ($rumahTangga->alamat)
-                                    <p class="text-xs text-gray-500 dark:text-slate-400 mt-0.5">{{ $rumahTangga->alamat }}</p>
+                                    <p class="text-xs text-gray-500 dark:text-slate-400 mt-0.5">{{ $rumahTangga->alamat }}
+                                    </p>
                                 @endif
                                 @if (!$rumahTangga->wilayah && !$rumahTangga->alamat)
                                     <p class="text-sm text-gray-400 italic">—</p>
@@ -253,83 +271,90 @@
 
             {{-- ── DAFTAR ANGGOTA (flat, seperti OpenSID) ── --}}
             <div x-data="{
-                    search: '',
-                    perPage: 10,
-                    currentPage: 1,
-                    selectedIds: [],
-                    selectAll: false,
-
-                    allRows: {{ Js::from(
-                        $allAnggota->map(fn($a) => [
-                            'id'          => $a->id,
-                            'nik'         => $a->nik ?? '—',
-                            'no_kk'       => $a->_no_kk,
-                            'nama'        => $a->nama,
-                            'jk'          => $a->jenis_kelamin === 'L' ? 'LAKI-LAKI' : 'PEREMPUAN',
-                            'alamat'      => $a->_alamat,
-                            'hubungan'    => $a->_hubungan_rt,
-                            'editUrl'     => route('admin.penduduk.edit', $a),
-                            'showUrl'     => route('admin.penduduk.show', $a),
-                            'hubunganRt'  => $a->_hubungan_rt,
-                        ])
-                    ) }},
-
-                    get filtered() {
-                        if (!this.search) return this.allRows;
-                        const s = this.search.toLowerCase();
-                        return this.allRows.filter(r =>
-                            r.nik.toLowerCase().includes(s) ||
-                            r.no_kk.toLowerCase().includes(s) ||
-                            r.nama.toLowerCase().includes(s) ||
-                            r.hubungan.toLowerCase().includes(s)
-                        );
-                    },
-                    get totalPages() {
-                        return Math.max(1, Math.ceil(this.filtered.length / this.perPage));
-                    },
-                    get paginated() {
-                        const start = (this.currentPage - 1) * this.perPage;
-                        return this.filtered.slice(start, start + this.perPage);
-                    },
-                    get startEntry() {
-                        return this.filtered.length === 0 ? 0 : (this.currentPage - 1) * this.perPage + 1;
-                    },
-                    get endEntry() {
-                        return Math.min(this.currentPage * this.perPage, this.filtered.length);
-                    },
-                    toggleSelectAll() {
-                        if (this.selectAll) {
-                            this.selectedIds = this.paginated.map(r => r.id);
-                        } else {
-                            this.selectedIds = [];
-                        }
-                    },
-                    toggleRow(id) {
-                        const idx = this.selectedIds.indexOf(id);
-                        if (idx === -1) this.selectedIds.push(id);
-                        else this.selectedIds.splice(idx, 1);
-                        this.selectAll = this.paginated.every(r => this.selectedIds.includes(r.id));
-                    },
-                    changePage(p) {
-                        if (p < 1 || p > this.totalPages) return;
-                        this.currentPage = p;
-                        this.selectAll = false;
-                    },
-                    watchSearch() {
-                        this.currentPage = 1;
-                        this.selectAll = false;
+                search: '',
+                perPage: 10,
+                currentPage: 1,
+                selectedIds: [],
+                selectAll: false,
+            
+                allRows: {{ Js::from(
+                    $allAnggota->map(
+                        fn($a) => [
+                            'id' => $a->id,
+                            'nik' => $a->nik ?? '—',
+                            'no_kk' => $a->_no_kk,
+                            'nama' => $a->nama,
+                            'jk' => $a->jenis_kelamin === 'L' ? 'LAKI-LAKI' : 'PEREMPUAN',
+                            'alamat' => $a->_alamat,
+                            'hubungan' => $a->_hubungan_rt,
+                            'editUrl' => route('admin.penduduk.edit', $a),
+                            'showUrl' => route('admin.penduduk.show', $a),
+                            'hubunganRt' => $a->_hubungan_rt,
+                        ],
+                    ),
+                ) }},
+            
+                get filtered() {
+                    if (!this.search) return this.allRows;
+                    const s = this.search.toLowerCase();
+                    return this.allRows.filter(r =>
+                        r.nik.toLowerCase().includes(s) ||
+                        r.no_kk.toLowerCase().includes(s) ||
+                        r.nama.toLowerCase().includes(s) ||
+                        r.hubungan.toLowerCase().includes(s)
+                    );
+                },
+                get totalPages() {
+                    return Math.max(1, Math.ceil(this.filtered.length / this.perPage));
+                },
+                get paginated() {
+                    const start = (this.currentPage - 1) * this.perPage;
+                    return this.filtered.slice(start, start + this.perPage);
+                },
+                get startEntry() {
+                    return this.filtered.length === 0 ? 0 : (this.currentPage - 1) * this.perPage + 1;
+                },
+                get endEntry() {
+                    return Math.min(this.currentPage * this.perPage, this.filtered.length);
+                },
+                toggleSelectAll() {
+                    if (this.selectAll) {
+                        this.selectedIds = this.paginated.map(r => r.id);
+                    } else {
                         this.selectedIds = [];
-                    },
-                    watchPerPage() {
-                        this.currentPage = 1;
-                        this.selectAll = false;
-                        this.selectedIds = [];
-                    },
-                }"
-                x-init="$watch('search', () => watchSearch()); $watch('perPage', () => watchPerPage())">
+                    }
+                        this.$dispatch('selection-changed', { count: this.selectedIds.length }); 
+                },
+                toggleRow(id) {
+                    const idx = this.selectedIds.indexOf(id);
+                    if (idx === -1) this.selectedIds.push(id);
+                    else this.selectedIds.splice(idx, 1);
+                    this.selectAll = this.paginated.every(r => this.selectedIds.includes(r.id));
+                    this.$dispatch('selection-changed', { count: this.selectedIds.length });
+                },
+                changePage(p) {
+                    if (p < 1 || p > this.totalPages) return;
+                    this.currentPage = p;
+                    this.selectAll = false;
+                },
+                watchSearch() {
+                    this.currentPage = 1;
+                    this.selectAll = false;
+                    this.selectedIds = [];
+                    this.$dispatch('selection-changed', { count: 0 });
+                },
+                watchPerPage() {
+                    this.currentPage = 1;
+                    this.selectAll = false;
+                    this.selectedIds = [];
+                    this.$dispatch('selection-changed', { count: 0 });
+                },
+            }" x-init="$watch('search', () => watchSearch());
+            $watch('perPage', () => watchPerPage())">
 
                 {{-- Header: Tampilkan + Cari --}}
-                <div class="flex flex-wrap items-center justify-between gap-3 px-5 py-3 border-b border-gray-100 dark:border-slate-700">
+                <div
+                    class="flex flex-wrap items-center justify-between gap-3 px-5 py-3 border-b border-gray-100 dark:border-slate-700">
                     <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-slate-400">
                         <span>Tampilkan</span>
                         <select x-model.number="perPage"
@@ -357,14 +382,30 @@
                                     <input type="checkbox" x-model="selectAll" @change="toggleSelectAll()"
                                         class="rounded border-gray-300 text-emerald-500 focus:ring-emerald-500 cursor-pointer">
                                 </th>
-                                <th class="px-3 py-3 text-center text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider w-12">NO</th>
-                                <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">AKSI</th>
-                                <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">NIK</th>
-                                <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">NOMOR KK</th>
-                                <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">NAMA</th>
-                                <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">JENIS KELAMIN</th>
-                                <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">ALAMAT</th>
-                                <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">HUBUNGAN</th>
+                                <th
+                                    class="px-3 py-3 text-center text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider w-12">
+                                    NO</th>
+                                <th
+                                    class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                                    AKSI</th>
+                                <th
+                                    class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                                    NIK</th>
+                                <th
+                                    class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                                    NOMOR KK</th>
+                                <th
+                                    class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                                    NAMA</th>
+                                <th
+                                    class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                                    JENIS KELAMIN</th>
+                                <th
+                                    class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                                    ALAMAT</th>
+                                <th
+                                    class="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                                    HUBUNGAN</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100 dark:divide-slate-700">
@@ -373,8 +414,7 @@
 
                                     {{-- Checkbox --}}
                                     <td class="px-3 py-3 text-center">
-                                        <input type="checkbox"
-                                            :checked="selectedIds.includes(row.id)"
+                                        <input type="checkbox" :checked="selectedIds.includes(row.id)"
                                             @change="toggleRow(row.id)"
                                             class="rounded border-gray-300 text-emerald-500 focus:ring-emerald-500 cursor-pointer">
                                     </td>
@@ -389,7 +429,8 @@
                                             {{-- Edit biodata --}}
                                             <a :href="row.editUrl" title="Ubah Biodata"
                                                 class="inline-flex items-center justify-center w-7 h-7 rounded bg-amber-500 hover:bg-amber-600 text-white transition-colors">
-                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                         d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                                 </svg>
@@ -398,7 +439,8 @@
                                             <button type="button" title="Ubah Hubungan RT"
                                                 @click="bukaUbahHubungan(row)"
                                                 class="inline-flex items-center justify-center w-7 h-7 rounded bg-teal-500 hover:bg-teal-600 text-white transition-colors">
-                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                         d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                                                 </svg>
@@ -407,7 +449,8 @@
                                             <button type="button" title="Hapus dari Rumah Tangga"
                                                 @click="bukaHapus(row)"
                                                 class="inline-flex items-center justify-center w-7 h-7 rounded bg-red-500 hover:bg-red-600 text-white transition-colors">
-                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                         d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                                 </svg>
@@ -416,10 +459,12 @@
                                     </td>
 
                                     {{-- NIK --}}
-                                    <td class="px-3 py-3 font-mono text-xs text-gray-600 dark:text-slate-300 whitespace-nowrap" x-text="row.nik"></td>
+                                    <td class="px-3 py-3 font-mono text-xs text-gray-600 dark:text-slate-300 whitespace-nowrap"
+                                        x-text="row.nik"></td>
 
                                     {{-- NOMOR KK --}}
-                                    <td class="px-3 py-3 font-mono text-xs text-emerald-600 dark:text-emerald-400 whitespace-nowrap" x-text="row.no_kk"></td>
+                                    <td class="px-3 py-3 font-mono text-xs text-emerald-600 dark:text-emerald-400 whitespace-nowrap"
+                                        x-text="row.no_kk"></td>
 
                                     {{-- NAMA --}}
                                     <td class="px-3 py-3 whitespace-nowrap">
@@ -429,13 +474,16 @@
                                     </td>
 
                                     {{-- JENIS KELAMIN --}}
-                                    <td class="px-3 py-3 text-xs text-gray-600 dark:text-slate-300 whitespace-nowrap" x-text="row.jk"></td>
+                                    <td class="px-3 py-3 text-xs text-gray-600 dark:text-slate-300 whitespace-nowrap"
+                                        x-text="row.jk"></td>
 
                                     {{-- ALAMAT --}}
-                                    <td class="px-3 py-3 text-xs text-gray-600 dark:text-slate-300" x-text="row.alamat"></td>
+                                    <td class="px-3 py-3 text-xs text-gray-600 dark:text-slate-300" x-text="row.alamat">
+                                    </td>
 
                                     {{-- HUBUNGAN RT --}}
-                                    <td class="px-3 py-3 text-xs text-gray-600 dark:text-slate-300 whitespace-nowrap" x-text="row.hubungan"></td>
+                                    <td class="px-3 py-3 text-xs text-gray-600 dark:text-slate-300 whitespace-nowrap"
+                                        x-text="row.hubungan"></td>
 
                                 </tr>
                             </template>
@@ -444,12 +492,14 @@
                             <tr x-show="paginated.length === 0">
                                 <td colspan="9" class="px-6 py-16 text-center">
                                     <div class="flex flex-col items-center gap-3">
-                                        <svg class="w-12 h-12 text-gray-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="w-12 h-12 text-gray-300 dark:text-slate-600" fill="none"
+                                            stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                                 d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
                                         </svg>
                                         <p class="text-gray-400 dark:text-slate-500 text-sm"
-                                            x-text="search ? 'Tidak ada data yang cocok.' : 'Belum ada anggota dalam rumah tangga ini.'"></p>
+                                            x-text="search ? 'Tidak ada data yang cocok.' : 'Belum ada anggota dalam rumah tangga ini.'">
+                                        </p>
                                         <button x-show="!search" type="button" @click="bukaTambah()"
                                             class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold rounded-lg transition-colors">
                                             Tambah Anggota Sekarang
@@ -462,8 +512,10 @@
                 </div>
 
                 {{-- Footer: info entri + paginasi --}}
-                <div class="flex flex-wrap items-center justify-between gap-3 px-5 py-3 border-t border-gray-100 dark:border-slate-700 text-sm text-gray-500 dark:text-slate-400">
-                    <span x-text="filtered.length === 0
+                <div
+                    class="flex flex-wrap items-center justify-between gap-3 px-5 py-3 border-t border-gray-100 dark:border-slate-700 text-sm text-gray-500 dark:text-slate-400">
+                    <span
+                        x-text="filtered.length === 0
                         ? 'Menampilkan 0 sampai 0 dari 0 entri'
                         : 'Menampilkan ' + startEntry + ' sampai ' + endEntry + ' dari ' + filtered.length + ' entri'"></span>
 
@@ -474,11 +526,10 @@
                         </button>
                         <template x-for="p in totalPages" :key="p">
                             <button @click="changePage(p)"
-                                :class="p === currentPage
-                                    ? 'bg-emerald-500 text-white border-emerald-500'
-                                    : 'border-gray-200 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700'"
-                                class="w-8 h-8 text-xs rounded-lg border transition-colors"
-                                x-text="p"></button>
+                                :class="p === currentPage ?
+                                    'bg-emerald-500 text-white border-emerald-500' :
+                                    'border-gray-200 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700'"
+                                class="w-8 h-8 text-xs rounded-lg border transition-colors" x-text="p"></button>
                         </template>
                         <button @click="changePage(currentPage + 1)" :disabled="currentPage === totalPages"
                             class="px-3 py-1.5 text-xs rounded-lg border border-gray-200 dark:border-slate-600 disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors">
@@ -498,14 +549,16 @@
             class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
             x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0"
             x-transition:enter-end="opacity-100" @click.self="modalTambah.open = false" style="display:none">
-            <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-700 w-full max-w-lg mx-4 overflow-hidden">
+            <div
+                class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-700 w-full max-w-lg mx-4 overflow-hidden">
 
                 <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-slate-700">
                     <h3 class="font-semibold text-gray-800 dark:text-slate-100">Tambah Anggota Rumah Tangga</h3>
                     <button @click="modalTambah.open = false"
                         class="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
                 </div>
@@ -521,7 +574,8 @@
                     @csrf
                     <div class="p-5 space-y-4">
                         <div>
-                            <label class="block text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide mb-1.5">
+                            <label
+                                class="block text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide mb-1.5">
                                 Pilih Kartu Keluarga <span class="text-red-500">*</span>
                             </label>
                             <div x-data="{
@@ -529,23 +583,31 @@
                                 search: '',
                                 selected: '',
                                 options: {{ Js::from(
-                                    $kkTersedia->map(fn($kk) => [
-                                        'value' => $kk->id,
-                                        'label' => $kk->no_kk . ($kk->kepalaKeluarga ? ' — ' . $kk->kepalaKeluarga->nama : ''),
-                                    ])
+                                    $kkTersedia->map(
+                                        fn($kk) => [
+                                            'value' => $kk->id,
+                                            'label' => $kk->no_kk . ($kk->kepalaKeluarga ? ' — ' . $kk->kepalaKeluarga->nama : ''),
+                                        ],
+                                    ),
                                 ) }},
                                 get labelText() { return this.options.find(o => o.value == this.selected)?.label ?? ''; },
                                 get filtered() { return !this.search ? this.options : this.options.filter(o => o.label.toLowerCase().includes(this.search.toLowerCase())); },
-                                choose(opt) { this.selected = opt.value; this.open = false; this.search = ''; }
+                                choose(opt) { this.selected = opt.value;
+                                    this.open = false;
+                                    this.search = ''; }
                             }" @click.away="open = false" class="relative">
                                 <button type="button" @click="open = !open"
                                     class="w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm bg-white dark:bg-slate-700 transition-colors focus:outline-none"
-                                    :class="open ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-gray-300 dark:border-slate-600 hover:border-emerald-400'">
+                                    :class="open ? 'border-emerald-500 ring-2 ring-emerald-500/20' :
+                                        'border-gray-300 dark:border-slate-600 hover:border-emerald-400'">
                                     <span x-text="labelText || 'Pilih KK yang belum masuk RT'"
-                                        :class="labelText ? 'text-gray-800 dark:text-slate-200' : 'text-gray-400 dark:text-slate-500'"></span>
+                                        :class="labelText ? 'text-gray-800 dark:text-slate-200' :
+                                            'text-gray-400 dark:text-slate-500'"></span>
                                     <svg class="w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ml-2"
-                                        :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                        :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 9l-7 7-7-7" />
                                     </svg>
                                 </button>
                                 <div x-show="open" x-transition
@@ -560,7 +622,9 @@
                                         <template x-for="opt in filtered" :key="opt.value">
                                             <li @click="choose(opt)"
                                                 class="px-3 py-2 text-sm cursor-pointer transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 dark:hover:text-emerald-400"
-                                                :class="selected == opt.value ? 'bg-emerald-500 text-white hover:bg-emerald-600 hover:text-white' : 'text-gray-700 dark:text-slate-200'"
+                                                :class="selected == opt.value ?
+                                                    'bg-emerald-500 text-white hover:bg-emerald-600 hover:text-white' :
+                                                    'text-gray-700 dark:text-slate-200'"
                                                 x-text="opt.label"></li>
                                         </template>
                                         <li x-show="filtered.length === 0"
@@ -577,18 +641,21 @@
                         </div>
                     </div>
 
-                    <div class="flex gap-3 px-5 py-4 bg-gray-50 dark:bg-slate-800/60 border-t border-gray-100 dark:border-slate-700">
+                    <div
+                        class="flex gap-3 px-5 py-4 bg-gray-50 dark:bg-slate-800/60 border-t border-gray-100 dark:border-slate-700">
                         <button type="button" @click="modalTambah.open = false"
                             class="inline-flex items-center gap-1.5 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold rounded-lg transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12" />
                             </svg>
                             Batal
                         </button>
                         <button type="submit"
                             class="inline-flex items-center gap-1.5 px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold rounded-lg transition-colors ml-auto">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7" />
                             </svg>
                             Tambahkan
                         </button>
@@ -605,14 +672,16 @@
             class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
             x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0"
             x-transition:enter-end="opacity-100" @click.self="modalHubungan.open = false" style="display:none">
-            <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-700 w-full max-w-md mx-4 overflow-hidden">
+            <div
+                class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-700 w-full max-w-md mx-4 overflow-hidden">
 
                 <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-slate-700">
                     <h3 class="font-semibold text-gray-800 dark:text-slate-100">Ubah Hubungan Rumah Tangga</h3>
                     <button @click="modalHubungan.open = false"
                         class="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
                 </div>
@@ -622,7 +691,8 @@
                     @csrf
                     @method('PATCH')
                     <div class="p-5 space-y-4">
-                        <div class="divide-y divide-gray-100 dark:divide-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl overflow-hidden">
+                        <div
+                            class="divide-y divide-gray-100 dark:divide-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl overflow-hidden">
                             <div class="grid grid-cols-3 px-4 py-3 items-center">
                                 <p class="text-xs font-semibold text-gray-500 dark:text-slate-400">NIK</p>
                                 <p class="col-span-2 text-sm font-mono text-gray-700 dark:text-slate-200 flex gap-2">
@@ -638,29 +708,36 @@
                         </div>
 
                         <div>
-                            <label class="block text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide mb-1.5">
+                            <label
+                                class="block text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wide mb-1.5">
                                 Hubungan dalam Rumah Tangga <span class="text-red-500">*</span>
                             </label>
                             <select name="hubungan_rumah_tangga" required
                                 class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none">
-                                <option value="Kepala Rumah Tangga" :selected="modalHubungan.hubungan === 'Kepala Rumah Tangga'">Kepala Rumah Tangga</option>
-                                <option value="Anggota" :selected="modalHubungan.hubungan === 'Anggota'">Anggota</option>
+                                <option value="Kepala Rumah Tangga"
+                                    :selected="modalHubungan.hubungan === 'Kepala Rumah Tangga'">Kepala Rumah Tangga
+                                </option>
+                                <option value="Anggota" :selected="modalHubungan.hubungan === 'Anggota'">Anggota
+                                </option>
                             </select>
                         </div>
                     </div>
 
-                    <div class="flex gap-3 px-5 py-4 bg-gray-50 dark:bg-slate-800/60 border-t border-gray-100 dark:border-slate-700">
+                    <div
+                        class="flex gap-3 px-5 py-4 bg-gray-50 dark:bg-slate-800/60 border-t border-gray-100 dark:border-slate-700">
                         <button type="button" @click="modalHubungan.open = false"
                             class="inline-flex items-center gap-1.5 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold rounded-lg transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12" />
                             </svg>
                             Batal
                         </button>
                         <button type="submit"
                             class="inline-flex items-center gap-1.5 px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold rounded-lg transition-colors ml-auto">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7" />
                             </svg>
                             Simpan
                         </button>
@@ -677,11 +754,14 @@
             class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
             x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0"
             x-transition:enter-end="opacity-100" @click.self="modalHapus.open = false" style="display:none">
-            <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-700 w-full max-w-md mx-4 overflow-hidden">
+            <div
+                class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-700 w-full max-w-md mx-4 overflow-hidden">
 
                 <div class="flex items-center gap-2 px-5 py-4 border-b border-gray-100 dark:border-slate-700">
                     <svg class="w-5 h-5 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                        <path fill-rule="evenodd"
+                            d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                            clip-rule="evenodd" />
                     </svg>
                     <h3 class="font-semibold text-gray-800 dark:text-slate-100">Konfirmasi Hapus</h3>
                 </div>
@@ -694,11 +774,13 @@
                     </div>
                 </div>
 
-                <div class="flex justify-end gap-3 px-5 py-4 bg-gray-50 dark:bg-slate-800/60 border-t border-gray-100 dark:border-slate-700">
+                <div
+                    class="flex justify-end gap-3 px-5 py-4 bg-gray-50 dark:bg-slate-800/60 border-t border-gray-100 dark:border-slate-700">
                     <button type="button" @click="modalHapus.open = false"
                         class="inline-flex items-center gap-1.5 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold rounded-lg transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
                         </svg>
                         Tutup
                     </button>
@@ -708,7 +790,8 @@
                         <button type="submit"
                             class="inline-flex items-center gap-1.5 px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold rounded-lg transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7" />
                             </svg>
                             Ya, Hapus
                         </button>
@@ -725,11 +808,14 @@
             class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
             x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0"
             x-transition:enter-end="opacity-100" @click.self="modalHapusBulk.open = false" style="display:none">
-            <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-700 w-full max-w-md mx-4 overflow-hidden">
+            <div
+                class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-700 w-full max-w-md mx-4 overflow-hidden">
 
                 <div class="flex items-center gap-2 px-5 py-4 border-b border-gray-100 dark:border-slate-700">
                     <svg class="w-5 h-5 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                        <path fill-rule="evenodd"
+                            d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                            clip-rule="evenodd" />
                     </svg>
                     <h3 class="font-semibold text-gray-800 dark:text-slate-100">Konfirmasi Hapus</h3>
                 </div>
@@ -740,14 +826,14 @@
                     </div>
                 </div>
 
-                <div class="flex justify-end gap-3 px-5 py-4 bg-gray-50 dark:bg-slate-800/60 border-t border-gray-100 dark:border-slate-700">
+                <div
+                    class="flex justify-end gap-3 px-5 py-4 bg-gray-50 dark:bg-slate-800/60 border-t border-gray-100 dark:border-slate-700">
                     <button type="button" @click="modalHapusBulk.open = false"
                         class="inline-flex items-center gap-1.5 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold rounded-lg transition-colors">
                         Tutup
                     </button>
                     {{-- Sesuaikan action dengan route bulk destroy yang ada --}}
-                    <form method="POST"
-                        action="{{ route('admin.rumah-tangga.anggota.bulk-destroy', $rumahTangga) }}"
+                    <form method="POST" action="{{ route('admin.rumah-tangga.anggota.bulk-destroy', $rumahTangga) }}"
                         class="inline">
                         @csrf
                         @method('DELETE')
@@ -758,7 +844,8 @@
                         <button type="submit"
                             class="inline-flex items-center gap-1.5 px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold rounded-lg transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7" />
                             </svg>
                             Ya, Hapus
                         </button>
@@ -776,8 +863,11 @@
     <script>
         function rtShow() {
             return {
+                selectedCount: 0,
                 // Modal Tambah
-                modalTambah: { open: false },
+                modalTambah: {
+                    open: false
+                },
                 bukaTambah() {
                     this.modalTambah.open = true;
                 },
@@ -791,26 +881,33 @@
                     hubungan: 'Anggota',
                 },
                 bukaUbahHubungan(row) {
-                    this.modalHubungan.nik      = row.nik;
-                    this.modalHubungan.nama     = row.nama;
+                    this.modalHubungan.nik = row.nik;
+                    this.modalHubungan.nama = row.nama;
                     this.modalHubungan.hubungan = row.hubunganRt;
                     // Sesuaikan route ubah hubungan RT di sini
                     // Contoh: `/admin/rumah-tangga/{{ $rumahTangga->id }}/anggota/{id}/hubungan`
-                    this.modalHubungan.action   = `/admin/rumah-tangga/{{ $rumahTangga->id }}/anggota/${row.id}/hubungan`;
-                    this.modalHubungan.open     = true;
+                    this.modalHubungan.action = `/admin/rumah-tangga/{{ $rumahTangga->id }}/anggota/${row.id}/hubungan`;
+                    this.modalHubungan.open = true;
                 },
 
                 // Modal Hapus satu
-                modalHapus: { open: false, action: '', nama: '' },
+                modalHapus: {
+                    open: false,
+                    action: '',
+                    nama: ''
+                },
                 bukaHapus(row) {
-                    this.modalHapus.nama   = row.nama;
+                    this.modalHapus.nama = row.nama;
                     // Sesuaikan route hapus anggota RT di sini
                     this.modalHapus.action = `/admin/rumah-tangga/{{ $rumahTangga->id }}/anggota/${row.id}`;
-                    this.modalHapus.open   = true;
+                    this.modalHapus.open = true;
                 },
 
                 // Modal Hapus bulk
-                modalHapusBulk: { open: false, ids: [] },
+                modalHapusBulk: {
+                    open: false,
+                    ids: []
+                },
                 bukaHapusBulk() {
                     // Ambil selectedIds dari tabel (Alpine scope berbeda, pakai event)
                     this.$dispatch('ambil-selected');
@@ -825,14 +922,14 @@
                 const tabelEl = document.querySelector('[x-data*="allRows"]');
                 if (tabelEl) {
                     const tabelData = Alpine.$data(tabelEl);
-                    const rootEl    = document.querySelector('[x-data="rtShow()"]');
+                    const rootEl = document.querySelector('[x-data="rtShow()"]');
                     if (rootEl) {
                         const rootData = Alpine.$data(rootEl);
                         if (tabelData.selectedIds.length === 0) {
                             alert('Pilih minimal satu anggota untuk dihapus.');
                             return;
                         }
-                        rootData.modalHapusBulk.ids  = [...tabelData.selectedIds];
+                        rootData.modalHapusBulk.ids = [...tabelData.selectedIds];
                         rootData.modalHapusBulk.open = true;
                     }
                 }
