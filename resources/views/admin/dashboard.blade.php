@@ -27,7 +27,7 @@
 </div>
 
 {{-- ============================================================ --}}
-{{-- 8 STAT CARDS - OpenSID Style                                 --}}
+{{-- 7 STAT CARDS - OpenSID Style                                 --}}
 {{-- ============================================================ --}}
 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
 
@@ -36,7 +36,7 @@
         class="stat-card group rounded-xl overflow-hidden flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 bg-purple-500 hover:bg-purple-600">
         <div class="flex items-center justify-between px-5 py-5 flex-1">
             <div class="relative z-10">
-                <p class="text-4xl font-bold text-white leading-none counter" data-target="{{ $wilayahCount ?? 0 }}">0</p>
+                <p class="text-4xl font-bold text-white leading-none">{{ number_format($wilayahCount ?? 0, 0, ',', '.') }}</p>
                 <p class="text-sm font-semibold text-white/90 mt-2">Wilayah Desa</p>
             </div>
             <div class="relative z-10 opacity-25 group-hover:scale-110 transition-transform duration-300">
@@ -58,7 +58,7 @@
         class="stat-card group rounded-xl overflow-hidden flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 bg-cyan-500 hover:bg-cyan-600">
         <div class="flex items-center justify-between px-5 py-5 flex-1">
             <div class="relative z-10">
-                <p class="text-4xl font-bold text-white leading-none counter" data-target="{{ $pendudukCount ?? 0 }}">0</p>
+                <p class="text-4xl font-bold text-white leading-none">{{ number_format($pendudukCount ?? 0, 0, ',', '.') }}</p>
                 <p class="text-sm font-semibold text-white/90 mt-2">Penduduk</p>
             </div>
             <div class="relative z-10 opacity-25 group-hover:scale-110 transition-transform duration-300">
@@ -80,7 +80,7 @@
         class="stat-card group rounded-xl overflow-hidden flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 bg-emerald-500 hover:bg-emerald-600">
         <div class="flex items-center justify-between px-5 py-5 flex-1">
             <div class="relative z-10">
-                <p class="text-4xl font-bold text-white leading-none counter" data-target="{{ $keluargaCount ?? 0 }}">0</p>
+                <p class="text-4xl font-bold text-white leading-none">{{ number_format($keluargaCount ?? 0, 0, ',', '.') }}</p>
                 <p class="text-sm font-semibold text-white/90 mt-2">Keluarga</p>
             </div>
             <div class="relative z-10 opacity-25 group-hover:scale-110 transition-transform duration-300">
@@ -102,7 +102,7 @@
         class="stat-card group rounded-xl overflow-hidden flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 bg-blue-500 hover:bg-blue-600">
         <div class="flex items-center justify-between px-5 py-5 flex-1">
             <div class="relative z-10">
-                <p class="text-4xl font-bold text-white leading-none counter" data-target="{{ $suratCount ?? 0 }}">0</p>
+                <p class="text-4xl font-bold text-white leading-none">{{ number_format($suratCount ?? 0, 0, ',', '.') }}</p>
                 <p class="text-sm font-semibold text-white/90 mt-2">Surat Tercetak</p>
             </div>
             <div class="relative z-10 opacity-25 group-hover:scale-110 transition-transform duration-300">
@@ -124,7 +124,7 @@
         class="stat-card group rounded-xl overflow-hidden flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 bg-red-500 hover:bg-red-600">
         <div class="flex items-center justify-between px-5 py-5 flex-1">
             <div class="relative z-10">
-                <p class="text-4xl font-bold text-white leading-none counter" data-target="{{ $kelompokCount ?? 0 }}">0</p>
+                <p class="text-4xl font-bold text-white leading-none">{{ number_format($kelompokCount ?? 0, 0, ',', '.') }}</p>
                 <p class="text-sm font-semibold text-white/90 mt-2">Kelompok</p>
             </div>
             <div class="relative z-10 opacity-25 group-hover:scale-110 transition-transform duration-300">
@@ -146,7 +146,7 @@
         class="stat-card group rounded-xl overflow-hidden flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 bg-gray-400 hover:bg-gray-500">
         <div class="flex items-center justify-between px-5 py-5 flex-1">
             <div class="relative z-10">
-                <p class="text-4xl font-bold text-white leading-none counter" data-target="{{ $rumahTanggaCount ?? 0 }}">0</p>
+                <p class="text-4xl font-bold text-white leading-none">{{ number_format($rumahTanggaCount ?? 0, 0, ',', '.') }}</p>
                 <p class="text-sm font-semibold text-white/90 mt-2">Rumah Tangga</p>
             </div>
             <div class="relative z-10 opacity-25 group-hover:scale-110 transition-transform duration-300">
@@ -168,7 +168,7 @@
         class="stat-card group rounded-xl overflow-hidden flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 bg-amber-500 hover:bg-amber-600">
         <div class="flex items-center justify-between px-5 py-5 flex-1">
             <div class="relative z-10">
-                <p class="text-4xl font-bold text-white leading-none counter" data-target="{{ $bantuanCount ?? 0 }}">0</p>
+                <p class="text-4xl font-bold text-white leading-none">{{ number_format($bantuanCount ?? 0, 0, ',', '.') }}</p>
                 <p class="text-sm font-semibold text-white/90 mt-2">Bantuan</p>
             </div>
             <div class="relative z-10 opacity-25 group-hover:scale-110 transition-transform duration-300">
@@ -185,8 +185,8 @@
         </div>
     </a>
 
-    {{-- Card 8: Verifikasi Layanan Mandiri --}}
-    <a href="#"
+    {{-- Card 8: Verifikasi Layanan Mandiri (belum dipakai) --}}
+    {{-- <a href="#"
         class="stat-card group rounded-xl overflow-hidden flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 bg-teal-500 hover:bg-teal-600">
         <div class="flex items-center justify-between px-5 py-5 flex-1">
             <div class="relative z-10">
@@ -205,36 +205,12 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
         </div>
-    </a>
+    </a> --}}
 
 </div>
 
 @push('scripts')
 <script>
-    // Animated counters
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting && !entry.target.dataset.animated) {
-                entry.target.dataset.animated = true;
-                const target = parseInt(entry.target.dataset.target) || 0;
-                if (target === 0) return;
-                const steps = Math.floor(1200 / 16);
-                let current = 0;
-                const increment = target / steps;
-                const timer = setInterval(() => {
-                    current += increment;
-                    if (current >= target) {
-                        entry.target.textContent = target.toLocaleString('id-ID');
-                        clearInterval(timer);
-                    } else {
-                        entry.target.textContent = Math.floor(current).toLocaleString('id-ID');
-                    }
-                }, 16);
-            }
-        });
-    }, { threshold: 0.5 });
-    document.querySelectorAll('.counter').forEach(el => observer.observe(el));
-
     // Staggered entrance animation
     document.querySelectorAll('.stat-card').forEach((card, i) => {
         card.style.opacity = '0';
