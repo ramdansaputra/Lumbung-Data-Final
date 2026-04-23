@@ -1090,50 +1090,50 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
     | KEPENDUDUKAN — RUMAH TANGGA
     |--------------------------------------------------------------------------
     */
-    Route::prefix('rumah-tangga')->name('rumah-tangga.')->group(function () {
+    Route::get('/rumah-tangga/cetak',           [RumahTanggaController::class, 'cetak'])->name('rumah-tangga.cetak');
+    Route::get('/rumah-tangga/unduh',           [RumahTanggaController::class, 'unduh'])->name('rumah-tangga.unduh');
+    Route::get('/rumah-tangga/export-pdf',      [RumahTanggaController::class, 'exportPdf'])->name('rumah-tangga.export-pdf');
+    Route::get('/rumah-tangga/template-impor',  [RumahTanggaController::class, 'templateImpor'])->name('rumah-tangga.template-impor');
+    Route::post('/rumah-tangga/impor',          [RumahTanggaController::class, 'impor'])->name('rumah-tangga.impor');
+    Route::delete('/rumah-tangga/bulk-destroy', [RumahTanggaController::class, 'bulkDestroy'])->name('rumah-tangga.bulk-destroy');
+    Route::get('/rumah-tangga/cari-penduduk',   [RumahTanggaController::class, 'cariPenduduk'])->name('rumah-tangga.cari-penduduk');
 
-        // Cetak / unduh / ekspor
-        Route::get('cetak',           [RumahTanggaController::class, 'cetak'])->name('cetak');
-        Route::get('unduh',           [RumahTanggaController::class, 'unduh'])->name('unduh');
-        Route::get('export-pdf',      [RumahTanggaController::class, 'exportPdf'])->name('export-pdf');
-        Route::get('template-impor',  [RumahTanggaController::class, 'templateImpor'])->name('template-impor');
-        Route::post('impor',          [RumahTanggaController::class, 'impor'])->name('impor');
+    // ── Resource utama (SAMA PERSIS seperti semula) ───────────────────────────────
+    Route::resource('rumah-tangga', RumahTanggaController::class)->names([
+        'index'   => 'rumah-tangga.index',
+        'create'  => 'rumah-tangga.create',
+        'store'   => 'rumah-tangga.store',
+        'show'    => 'rumah-tangga.show',
+        'edit'    => 'rumah-tangga.edit',
+        'update'  => 'rumah-tangga.update',
+        'destroy' => 'rumah-tangga.destroy',
+    ]);
 
-        // Bulk & AJAX
-        Route::delete('bulk-destroy', [RumahTanggaController::class, 'bulkDestroy'])->name('bulk-destroy');
-        Route::get('cari-penduduk',   [RumahTanggaController::class, 'cariPenduduk'])->name('cari-penduduk');
+    // ── Sub-routes per RT (HANYA TAMBAHAN BARU — letakkan setelah resource) ───────
+    Route::get(
+        '/rumah-tangga/{rumahTangga}/delete',
+        [RumahTanggaController::class, 'confirmDestroy']
+    )->name('rumah-tangga.confirm-destroy');
 
-        // ── Resource utama ────────────────────────────────────────────────────────
-        Route::resource('/', RumahTanggaController::class)
-            ->parameter('/', 'rumahTangga')
-            ->names([
-                'index'   => 'index',
-                'create'  => 'create',
-                'store'   => 'store',
-                'show'    => 'show',
-                'edit'    => 'edit',
-                'update'  => 'update',
-                'destroy' => 'destroy',
-            ]);
+    Route::post(
+        '/rumah-tangga/{rumahTangga}/tambah-kk',
+        [RumahTanggaController::class, 'tambahKk']
+    )->name('rumah-tangga.tambah-kk');
 
-        // ── Sub-routes per RT ─────────────────────────────────────────────────────
-        Route::prefix('{rumahTangga}')->group(function () {
+    Route::delete(
+        '/rumah-tangga/{rumahTangga}/lepas-kk/{keluarga}',
+        [RumahTanggaController::class, 'lepasKk']
+    )->name('rumah-tangga.lepas-kk');
 
-            // Halaman konfirmasi hapus (opsional)
-            Route::get('delete', [RumahTanggaController::class, 'confirmDestroy'])
-                ->name('confirm-destroy');
+    Route::get(
+        '/rumah-tangga/{rumahTangga}/lokasi',
+        [RumahTanggaController::class, 'lokasi']
+    )->name('rumah-tangga.lokasi');
+    Route::post(
+        '/rumah-tangga/{rumahTangga}/lokasi',
+        [RumahTanggaController::class, 'lokasiStore']
+    )->name('rumah-tangga.lokasi.store');
 
-            // Manajemen KK dalam RT
-            Route::post('tambah-kk',              [RumahTanggaController::class, 'tambahKk'])
-                ->name('tambah-kk');
-            Route::delete('lepas-kk/{keluarga}',  [RumahTanggaController::class, 'lepasKk'])
-                ->name('lepas-kk');
-
-            // Lokasi / peta
-            Route::get('lokasi',    [RumahTanggaController::class, 'lokasi'])->name('lokasi');
-            Route::post('lokasi',   [RumahTanggaController::class, 'lokasiStore'])->name('lokasi.store');
-        });
-    });
 
     /*
     |--------------------------------------------------------------------------
