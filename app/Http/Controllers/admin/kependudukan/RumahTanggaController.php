@@ -524,10 +524,44 @@ class RumahTanggaController extends Controller {
     }
 
     // =========================================================================
-    // CETAK / UNDUH / EXPORT
+    // CETAK — Kartu Rumah Tangga
     // =========================================================================
     public function cetak(Request $request) {
-        $rumahTangga = $this->buildExportQuery($request)->get();
+        $rumahTangga = RumahTangga::with([
+            'wilayah',
+            'keluarga' => fn($q) => $q->orderBy('no_kk')->with([
+                'kepalaKeluarga:id,nama,nik',
+                'anggota' => fn($q2) => $q2
+                    ->orderBy('kk_level')
+                    ->orderBy('nama')
+                    ->with([
+                        'agama:id,nama',
+                        'pekerjaan:id,nama',
+                        'statusKawin:id,nama',
+                        'pendidikanKk:id,nama',
+                        'golonganDarah:id,nama',
+                        'warganegara:id,nama',
+                    ]),
+            ]),
+        ])
+            ->when(
+                $request->filled('search'),
+                fn($q) => $q->where(
+                    fn($q2) => $q2
+                        ->where('no_rumah_tangga', 'like', "%{$request->search}%")
+                        ->orWhereHas(
+                            'keluarga.kepalaKeluarga',
+                            fn($q3) => $q3->where('nama', 'like', "%{$request->search}%")
+                        )
+                )
+            )
+            ->when(
+                $request->filled('dusun'),
+                fn($q) => $q->whereHas('wilayah', fn($q2) => $q2->where('dusun', $request->dusun))
+            )
+            ->orderBy('no_rumah_tangga')
+            ->get();
+
         return view('admin.rumah-tangga-cetak', compact('rumahTangga'));
     }
 
