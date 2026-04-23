@@ -1047,6 +1047,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check.identitas.des
 
     // ── Cetak Kartu Keluarga (PDF) ─────────────────────────────────────────────
     Route::get('/keluarga/{keluarga}/cetak-kk',  [KeluargaController::class, 'cetakKk'])->name('keluarga.cetak-kk');
+    Route::get('/keluarga/{keluarga}/lihat-kk',  [KeluargaController::class, 'lihatKk'])->name('keluarga.lihat-kk'); // tambah ini
 
     // ── Tambah Anggota ─────────────────────────────────────────────────────────
     Route::get('/keluarga/{keluarga}/anggota/create', [KeluargaController::class, 'createAnggota'])->name('keluarga.anggota.create');

@@ -882,6 +882,10 @@ class KeluargaController extends Controller {
         ]);
 
         $identitas = \App\Models\IdentitasDesa::first(); // tambah ini
+        $kepalaDesaPerangkat = \App\Models\PerangkatDesa::with('jabatan')
+            ->aktif()
+            ->whereHas('jabatan', fn($q) => $q->where('nama', 'like', '%kepala desa%'))
+            ->first();
 
         $pdf = Pdf::loadView('admin.keluarga-cetak-kk', compact('keluarga', 'identitas'))
             ->setPaper('a4', 'portrait');
@@ -903,6 +907,10 @@ class KeluargaController extends Controller {
         ]);
 
         $identitas = \App\Models\IdentitasDesa::first();
+        $kepalaDesaPerangkat = \App\Models\PerangkatDesa::with('jabatan')
+            ->aktif()
+            ->whereHas('jabatan', fn($q) => $q->where('nama', 'like', '%kepala desa%'))
+            ->first();
 
         return view('admin.keluarga-cetak-kk', compact('keluarga', 'identitas'));
     }
