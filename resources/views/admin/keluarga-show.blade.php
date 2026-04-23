@@ -178,7 +178,7 @@
                 </div>
 
                 {{-- Kartu Keluarga --}}
-                <a href="{{ route('admin.keluarga.cetak-kk', $keluarga) }}" target="_blank"
+                <a href="{{ route('admin.keluarga.lihat-kk', $keluarga) }}" target="_blank"
                     class="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

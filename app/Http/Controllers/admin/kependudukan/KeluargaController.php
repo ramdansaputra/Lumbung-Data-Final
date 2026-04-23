@@ -877,12 +877,34 @@ class KeluargaController extends Controller {
             'anggota.pekerjaan',
             'anggota.statusKawin',
             'anggota.pendidikanKk',
+            'anggota.golonganDarah',
+            'anggota.warganegara',
         ]);
 
-        $pdf = Pdf::loadView('admin.keluarga-cetak-kk', compact('keluarga'))
+        $identitas = \App\Models\IdentitasDesa::first(); // tambah ini
+
+        $pdf = Pdf::loadView('admin.keluarga-cetak-kk', compact('keluarga', 'identitas'))
             ->setPaper('a4', 'portrait');
 
         return $pdf->stream('KK_' . $keluarga->no_kk . '.pdf');
+    }
+
+    public function lihatKk(Keluarga $keluarga) {
+        $keluarga->load([
+            'wilayah',
+            'kepalaKeluarga',
+            'anggota' => fn($q) => $q->orderByRaw("FIELD(kk_level, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10)"),
+            'anggota.agama',
+            'anggota.pekerjaan',
+            'anggota.statusKawin',
+            'anggota.pendidikanKk',
+            'anggota.golonganDarah',
+            'anggota.warganegara',
+        ]);
+
+        $identitas = \App\Models\IdentitasDesa::first();
+
+        return view('admin.keluarga-cetak-kk', compact('keluarga', 'identitas'));
     }
 
     // =========================================================================

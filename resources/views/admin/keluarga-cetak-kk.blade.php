@@ -379,14 +379,14 @@
                         <span class="label">Desa / Kelurahan</span>
                         <span class="sep">:</span>
                         <span class="value">
-                            {{ strtoupper(config('desa.nama_desa', '—')) }}
+                            {{ strtoupper($identitas?->nama_desa ?? '—') }}
                         </span>
                     </div>
                     <div class="kk-address-row">
                         <span class="label">Kecamatan</span>
                         <span class="sep">:</span>
                         <span class="value">
-                            {{ strtoupper(config('desa.kecamatan', '—')) }}
+                            {{ strtoupper($identitas?->kecamatan ?? '—') }}
                         </span>
                     </div>
                     <div class="kk-address-row">
@@ -404,19 +404,19 @@
                         <span class="label">Kabupaten / Kota</span>
                         <span class="sep">:</span>
                         <span class="value">
-                            {{ strtoupper(config('desa.kabupaten', '—')) }}
+                            {{ strtoupper($identitas?->kabupaten ?? '—') }}
                         </span>
                     </div>
                     <div class="kk-address-row">
                         <span class="label">Kode Pos</span>
                         <span class="sep">:</span>
-                        <span class="value">{{ config('desa.kode_pos', '—') }}</span>
+                        <span class="value">{{ $identitas?->kode_pos ?? '—' }}</span>
                     </div>
                     <div class="kk-address-row">
                         <span class="label">Provinsi</span>
                         <span class="sep">:</span>
                         <span class="value">
-                            {{ strtoupper(config('desa.provinsi', '—')) }}
+                            {{ strtoupper($identitas?->provinsi ?? '—') }}
                         </span>
                     </div>
                     <div class="kk-address-row">
@@ -567,15 +567,15 @@
                 {{-- Kepala Desa --}}
                 <div class="kk-sign-box kk-sign-right">
                     <div class="sign-place" style="font-size:11px;">
-                        {{ config('desa.nama_desa', 'Desa') }},
+                        {{ $identitas?->nama_desa ?? '—' }},
                         @if($keluarga->tgl_terdaftar)
                             {{ \Carbon\Carbon::parse($keluarga->tgl_terdaftar)->isoFormat('D MMMM YYYY') }}
                         @else
                             {{ now()->isoFormat('D MMMM YYYY') }}
                         @endif
                     </div>
-                    <div class="sign-title">{{ config('desa.jabatan_kades', 'Kepala Desa') }} {{ config('desa.nama_desa', '') }}</div>
-                    <div class="sign-name">{{ strtoupper(config('desa.nama_kades', '...')) }}</div>
+                    <div class="sign-title">{{ 'Kepala Desa' }} {{ config('desa.nama_desa', '') }}</div>
+                    <div class="sign-name">{{ strtoupper($identitas?->kepala_desa ?? '—') }}</div>
                 </div>
 
             </div>
