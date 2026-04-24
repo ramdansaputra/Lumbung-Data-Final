@@ -8,10 +8,16 @@ use Illuminate\Support\Facades\DB;
 return new class extends Migration {
     public function up(): void {
         Schema::table('analisis_master', function (Blueprint $table) {
-            // Kolom Google Form
-            $table->string('google_form_id')->nullable()->after('periode');
-            $table->timestamp('last_sync_at')->nullable()->after('google_form_id');
-        });
+
+    if (!Schema::hasColumn('analisis_master', 'google_form_id')) {
+        $table->string('google_form_id')->nullable()->after('periode');
+    }
+
+    if (!Schema::hasColumn('analisis_master', 'last_sync_at')) {
+        $table->timestamp('last_sync_at')->nullable()->after('google_form_id');
+    }
+
+});
 
         // Perluas enum subjek (MySQL)
         // Sesuaikan jika pakai PostgreSQL (gunakan alter column type text + check constraint)
